@@ -118,6 +118,11 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 				<main className="gtm-main">
 					<h1 className="gtm-title">{title}</h1>
 					<p className="gtm-sub">{subtitle}</p>
+					{data.usingFallback && (
+						<div className="gtm-demo-banner">
+							Demo preview · GTM database migration is pending. Data shown here is read-only sample content.
+						</div>
+					)}
 					<div className="gtm-toolbar">
 						<input
 							className="gtm-input"
