@@ -1,0 +1,19 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "prototype-tracker",
+	"main": "./workers/app.ts",
+	"compatibility_date": "2025-10-08",
+	"compatibility_flags": ["nodejs_compat"],
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "Prototype-Tracker-EU",
+			"database_id": "6a433442-cee1-4240-8e17-9dd7c5a428ef",
+			"migrations_dir": "migrations"
+		}
+	]
+}
