@@ -118,10 +118,7 @@ export async function getRecentLogs(
 }
 
 export async function listOwners(env: Env): Promise<string[]> {
-	const r = await env.DB.prepare(
-		"SELECT DISTINCT owner FROM app_user WHERE role='sales' ORDER BY name",
-	).all<{ owner: string }>();
-	// owner 存的是 name；直接从 app_user 取 name 更稳
+	// owner 字段存的是用户 name；直接从 app_user 取名单
 	const u = await env.DB.prepare(
 		"SELECT name FROM app_user ORDER BY role, name",
 	).all<{ name: string }>();
