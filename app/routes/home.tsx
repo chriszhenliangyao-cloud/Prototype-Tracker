@@ -357,6 +357,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 						<button className={`mbtn${mode === "ct" ? " ct-on" : ""}`} onClick={() => setMode("ct")}>🛰️ Control Tower</button>
 					)}
 					<button className={`mbtn${mode === "fv" ? " fv-on" : ""}`} onClick={() => setMode("fv")}>🧳 Field View</button>
+					<Link className="mbtn" to="/project-progress">📈 Project Progress</Link>
 				</div>
 				<div className="mode-right">
 					<button className="theme-btn" title="Toggle light / dark" onClick={toggleTheme}>{theme === "dark" ? "☀️" : "🌙"}</button>
