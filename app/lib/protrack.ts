@@ -57,7 +57,7 @@ export function todayStr(): string {
 export async function getUser(
 	request: Request,
 	env: Env,
-): Promise<User & { viaAccess: boolean }> {
+): Promise<User & { viaAccess: boolean; impersonating: boolean; realName: string }> {
 	let email = (
 		request.headers.get("Cf-Access-Authenticated-User-Email") || ""
 	)
@@ -70,9 +70,20 @@ export async function getUser(
 	)
 		.bind(email)
 		.first<User>();
-	if (!row)
-		return { email, name: email.split("@")[0], role: "denied", viaAccess };
-	return { ...row, viaAccess };
+	const real: User = row ?? { email, name: email.split("@")[0], role: "denied" };
+
+	// admin 专用：?as=<name> 以某销售视角预览（Field View）。非 admin 无效，防止越权。
+	const asParam = new URL(request.url).searchParams.get("as");
+	if (asParam && real.role === "admin") {
+		const persona = await env.DB.prepare(
+			"SELECT email, name, role FROM app_user WHERE name = ? OR lower(email) = ?",
+		)
+			.bind(asParam, asParam.toLowerCase())
+			.first<User>();
+		if (persona)
+			return { ...persona, viaAccess, impersonating: true, realName: real.name };
+	}
+	return { ...real, viaAccess, impersonating: false, realName: real.name };
 }
 
 // ── 读取：按角色过滤样机 ──

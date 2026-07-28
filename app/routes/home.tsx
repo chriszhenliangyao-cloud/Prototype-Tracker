@@ -1,4 +1,4 @@
-import { Form, Link, useNavigation } from "react-router";
+import { Form, Link, useNavigation, useNavigate } from "react-router";
 import { useState } from "react";
 import type { Route } from "./+types/home";
 import {
@@ -83,7 +83,10 @@ const STATUS_STYLE: Record<string, string> = {
 export default function Home({ loaderData, actionData }: Route.ComponentProps) {
 	const { me, protos, owners } = loaderData;
 	const nav = useNavigation();
+	const navigate = useNavigate();
 	const busy = nav.state !== "idle";
+	// 销售名单（用于 admin「以销售视角预览」）
+	const salesNames = owners.filter((o) => o !== me.realName);
 	const [q, setQ] = useState("");
 	const [statusFilter, setStatusFilter] = useState("");
 	const [ownerFilter, setOwnerFilter] = useState("");
@@ -129,10 +132,30 @@ export default function Home({ loaderData, actionData }: Route.ComponentProps) {
 						</p>
 					</div>
 					<div className="flex gap-2">
+						{(me.role === "admin" || me.impersonating) && (
+							<select
+								value={me.impersonating ? me.name : ""}
+								onChange={(e) => navigate(e.target.value ? `/?as=${encodeURIComponent(e.target.value)}` : "/")}
+								className="fi !py-2"
+								title="以销售视角预览"
+							>
+								<option value="">👁 视角：管理员（全部）</option>
+								{salesNames.map((o) => (
+									<option key={o} value={o}>以 {o} 视角预览</option>
+								))}
+							</select>
+						)}
 						<Link to="/activity" className="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">活动日志</Link>
 						<button onClick={() => setShowAdd((v) => !v)} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">+ 添加样机</button>
 					</div>
 				</div>
+
+				{me.impersonating && (
+					<div className="mt-4 rounded-lg border border-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 dark:border-indigo-800 px-4 py-2 text-sm text-indigo-800 dark:text-indigo-300 flex items-center justify-between gap-3">
+						<span>👁 正在以 <b>{me.name}</b>（销售）的视角预览 —— 只显示 TA 名下的样机。</span>
+						<Link to="/" className="shrink-0 rounded-md bg-indigo-600 px-3 py-1 text-white text-xs hover:bg-indigo-700">返回管理员</Link>
+					</div>
+				)}
 
 				{!me.viaAccess && (
 					<div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 px-4 py-2 text-sm text-amber-800 dark:text-amber-300">
