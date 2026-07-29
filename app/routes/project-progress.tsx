@@ -551,36 +551,39 @@ function ProjectStatusCell({
 		pending === "DELAYED" ? "Delayed" :
 		pending === "ON_TRACK" ? "On Track" :
 		status;
+	const isConfirmedForCurrentStage = !!activeStage &&
+		product.status_review_stage === activeStage;
 	return (
 		<div className="gtm-project-status">
 			<span className={`gtm-badge ${displayedStatus.replaceAll(" ", "-")}`}>{displayedStatus}</span>
-			<select
-				aria-label={`Status for ${product.model}`}
-				className="gtm-status-select"
-				disabled={!activeStage || fetcher.state !== "idle"}
-				onChange={(event) => {
-					if (!activeStage) return;
-					fetcher.submit({
-						intent: "project-status",
-						id: product.id,
-						status: event.currentTarget.value,
-						review_stage: activeStage,
-					}, { method: "post" });
-				}}
-				value=""
-			>
-				<option disabled value="">Update</option>
-				<option value="COMPLETED">Completed</option>
-				<option value="ON_TRACK">On Track</option>
-				<option value="DELAYED">Delayed</option>
-			</select>
+			{activeStage && !isConfirmedForCurrentStage && !pending && (
+				<select
+					aria-label={`Status for ${product.model}`}
+					className="gtm-status-select"
+					disabled={fetcher.state !== "idle"}
+					onChange={(event) => {
+						fetcher.submit({
+							intent: "project-status",
+							id: product.id,
+							status: event.currentTarget.value,
+							review_stage: activeStage,
+						}, { method: "post" });
+					}}
+					value=""
+				>
+					<option disabled value="">Update</option>
+					<option value="COMPLETED">Completed</option>
+					<option value="ON_TRACK">On Track</option>
+					<option value="DELAYED">Delayed</option>
+				</select>
+			)}
 			{needsReview && !pending && (
 				<span
-					aria-label="Status review required: current stage DDL is within 7 days"
+					aria-label="Status review required: current stage DDL is in 7 days"
 					className="gtm-status-reminder"
-					title="Current stage DDL is within 7 days. Please confirm the project status."
+					title="Current stage DDL is in 7 days. Please follow up and confirm the project status."
 				>
-					🔔
+					Follow Up
 				</span>
 			)}
 			{fetcher.data?.error && <span className="gtm-status-error">{fetcher.data.error}</span>}

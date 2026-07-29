@@ -15,8 +15,11 @@
 - Project Status has exactly three values: `Completed`, `On Track`, and
   `Delayed`. `At Risk` is not used.
 - Status is editable directly from the Status column and is persisted in D1.
-- When the current stage is seven days or less from its DDL, a bell reminder is
-  shown until a user confirms one of the three project statuses.
+- Exactly seven days before the current stage DDL, a prominent yellow
+  `Follow Up` label is shown until a user confirms one of the three project
+  statuses.
+- After the current stage status is confirmed, both the `Update` control and
+  the `Follow Up` label disappear.
 - A status confirmation is associated with the current stage. If task changes
   move the project to another stage, that next stage can generate its own
   seven-day reminder.
