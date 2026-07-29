@@ -271,6 +271,16 @@ export async function updateGtmDelayRecord(env: Env, id: string, delayedUntil: s
 		.run();
 }
 
+export async function deleteGtmDelayRecord(env: Env, id: string) {
+	if (!id.trim()) throw new Error("Delay record id is required");
+	const result = await env.DB.prepare(
+		"DELETE FROM gtm_delay_record WHERE id=?",
+	)
+		.bind(id)
+		.run();
+	if (result.meta.changes !== 1) throw new Error("Delay record was not found");
+}
+
 export async function updateGtmProject(
 	env: Env,
 	productId: string,

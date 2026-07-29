@@ -4,6 +4,7 @@ import type { Route } from "./+types/project-progress";
 import {
 	GTM_STAGES,
 	currentStage,
+	deleteGtmDelayRecord,
 	getGtmWorkspace,
 	projectProgress,
 	projectStatus,
@@ -73,6 +74,11 @@ export async function action({ request, context }: Route.ActionArgs) {
 				String(form.get("delayed_until") || ""),
 				String(form.get("notes") || ""),
 			);
+		} else if (intent === "delay-delete") {
+			await deleteGtmDelayRecord(
+				context.cloudflare.env,
+				String(form.get("id") || ""),
+			);
 		}
 		return { ok: true };
 	} catch (error) {
@@ -88,7 +94,18 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 	const [category, setCategory] = useState("");
 	const [model, setModel] = useState("");
 	const [theme, setTheme] = useState<string | null>(null);
+	const [liveTasks, setLiveTasks] = useState(loaderData.tasks.map((task) => ({ ...task })));
+	const [requirementFocus, setRequirementFocus] = useState<{ id: string; token: number } | null>(null);
 	const data = loaderData;
+	useEffect(() => setLiveTasks(data.tasks.map((task) => ({ ...task }))), [data.tasks]);
+	useEffect(() => {
+		if (!requirementFocus) return;
+		const token = requirementFocus.token;
+		const timeout = window.setTimeout(() => {
+			setRequirementFocus((current) => current?.token === token ? null : current);
+		}, 2800);
+		return () => window.clearTimeout(timeout);
+	}, [requirementFocus]);
 	const products = useMemo(
 		() =>
 			data.products.filter((product) => {
@@ -124,6 +141,12 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 		document.documentElement.setAttribute("data-theme", next);
 		try { localStorage.setItem("pt-theme", next); } catch { /* ignore */ }
 		setTheme(next);
+	}
+	function openPrototypeRequirement(sourceTaskId: string) {
+		const requirement = data.requirements.find((item) => item.source_task_id === sourceTaskId);
+		if (!requirement) return;
+		setRequirementFocus({ id: requirement.id, token: Date.now() });
+		setModule("prototypes");
 	}
 
 	return (
@@ -190,9 +213,21 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							{data.products.map((product) => <option key={product.id}>{product.model}</option>)}
 						</select>
 					</div>
-					{module === "progress" && <ProgressModule products={products} stages={data.stages} tasks={data.tasks} delayRecords={data.delayRecords} />}
+					{module === "progress" && <ProgressModule
+						products={products}
+						stages={data.stages}
+						tasks={liveTasks}
+						delayRecords={data.delayRecords}
+						onTaskToggle={(id, completed) => setLiveTasks((items) => items.map((item) => item.id === id ? { ...item, is_completed: completed ? 1 : 0 } : item))}
+						onOpenSample={openPrototypeRequirement}
+					/>}
 					{module === "materials" && <MaterialModule products={products} materials={data.materials} />}
-					{module === "prototypes" && <PrototypeModule products={products} requirements={data.requirements} />}
+					{module === "prototypes" && <PrototypeModule
+						products={products}
+						requirements={data.requirements}
+						tasks={liveTasks}
+						focus={requirementFocus}
+					/>}
 				</main>
 			</div>
 			</div>
@@ -205,16 +240,18 @@ function ProgressModule({
 	stages,
 	tasks,
 	delayRecords,
+	onTaskToggle,
+	onOpenSample,
 }: {
 	products: GtmProduct[];
 	stages: GtmStage[];
 	tasks: GtmTask[];
 	delayRecords: GtmDelayRecord[];
+	onTaskToggle: (id: string, completed: boolean) => void;
+	onOpenSample: (sourceTaskId: string) => void;
 }) {
 	const [collapsed, setCollapsed] = useState(false);
 	const [editingOwners, setEditingOwners] = useState(false);
-	const [liveTasks, setLiveTasks] = useState(tasks.map((task) => ({ ...task })));
-	useEffect(() => setLiveTasks(tasks.map((task) => ({ ...task }))), [tasks]);
 	const first = products[0];
 	const ownerFetcher = useFetcher();
 	const [delayProduct, setDelayProduct] = useState<GtmProduct | null>(null);
@@ -245,7 +282,7 @@ function ProgressModule({
 						<thead><tr><th>Model</th><th>Product Name</th><th>Launch Date</th><th>Progress</th><th>Status</th><th>Project Pipeline</th>{collapsed && <th>Action</th>}</tr></thead>
 						<tbody>
 							{products.map((product) => {
-								const productTasks = liveTasks.filter((task) => task.product_id === product.id);
+								const productTasks = tasks.filter((task) => task.product_id === product.id);
 								const productStages = stages.filter((stage) => stage.product_id === product.id);
 								const progress = projectProgress(productTasks);
 								const status = projectStatus(productTasks, productStages);
@@ -267,7 +304,8 @@ function ProgressModule({
 													product={product}
 													stages={productStages}
 													tasks={productTasks}
-													onTaskToggle={(id, completed) => setLiveTasks((items) => items.map((item) => item.id === id ? { ...item, is_completed: completed ? 1 : 0 } : item))}
+													onTaskToggle={onTaskToggle}
+													onOpenSample={onOpenSample}
 												/>
 											)}
 										</td>
@@ -298,6 +336,7 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 function DelayRecordItem({ record }: { record: GtmDelayRecord }) {
 	const [editing, setEditing] = useState(false);
 	const fetcher = useFetcher<{ ok: boolean; error?: string }>();
+	const deleteFetcher = useFetcher<{ ok: boolean; error?: string }>();
 	return <article>
 		<h3>{record.stage_name} · {record.task_name}</h3>
 		<p>Original DDL: {record.original_deadline || "Not set"}</p>
@@ -314,8 +353,18 @@ function DelayRecordItem({ record }: { record: GtmDelayRecord }) {
 		</fetcher.Form> : <>
 			<p>Delayed Until: {record.delayed_until || "Not set"}</p>
 			<p>Notes: {record.notes || "No notes"}</p>
-			<div className="gtm-delay-actions"><button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button></div>
+			<div className="gtm-delay-actions">
+				<button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button>
+				<deleteFetcher.Form method="post" onSubmit={(event) => {
+					if (!window.confirm("Delete this delay record? This action cannot be undone.")) event.preventDefault();
+				}}>
+					<input name="intent" type="hidden" value="delay-delete" />
+					<input name="id" type="hidden" value={record.id} />
+					<button className="gtm-btn danger" disabled={deleteFetcher.state !== "idle"} type="submit">Delete</button>
+				</deleteFetcher.Form>
+			</div>
 		</>}
+		{deleteFetcher.data?.error && <p className="gtm-form-error">{deleteFetcher.data.error}</p>}
 	</article>;
 }
 
@@ -360,7 +409,13 @@ function LaunchButton({ product }: { product: GtmProduct }) {
 	);
 }
 
-function Pipeline({ product, stages, tasks, onTaskToggle }: { product: GtmProduct; stages: GtmStage[]; tasks: GtmTask[]; onTaskToggle: (id: string, completed: boolean) => void }) {
+function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample }: {
+	product: GtmProduct;
+	stages: GtmStage[];
+	tasks: GtmTask[];
+	onTaskToggle: (id: string, completed: boolean) => void;
+	onOpenSample: (sourceTaskId: string) => void;
+}) {
 	const current = currentStage(tasks);
 	const [editing, setEditing] = useState(false);
 	const [draftStages, setDraftStages] = useState(stages.map((stage) => ({ ...stage })));
@@ -435,7 +490,7 @@ function Pipeline({ product, stages, tasks, onTaskToggle }: { product: GtmProduc
 								<div className="gtm-ddl">DDL: {detail?.deadline || "—"}</div>
 								{stageTasks.map((task) => <TaskToggle key={task.id} task={task} onToggle={(completed) => {
 									onTaskToggle(task.id, completed);
-								}} />)}
+								}} onOpenSample={onOpenSample} />)}
 							</div>
 						</div>
 					);
@@ -446,7 +501,11 @@ function Pipeline({ product, stages, tasks, onTaskToggle }: { product: GtmProduc
 	);
 }
 
-function TaskToggle({ task, onToggle }: { task: GtmTask; onToggle?: (completed: boolean) => void }) {
+function TaskToggle({ task, onToggle, onOpenSample }: {
+	task: GtmTask;
+	onToggle?: (completed: boolean) => void;
+	onOpenSample?: (sourceTaskId: string) => void;
+}) {
 	const fetcher = useFetcher();
 	const [checked, setChecked] = useState(!!task.is_completed);
 	useEffect(() => setChecked(!!task.is_completed), [task.is_completed]);
@@ -466,7 +525,11 @@ function TaskToggle({ task, onToggle }: { task: GtmTask; onToggle?: (completed: 
 			<button aria-pressed={optimistic} className={optimistic ? "" : "todo"} title="Toggle task completion" type="button" onClick={toggle}>
 				{optimistic ? "✓" : "○"}
 			</button>
-			<span>{icon} {task.task_name}</span>
+			{task.prototype_type ? (
+				<button className="gtm-sample-link" type="button" onClick={() => onOpenSample?.(task.id)}>
+					{icon} {task.task_name}
+				</button>
+			) : <span>{icon} {task.task_name}</span>}
 		</div>
 	);
 }
@@ -519,27 +582,48 @@ function MaterialStatus({ material }: { material: GtmMaterial }) {
 	);
 }
 
-function PrototypeModule({ products, requirements }: { products: GtmProduct[]; requirements: GtmRequirement[] }) {
+function PrototypeModule({ products, requirements, tasks, focus }: {
+	products: GtmProduct[];
+	requirements: GtmRequirement[];
+	tasks: GtmTask[];
+	focus: { id: string; token: number } | null;
+}) {
 	const visible = requirements.filter((requirement) => products.some((product) => product.id === requirement.product_id));
+	useEffect(() => {
+		if (!focus) return;
+		const row = document.getElementById(`prototype-requirement-${focus.id}`);
+		row?.scrollIntoView({ behavior: "smooth", block: "center" });
+	}, [focus]);
 	return (
 		<>
 			<div className="gtm-section-head"><h2>Prototype Requirements</h2><button className="gtm-btn primary">+ Add Prototype</button></div>
 			<div className="gtm-table-wrap">
 				<table className="gtm-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Sample Type</th><th>Project Stage</th><th>Required Quantity</th><th>ETA</th><th>Status</th><th>Action</th></tr></thead>
-					<tbody>{visible.map((requirement) => <RequirementRow key={requirement.id} requirement={requirement} />)}</tbody>
+					<tbody>{visible.map((requirement) => <RequirementRow
+						key={`${requirement.id}-${focus?.id === requirement.id ? focus.token : 0}`}
+						requirement={requirement}
+						tasks={tasks.filter((task) => task.product_id === requirement.product_id)}
+						highlighted={focus?.id === requirement.id}
+					/>)}</tbody>
 				</table>
 			</div>
 		</>
 	);
 }
 
-function RequirementRow({ requirement }: { requirement: GtmRequirement }) {
+function RequirementRow({ requirement, tasks, highlighted }: {
+	requirement: GtmRequirement;
+	tasks: GtmTask[];
+	highlighted: boolean;
+}) {
 	const [editing, setEditing] = useState(false);
 	const fetcher = useFetcher();
-	const status = requirement.is_completed ? "Completed" : "In Progress";
+	const sourceTask = tasks.find((task) => task.id === requirement.source_task_id);
+	const activeStage = currentStage(tasks);
+	const status = sourceTask?.is_completed ? "Completed" : sourceTask?.stage_name === activeStage ? "In Process" : "Planned";
 	return (
-		<tr>
+		<tr className={highlighted ? "gtm-requirement-highlight" : ""} id={`prototype-requirement-${requirement.id}`}>
 			<td className="gtm-model">{requirement.model}</td>
 			<td>{requirement.product_name}</td>
 			<td>{requirement.prototype_type}</td>
