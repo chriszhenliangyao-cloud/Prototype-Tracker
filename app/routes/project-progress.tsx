@@ -96,6 +96,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 	const [theme, setTheme] = useState<string | null>(null);
 	const [liveTasks, setLiveTasks] = useState(loaderData.tasks.map((task) => ({ ...task })));
 	const [requirementFocus, setRequirementFocus] = useState<{ id: string; token: number } | null>(null);
+	const [materialFocus, setMaterialFocus] = useState<{ id: string; token: number } | null>(null);
 	const data = loaderData;
 	useEffect(() => setLiveTasks(data.tasks.map((task) => ({ ...task }))), [data.tasks]);
 	useEffect(() => {
@@ -106,6 +107,14 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 		}, 2800);
 		return () => window.clearTimeout(timeout);
 	}, [requirementFocus]);
+	useEffect(() => {
+		if (!materialFocus) return;
+		const token = materialFocus.token;
+		const timeout = window.setTimeout(() => {
+			setMaterialFocus((current) => current?.token === token ? null : current);
+		}, 2800);
+		return () => window.clearTimeout(timeout);
+	}, [materialFocus]);
 	const products = useMemo(
 		() =>
 			data.products.filter((product) => {
@@ -147,6 +156,14 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 		if (!requirement) return;
 		setRequirementFocus({ id: requirement.id, token: Date.now() });
 		setModule("prototypes");
+	}
+	function openProductMaterial(task: GtmTask) {
+		const material = data.materials.find(
+			(item) => item.product_id === task.product_id && item.material_type === task.task_name,
+		);
+		if (!material) return;
+		setMaterialFocus({ id: material.id, token: Date.now() });
+		setModule("materials");
 	}
 
 	return (
@@ -220,8 +237,13 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 						delayRecords={data.delayRecords}
 						onTaskToggle={(id, completed) => setLiveTasks((items) => items.map((item) => item.id === id ? { ...item, is_completed: completed ? 1 : 0 } : item))}
 						onOpenSample={openPrototypeRequirement}
+						onOpenMaterial={openProductMaterial}
 					/>}
-					{module === "materials" && <MaterialModule products={products} materials={data.materials} />}
+					{module === "materials" && <MaterialModule
+						products={products}
+						materials={data.materials}
+						focus={materialFocus}
+					/>}
 					{module === "prototypes" && <PrototypeModule
 						products={products}
 						requirements={data.requirements}
@@ -242,6 +264,7 @@ function ProgressModule({
 	delayRecords,
 	onTaskToggle,
 	onOpenSample,
+	onOpenMaterial,
 }: {
 	products: GtmProduct[];
 	stages: GtmStage[];
@@ -249,6 +272,7 @@ function ProgressModule({
 	delayRecords: GtmDelayRecord[];
 	onTaskToggle: (id: string, completed: boolean) => void;
 	onOpenSample: (sourceTaskId: string) => void;
+	onOpenMaterial: (task: GtmTask) => void;
 }) {
 	const [collapsed, setCollapsed] = useState(false);
 	const [editingOwners, setEditingOwners] = useState(false);
@@ -306,6 +330,7 @@ function ProgressModule({
 													tasks={productTasks}
 													onTaskToggle={onTaskToggle}
 													onOpenSample={onOpenSample}
+													onOpenMaterial={onOpenMaterial}
 												/>
 											)}
 										</td>
@@ -409,12 +434,13 @@ function LaunchButton({ product }: { product: GtmProduct }) {
 	);
 }
 
-function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample }: {
+function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMaterial }: {
 	product: GtmProduct;
 	stages: GtmStage[];
 	tasks: GtmTask[];
 	onTaskToggle: (id: string, completed: boolean) => void;
 	onOpenSample: (sourceTaskId: string) => void;
+	onOpenMaterial: (task: GtmTask) => void;
 }) {
 	const current = currentStage(tasks);
 	const [editing, setEditing] = useState(false);
@@ -490,7 +516,7 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample }: {
 								<div className="gtm-ddl">DDL: {detail?.deadline || "—"}</div>
 								{stageTasks.map((task) => <TaskToggle key={task.id} task={task} onToggle={(completed) => {
 									onTaskToggle(task.id, completed);
-								}} onOpenSample={onOpenSample} />)}
+								}} onOpenSample={onOpenSample} onOpenMaterial={onOpenMaterial} />)}
 							</div>
 						</div>
 					);
@@ -501,10 +527,11 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample }: {
 	);
 }
 
-function TaskToggle({ task, onToggle, onOpenSample }: {
+function TaskToggle({ task, onToggle, onOpenSample, onOpenMaterial }: {
 	task: GtmTask;
 	onToggle?: (completed: boolean) => void;
 	onOpenSample?: (sourceTaskId: string) => void;
+	onOpenMaterial?: (task: GtmTask) => void;
 }) {
 	const fetcher = useFetcher();
 	const [checked, setChecked] = useState(!!task.is_completed);
@@ -525,7 +552,11 @@ function TaskToggle({ task, onToggle, onOpenSample }: {
 			<button aria-pressed={optimistic} className={optimistic ? "" : "todo"} title="Toggle task completion" type="button" onClick={toggle}>
 				{optimistic ? "✓" : "○"}
 			</button>
-			{task.prototype_type ? (
+			{task.owner_role === "MARKETING" ? (
+				<button className="gtm-material-link" type="button" onClick={() => onOpenMaterial?.(task)}>
+					{icon} {task.task_name}
+				</button>
+			) : task.prototype_type ? (
 				<button className="gtm-sample-link" type="button" onClick={() => onOpenSample?.(task.id)}>
 					{icon} {task.task_name}
 				</button>
@@ -534,9 +565,23 @@ function TaskToggle({ task, onToggle, onOpenSample }: {
 	);
 }
 
-function MaterialModule({ products, materials }: { products: GtmProduct[]; materials: GtmMaterial[] }) {
+function MaterialModule({ products, materials, focus }: {
+	products: GtmProduct[];
+	materials: GtmMaterial[];
+	focus: { id: string; token: number } | null;
+}) {
 	const types = [...new Set(materials.map((material) => material.material_type))];
 	const completed = materials.filter((material) => material.status === "COMPLETED").length;
+	useEffect(() => {
+		if (!focus) return;
+		requestAnimationFrame(() => {
+			document.getElementById(`product-material-${focus.id}`)?.scrollIntoView({
+				behavior: "smooth",
+				block: "center",
+				inline: "center",
+			});
+		});
+	}, [focus]);
 	return (
 		<>
 			<div className="gtm-cards">
@@ -546,14 +591,21 @@ function MaterialModule({ products, materials }: { products: GtmProduct[]; mater
 			</div>
 			<div className="gtm-section-head"><h2>Upcoming Product Materials</h2><span className="gtm-muted">💡 Click a status to edit</span></div>
 			<div className="gtm-table-wrap">
-				<table className="gtm-table">
+				<table className="gtm-table gtm-material-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}</tr></thead>
 					<tbody>{products.map((product) => (
 						<tr key={product.id}>
 							<td className="gtm-model">{product.model}</td><td>{product.name}</td><td>{product.category}</td><td>{product.planned_launch_date}</td>
 							{types.map((type) => {
 								const material = materials.find((item) => item.product_id === product.id && item.material_type === type);
-								return <td className="gtm-material-cell" key={type}>{material ? <MaterialStatus material={material} /> : "—"}</td>;
+								const highlighted = material?.id === focus?.id;
+								return <td
+									className={`gtm-material-cell${highlighted ? " gtm-material-highlight" : ""}`}
+									id={material ? `product-material-${material.id}` : undefined}
+									key={`${type}-${highlighted ? focus?.token : "idle"}`}
+								>
+									{material ? <MaterialStatus material={material} /> : "—"}
+								</td>;
 							})}
 						</tr>
 					))}</tbody>

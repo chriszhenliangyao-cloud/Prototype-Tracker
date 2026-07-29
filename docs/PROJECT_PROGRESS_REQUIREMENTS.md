@@ -33,3 +33,19 @@
   - `Planned`: the linked task belongs to a later stage.
 - Task completion remains the single source of truth, so Project Progress and
   Prototype Management update together without a duplicate status field.
+
+## Marketing task navigation
+
+- Clicking the name of a task owned by `MARKETING` opens Product Material
+  Management.
+- The target is matched by the same `product_id` and by an exact match between
+  the project task name and `material_type`.
+- The matching material cell scrolls into view and is highlighted for
+  approximately 2.5 seconds.
+
+## Demo material provenance
+
+- `Launch Assets Archive` was introduced by the GTM demo seed migrations.
+- It is not sourced from the original ProtoTrack prototype-management records.
+- It remains isolated in `gtm_material_task` and does not alter the original
+  prototype tables.
