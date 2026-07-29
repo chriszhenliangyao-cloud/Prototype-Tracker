@@ -61,18 +61,29 @@ export interface GtmRequirement {
 	is_completed: number;
 }
 
+export interface GtmDelayRecord {
+	id: string;
+	product_id: string;
+	stage_name: string;
+	task_name: string;
+	original_deadline: string | null;
+	delayed_until: string | null;
+	notes: string | null;
+}
+
 export interface GtmWorkspaceData {
 	products: GtmProduct[];
 	stages: GtmStage[];
 	tasks: GtmTask[];
 	materials: GtmMaterial[];
 	requirements: GtmRequirement[];
+	delayRecords: GtmDelayRecord[];
 	usingFallback?: boolean;
 }
 
 export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 	try {
-		const [products, stages, tasks, materials, requirements] = await Promise.all([
+		const [products, stages, tasks, materials, requirements, delayRecords] = await Promise.all([
 			env.DB.prepare(
 				"SELECT * FROM gtm_product WHERE launch_status='UNLAUNCHED' ORDER BY planned_launch_date, model",
 			).all<GtmProduct>(),
@@ -94,6 +105,9 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 			  WHERE p.launch_status='UNLAUNCHED'
 			  ORDER BY p.model, t.sort_order, r.id`,
 			).all<GtmRequirement>(),
+			env.DB.prepare(
+				"SELECT * FROM gtm_delay_record ORDER BY product_id, original_deadline DESC, id",
+			).all<GtmDelayRecord>(),
 		]);
 		return {
 			products: products.results,
@@ -101,6 +115,7 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 			tasks: tasks.results,
 			materials: materials.results,
 			requirements: requirements.results,
+			delayRecords: delayRecords.results,
 		};
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
@@ -193,7 +208,19 @@ function getGtmFallbackData(): GtmWorkspaceData {
 				is_completed: task.is_completed,
 			};
 		});
-	return { products, stages, tasks, materials, requirements, usingFallback: true };
+	const delayRecords: GtmDelayRecord[] = tasks
+		.filter((task) => !task.is_completed)
+		.slice(0, 8)
+		.map((task, index) => ({
+			id: `fallback-delay-${index}`,
+			product_id: task.product_id,
+			stage_name: task.stage_name,
+			task_name: task.task_name,
+			original_deadline: stages.find((stage) => stage.product_id === task.product_id && stage.stage_name === task.stage_name)?.deadline || null,
+			delayed_until: null,
+			notes: null,
+		}));
+	return { products, stages, tasks, materials, requirements, delayRecords, usingFallback: true };
 }
 
 export async function toggleGtmTask(env: Env, id: string, completed: boolean) {

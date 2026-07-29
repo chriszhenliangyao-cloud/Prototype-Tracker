@@ -14,6 +14,7 @@ import {
 	updateGtmMaterial,
 	updateGtmRequirement,
 	type GtmMaterial,
+	type GtmDelayRecord,
 	type GtmProduct,
 	type GtmRequirement,
 	type GtmStage,
@@ -181,7 +182,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							{data.products.map((product) => <option key={product.id}>{product.model}</option>)}
 						</select>
 					</div>
-					{module === "progress" && <ProgressModule products={products} stages={data.stages} tasks={data.tasks} />}
+					{module === "progress" && <ProgressModule products={products} stages={data.stages} tasks={data.tasks} delayRecords={data.delayRecords} />}
 					{module === "materials" && <MaterialModule products={products} materials={data.materials} />}
 					{module === "prototypes" && <PrototypeModule products={products} requirements={data.requirements} />}
 				</main>
@@ -195,15 +196,20 @@ function ProgressModule({
 	products,
 	stages,
 	tasks,
+	delayRecords,
 }: {
 	products: GtmProduct[];
 	stages: GtmStage[];
 	tasks: GtmTask[];
+	delayRecords: GtmDelayRecord[];
 }) {
 	const [collapsed, setCollapsed] = useState(false);
 	const [editingOwners, setEditingOwners] = useState(false);
+	const [liveTasks, setLiveTasks] = useState(tasks.map((task) => ({ ...task })));
+	useEffect(() => setLiveTasks(tasks.map((task) => ({ ...task }))), [tasks]);
 	const first = products[0];
 	const ownerFetcher = useFetcher();
+	const [delayProduct, setDelayProduct] = useState<GtmProduct | null>(null);
 	return (
 		<>
 			<div className="gtm-section-head">
@@ -231,7 +237,7 @@ function ProgressModule({
 						<thead><tr><th>Model</th><th>Product Name</th><th>Launch Date</th><th>Progress</th><th>Status</th><th>Project Pipeline</th>{collapsed && <th>Action</th>}</tr></thead>
 						<tbody>
 							{products.map((product) => {
-								const productTasks = tasks.filter((task) => task.product_id === product.id);
+								const productTasks = liveTasks.filter((task) => task.product_id === product.id);
 								const productStages = stages.filter((stage) => stage.product_id === product.id);
 								const progress = projectProgress(productTasks);
 								const status = projectStatus(productTasks, productStages);
@@ -241,12 +247,20 @@ function ProgressModule({
 										<td>{product.name}</td>
 										<td>{product.planned_launch_date || "—"}</td>
 										<td><ProgressRing value={progress} total={productTasks.length} /></td>
-										<td><span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span></td>
+										<td>
+											<span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span>
+											<button className="gtm-delay-trigger" onClick={() => setDelayProduct(product)}>⏰ {delayRecords.filter((record) => record.product_id === product.id).length}</button>
+										</td>
 										<td>
 											{collapsed ? (
 												<CollapsedPipeline tasks={productTasks} />
 											) : (
-												<Pipeline product={product} stages={productStages} tasks={productTasks} />
+												<Pipeline
+													product={product}
+													stages={productStages}
+													tasks={productTasks}
+													onTaskToggle={(id, completed) => setLiveTasks((items) => items.map((item) => item.id === id ? { ...item, is_completed: completed ? 1 : 0 } : item))}
+												/>
 											)}
 										</td>
 										{collapsed && <td><LaunchButton product={product} /></td>}
@@ -257,8 +271,23 @@ function ProgressModule({
 					</table>
 				</div>
 			) : <div className="gtm-empty">No matching projects found.</div>}
+			{delayProduct && <DelayDrawer product={delayProduct} records={delayRecords.filter((record) => record.product_id === delayProduct.id)} onClose={() => setDelayProduct(null)} />}
 		</>
 	);
+}
+
+function DelayDrawer({ product, records, onClose }: { product: GtmProduct; records: GtmDelayRecord[]; onClose: () => void }) {
+	return <div className="gtm-delay-overlay" onClick={onClose}>
+		<aside className="gtm-delay-drawer" onClick={(event) => event.stopPropagation()}>
+			<header><div><h2>Delay Records — {product.model}</h2><p>{records.length} Delay Record{records.length === 1 ? "" : "s"}</p></div><button onClick={onClose}>×</button></header>
+			<div className="gtm-delay-list">{records.length ? records.map((record) => <article key={record.id}>
+				<h3>{record.stage_name} · {record.task_name}</h3>
+				<p>Original DDL: {record.original_deadline || "Not set"}</p>
+				<p>Delayed Until: {record.delayed_until || "Not set"}</p>
+				<p>Notes: {record.notes || "No notes"}</p>
+			</article>) : <div className="gtm-empty">No delay records.</div>}</div>
+		</aside>
+	</div>;
 }
 
 function ProgressRing({ value, total }: { value: number; total: number }) {
@@ -302,7 +331,7 @@ function LaunchButton({ product }: { product: GtmProduct }) {
 	);
 }
 
-function Pipeline({ product, stages, tasks }: { product: GtmProduct; stages: GtmStage[]; tasks: GtmTask[] }) {
+function Pipeline({ product, stages, tasks, onTaskToggle }: { product: GtmProduct; stages: GtmStage[]; tasks: GtmTask[]; onTaskToggle: (id: string, completed: boolean) => void }) {
 	const current = currentStage(tasks);
 	const [editing, setEditing] = useState(false);
 	const [draftStages, setDraftStages] = useState(stages.map((stage) => ({ ...stage })));
@@ -375,7 +404,9 @@ function Pipeline({ product, stages, tasks }: { product: GtmProduct; stages: Gtm
 							<div className={`gtm-stage ${done ? "done" : isCurrent ? "current" : ""}`}>
 								<div className="gtm-stage-title">{stage}</div>
 								<div className="gtm-ddl">DDL: {detail?.deadline || "—"}</div>
-								{stageTasks.map((task) => <TaskToggle key={task.id} task={task} />)}
+								{stageTasks.map((task) => <TaskToggle key={task.id} task={task} onToggle={(completed) => {
+									onTaskToggle(task.id, completed);
+								}} />)}
 							</div>
 						</div>
 					);
@@ -386,7 +417,7 @@ function Pipeline({ product, stages, tasks }: { product: GtmProduct; stages: Gtm
 	);
 }
 
-function TaskToggle({ task }: { task: GtmTask }) {
+function TaskToggle({ task, onToggle }: { task: GtmTask; onToggle?: (completed: boolean) => void }) {
 	const fetcher = useFetcher();
 	const [checked, setChecked] = useState(!!task.is_completed);
 	useEffect(() => setChecked(!!task.is_completed), [task.is_completed]);
@@ -397,7 +428,7 @@ function TaskToggle({ task }: { task: GtmTask }) {
 			<input name="intent" type="hidden" value="toggle-task" />
 			<input name="id" type="hidden" value={task.id} />
 			<input name="completed" type="hidden" value={String(!optimistic)} />
-			<button className={optimistic ? "" : "todo"} title="Toggle task completion" type="submit" onClick={() => setChecked(!optimistic)}>
+			<button className={optimistic ? "" : "todo"} title="Toggle task completion" type="submit" onClick={() => { setChecked(!optimistic); onToggle?.(!optimistic); }}>
 				{optimistic ? "✓" : "○"}
 			</button>
 			<span>{icon} {task.task_name}</span>
