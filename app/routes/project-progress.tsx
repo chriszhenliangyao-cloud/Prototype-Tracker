@@ -113,6 +113,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 	const [query, setQuery] = useState("");
 	const [category, setCategory] = useState("");
 	const [model, setModel] = useState("");
+	const [showAddProduct, setShowAddProduct] = useState(false);
 	const [theme, setTheme] = useState<string | null>(null);
 	const [liveTasks, setLiveTasks] = useState(loaderData.tasks.map((task) => ({ ...task })));
 	const [requirementFocus, setRequirementFocus] = useState<{ id: string; token: number } | null>(null);
@@ -233,14 +234,14 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							<h1 className="gtm-title">{title}</h1>
 							<p className="gtm-sub">{subtitle}</p>
 						</div>
-						{module === "progress" && <ProgressPageActions />}
+						{module === "progress" && <ExcelImport />}
 					</div>
 					{data.usingFallback && (
 						<div className="gtm-demo-banner">
 							Demo preview · GTM database migration is pending. Data shown here is read-only sample content.
 						</div>
 					)}
-					<div className="gtm-toolbar">
+					<div className={`gtm-toolbar${showAddProduct ? " has-product-card" : ""}`}>
 						<input
 							className="gtm-input"
 							placeholder="Search Product Name / Model"
@@ -255,7 +256,16 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							<option value="">All Models</option>
 							{data.products.map((product) => <option key={product.id}>{product.model}</option>)}
 						</select>
+						{module === "progress" && <button
+							aria-expanded={showAddProduct}
+							className="gtm-btn primary gtm-toolbar-add"
+							onClick={() => setShowAddProduct((value) => !value)}
+							type="button"
+						>
+							＋ Add Product
+						</button>}
 					</div>
+					{module === "progress" && showAddProduct && <AddProductCard onClose={() => setShowAddProduct(false)} />}
 					{module === "progress" && <ProgressModule
 						products={upcomingProducts}
 						stages={data.stages}
@@ -283,15 +293,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 	);
 }
 
-function ProgressPageActions() {
-	return <div className="gtm-progress-actions">
-		<AddProduct />
-		<ExcelImport />
-	</div>;
-}
-
-function AddProduct() {
-	const [open, setOpen] = useState(false);
+function AddProductCard({ onClose }: { onClose: () => void }) {
 	const fetcher = useFetcher<{
 		ok: boolean;
 		error?: string;
@@ -299,47 +301,29 @@ function AddProduct() {
 	}>();
 	useEffect(() => {
 		if (fetcher.state === "idle" && fetcher.data?.ok && fetcher.data.product) {
-			setOpen(false);
+			onClose();
 		}
-	}, [fetcher.state, fetcher.data]);
-	return <>
-		<button className="gtm-btn primary" onClick={() => setOpen(true)} type="button">＋ Add Product</button>
-		{open && <div className="gtm-product-modal-overlay" onMouseDown={() => setOpen(false)}>
-			<div
-				aria-labelledby="gtm-add-product-title"
-				aria-modal="true"
-				className="gtm-product-modal"
-				onMouseDown={(event) => event.stopPropagation()}
-				role="dialog"
-			>
-				<header>
-					<div>
-						<h2 id="gtm-add-product-title">Add Product</h2>
-						<p>Create a product with the standard project pipeline. Stage DDLs will remain blank.</p>
-					</div>
-					<button aria-label="Close Add Product" onClick={() => setOpen(false)} type="button">×</button>
-				</header>
-				<fetcher.Form method="post">
-					<input name="intent" type="hidden" value="create-product" />
-					<div className="gtm-product-form-grid">
-						<label>Model *<input autoFocus name="model" required /></label>
-						<label>Product Name *<input name="name" required /></label>
-						<label>Category *<input name="category" placeholder="e.g. Charger" required /></label>
-						<label>Launch Date *<input name="launch_date" required type="date" /></label>
-						<label>Product Owner<input name="product_owner" /></label>
-						<label>Marketing Project Manager<input name="marketing_manager" /></label>
-					</div>
-					{fetcher.data?.error && <p className="gtm-form-error">{fetcher.data.error}</p>}
-					<div className="gtm-product-modal-actions">
-						<button className="gtm-btn" disabled={fetcher.state !== "idle"} onClick={() => setOpen(false)} type="button">Cancel</button>
-						<button className="gtm-btn primary" disabled={fetcher.state !== "idle"} type="submit">
-							{fetcher.state === "idle" ? "Create Product" : "Creating…"}
-						</button>
-					</div>
-				</fetcher.Form>
+	}, [fetcher.state, fetcher.data, onClose]);
+	return <section aria-labelledby="gtm-add-product-title" className="gtm-product-card">
+		<h2 id="gtm-add-product-title">Add New Product</h2>
+		<p>Create a product with the standard project pipeline. Stage DDLs will remain blank.</p>
+		<fetcher.Form method="post">
+			<input name="intent" type="hidden" value="create-product" />
+			<div className="gtm-product-form-grid">
+				<label>MODEL<input autoFocus name="model" placeholder="e.g. WAL102" required /></label>
+				<label>PRODUCT NAME<input name="name" placeholder="e.g. Leopard Fold Charger" required /></label>
+				<label>CATEGORY<input name="category" placeholder="e.g. Charger" required /></label>
+				<label>LAUNCH DATE<input name="launch_date" required type="date" /></label>
 			</div>
-		</div>}
-	</>;
+			{fetcher.data?.error && <p className="gtm-form-error">{fetcher.data.error}</p>}
+			<div className="gtm-product-card-actions">
+				<button className="gtm-btn primary" disabled={fetcher.state !== "idle"} type="submit">
+					{fetcher.state === "idle" ? "Confirm" : "Creating…"}
+				</button>
+				<button className="gtm-btn" disabled={fetcher.state !== "idle"} onClick={onClose} type="button">Cancel</button>
+			</div>
+		</fetcher.Form>
+	</section>;
 }
 
 function ExcelImport() {

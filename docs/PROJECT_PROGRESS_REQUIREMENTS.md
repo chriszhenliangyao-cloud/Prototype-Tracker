@@ -104,9 +104,10 @@
 
 ## Product creation
 
-- Project Progress provides an `Add Product` button in the upper-right actions.
-- The form requires Model, Product Name, Category, and Launch Date; Product
-  Owner and Marketing Project Manager are optional.
+- Project Progress places `Add Product` immediately after the `All Models`
+  filter.
+- Clicking the button expands an inline card below the filter toolbar.
+- The card contains exactly Model, Product Name, Category, and Launch Date.
 - Creating a product generates the standard six project stages, ten standard
   tasks, linked marketing materials, and four prototype requirements.
 - Every generated stage DDL and prototype ETA starts blank and can be completed
