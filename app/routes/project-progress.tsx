@@ -1,5 +1,5 @@
 import { Link, useFetcher } from "react-router";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Route } from "./+types/project-progress";
 import {
 	GTM_STAGES,
@@ -66,6 +66,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 	const [query, setQuery] = useState("");
 	const [category, setCategory] = useState("");
 	const [model, setModel] = useState("");
+	const [theme, setTheme] = useState<string | null>(null);
 	const data = loaderData;
 	const products = useMemo(
 		() =>
@@ -93,8 +94,37 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 				? "Manage launch materials and readiness for upcoming products."
 				: "Manage prototype requirements for upcoming product launches.";
 
+	useEffect(() => {
+		const attr = document.documentElement.getAttribute("data-theme");
+		setTheme(attr || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+	}, []);
+	function toggleTheme() {
+		const next = theme === "dark" ? "light" : "dark";
+		document.documentElement.setAttribute("data-theme", next);
+		try { localStorage.setItem("pt-theme", next); } catch { /* ignore */ }
+		setTheme(next);
+	}
+
 	return (
-		<div className="gtm">
+		<div className="gtm-app">
+			<header className="gtm-mode-bar">
+				<div className="gtm-mode-brand">
+					<div className="gtm-mode-icon">📦</div>
+					<span className="gtm-mode-name">ProtoTrack</span>
+					<span className="gtm-mode-sep">·</span>
+					<span className="gtm-mode-sub">Europe Prototype Tracker</span>
+				</div>
+				<nav className="gtm-mode-toggle" aria-label="ProtoTrack modes">
+					<Link className="gtm-mode-btn" to="/">🛰️ Control Tower</Link>
+					<Link className="gtm-mode-btn" to="/?view=field">🧳 Field View</Link>
+					<span className="gtm-mode-btn active">📈 Project Progress</span>
+				</nav>
+				<div className="gtm-mode-right">
+					<button className="gtm-theme-btn" title="Toggle light / dark" onClick={toggleTheme}>{theme === "dark" ? "☀️" : "🌙"}</button>
+					<span className="gtm-live"><i />Live sync</span>
+				</div>
+			</header>
+			<div className="gtm">
 			<div className="gtm-shell">
 				<aside className="gtm-side">
 					<div className="gtm-tree-root">
@@ -114,7 +144,6 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							Prototype Management
 						</button>
 					</nav>
-					<Link className="gtm-back" to="/">← Prototype Control Tower</Link>
 				</aside>
 				<main className="gtm-main">
 					<h1 className="gtm-title">{title}</h1>
@@ -144,6 +173,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 					{module === "materials" && <MaterialModule products={products} materials={data.materials} />}
 					{module === "prototypes" && <PrototypeModule products={products} requirements={data.requirements} />}
 				</main>
+			</div>
 			</div>
 		</div>
 	);

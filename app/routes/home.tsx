@@ -45,16 +45,17 @@ const TYPE_COL: Record<string, string> = {
 
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
+	const initialView = new URL(request.url).searchParams.get("view") === "field" ? "fv" as const : "ct" as const;
 	const me = await getUser(request, env);
 	if (me.role === "denied") {
-		return { me, protos: [] as Proto[], owners: [] as string[], logs: [] as LogRow[] };
+		return { me, protos: [] as Proto[], owners: [] as string[], logs: [] as LogRow[], initialView };
 	}
 	const [protos, owners, logs] = await Promise.all([
 		getProtos(env, me),
 		listOwners(env),
 		getRecentLogs(env, me, 300),
 	]);
-	return { me, protos, owners, logs };
+	return { me, protos, owners, logs, initialView };
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
@@ -187,7 +188,7 @@ function BarList({ rows, color, flag }: { rows: [string, number][]; color: strin
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-	const { me, protos, owners, logs } = loaderData;
+	const { me, protos, owners, logs, initialView } = loaderData;
 	const navigate = useNavigate();
 	const revalidator = useRevalidator();
 	const fx = useFetcher<{ ok: boolean; error?: string; intent?: string }>();
@@ -196,7 +197,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 	const salesNames = owners.filter((o) => o !== me.realName);
 
 	// ── client state ──
-	const [mode, setMode] = useState<"ct" | "fv">(isAdmin && !me.impersonating ? "ct" : "fv");
+	const [mode, setMode] = useState<"ct" | "fv">(
+		initialView === "fv" ? "fv" : isAdmin && !me.impersonating ? "ct" : "fv",
+	);
 	const [ctView, setCtView] = useState<"dashboard" | "analytics" | "log">("dashboard");
 	const [ctFilter, setCtFilter] = useState("all");
 	const [q, setQ] = useState("");
