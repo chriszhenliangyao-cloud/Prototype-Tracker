@@ -113,10 +113,16 @@ function getGtmFallbackData(): GtmWorkspaceData {
 	const products: GtmProduct[] = [
 		{ id: "gtm-p61l-p1", model: "P61L-P1", name: "Pocket 10K", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-07-31", product_owner: "Ivy", marketing_project_manager: "Ivy" },
 		{ id: "gtm-p61l-p2", model: "P61L-P2", name: "Pocket 10K 45W", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-07-30", product_owner: "Ivy", marketing_project_manager: "Ivy" },
+		{ id: "gtm-p51l-p2", model: "P51L-P2", name: "Pocket 20K 45W", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-08-18", product_owner: "Ivy", marketing_project_manager: "Ivy" },
+		{ id: "gtm-pm61-black", model: "PM61-Black", name: "MagPro Slim 10K Qi2.2 - Black", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-09-05", product_owner: "Ivy", marketing_project_manager: "Ivy" },
+		{ id: "gtm-px51", model: "PX51", name: "MagPro Neo 10K Qi2.0", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-09-22", product_owner: "Ivy", marketing_project_manager: "Ivy" },
 	];
 	const deadlines = [
 		["2026-07-03", "2026-07-10", "2026-07-18", "2026-07-23", "2026-07-28", "2026-07-31"],
 		["2026-07-02", "2026-07-09", "2026-07-17", "2026-07-22", "2026-07-27", "2026-07-30"],
+		["2026-07-28", "2026-08-01", "2026-08-06", "2026-08-10", "2026-08-14", "2026-08-18"],
+		["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-05"],
+		["2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-15", "2026-09-22"],
 	];
 	const stages: GtmStage[] = products.flatMap((product, productIndex) =>
 		GTM_STAGES.map((stage, index) => ({
@@ -147,7 +153,7 @@ function getGtmFallbackData(): GtmWorkspaceData {
 			task_name: name,
 			owner_role: role,
 			prototype_type: prototype,
-			is_completed: index < (productIndex === 0 ? 9 : 6) ? 1 : 0,
+			is_completed: index < [9, 6, 5, 3, 1][productIndex] ? 1 : 0,
 			sort_order: (index + 1) * 10,
 		})),
 	);
@@ -165,7 +171,7 @@ function getGtmFallbackData(): GtmWorkspaceData {
 			id: `fallback-material-${productIndex}-${index}`,
 			product_id: product.id,
 			material_type: type,
-			status: index < (productIndex === 0 ? 4 : 3) ? "COMPLETED" : index === 6 ? "NOT_REQUIRED" : "NOT_COMPLETED",
+			status: index < [4, 3, 3, 2, 1][productIndex] ? "COMPLETED" : index === 6 ? "NOT_REQUIRED" : "NOT_COMPLETED",
 			deadline: deadlines[productIndex][Math.min(index + 1, 5)],
 			owner: index === 2 ? "Product" : "Ivy",
 		})),
@@ -195,6 +201,14 @@ export async function toggleGtmTask(env: Env, id: string, completed: boolean) {
 		"UPDATE gtm_project_task SET is_completed=? WHERE id=?",
 	)
 		.bind(completed ? 1 : 0, id)
+		.run();
+}
+
+export async function launchGtmProduct(env: Env, id: string) {
+	await env.DB.prepare(
+		"UPDATE gtm_product SET launch_status='LAUNCHED', updated_at=CURRENT_TIMESTAMP WHERE id=?",
+	)
+		.bind(id)
 		.run();
 }
 

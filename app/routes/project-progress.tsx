@@ -7,6 +7,7 @@ import {
 	getGtmWorkspace,
 	projectProgress,
 	projectStatus,
+	launchGtmProduct,
 	toggleGtmTask,
 	updateGtmMaterial,
 	updateGtmRequirement,
@@ -49,6 +50,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 				Number(form.get("quantity")),
 				String(form.get("eta") || ""),
 			);
+		} else if (intent === "launch-product") {
+			await launchGtmProduct(context.cloudflare.env, String(form.get("id")));
 		}
 		return { ok: true };
 	} catch (error) {
@@ -169,8 +172,8 @@ function ProgressModule({
 			</div>
 			{products.length ? (
 				<div className="gtm-table-wrap">
-					<table className="gtm-table">
-						<thead><tr><th>Model</th><th>Product Name</th><th>Launch Date</th><th>Progress</th><th>Status</th><th>Project Pipeline</th></tr></thead>
+					<table className={`gtm-table gtm-progress-table${collapsed ? " is-collapsed" : ""}`}>
+						<thead><tr><th>Model</th><th>Product Name</th><th>Launch Date</th><th>Progress</th><th>Status</th><th>Project Pipeline</th>{collapsed && <th>Action</th>}</tr></thead>
 						<tbody>
 							{products.map((product) => {
 								const productTasks = tasks.filter((task) => task.product_id === product.id);
@@ -191,6 +194,7 @@ function ProgressModule({
 												<Pipeline stages={productStages} tasks={productTasks} />
 											)}
 										</td>
+										{collapsed && <td><LaunchButton product={product} /></td>}
 									</tr>
 								);
 							})}
@@ -214,18 +218,32 @@ function ProgressRing({ value, total }: { value: number; total: number }) {
 function CollapsedPipeline({ tasks }: { tasks: GtmTask[] }) {
 	const current = currentStage(tasks);
 	return (
-		<div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 520 }}>
-			{GTM_STAGES.map((stage, index) => {
-				const stageTasks = tasks.filter((task) => task.stage_name === stage);
-				const done = stageTasks.length === 0 || stageTasks.every((task) => !!task.is_completed);
-				return (
-					<div key={stage} style={{ display: "contents" }}>
-						<span className={`gtm-node ${done ? "done" : current === stage ? "current" : ""}`} style={{ margin: 0 }}>{index + 1}</span>
-						{index < 5 && <span style={{ height: 2, minWidth: 38, flex: 1, background: done ? "#12b76a" : "#e4e7ec" }} />}
-					</div>
-				);
-			})}
+		<div className="gtm-collapsed-pipeline">
+			<div className="gtm-current-stage"><span>Current Stage</span><b>{current || "Completed"}</b></div>
+			<div className="gtm-mini-track">
+				{GTM_STAGES.map((stage, index) => {
+					const stageTasks = tasks.filter((task) => task.stage_name === stage);
+					const done = stageTasks.length === 0 || stageTasks.every((task) => !!task.is_completed);
+					return (
+						<div className="gtm-mini-step" key={stage}>
+							<span className={done ? "done" : current === stage ? "current" : ""}>{index + 1}</span>
+							{index < GTM_STAGES.length - 1 && <i className={done ? "done" : ""} />}
+						</div>
+					);
+				})}
+			</div>
 		</div>
+	);
+}
+
+function LaunchButton({ product }: { product: GtmProduct }) {
+	const fetcher = useFetcher();
+	return (
+		<fetcher.Form method="post">
+			<input name="intent" type="hidden" value="launch-product" />
+			<input name="id" type="hidden" value={product.id} />
+			<button className="gtm-launch-btn" disabled={fetcher.state !== "idle"} type="submit">Launch</button>
+		</fetcher.Form>
 	);
 }
 
