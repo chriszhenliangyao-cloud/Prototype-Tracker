@@ -26,6 +26,9 @@
 - A status confirmation is associated with the current stage. If task changes
   move the project to another stage, that next stage can generate its own
   seven-day reminder.
+- Reopening a completed task clears the project's previous status confirmation.
+  If the resulting current stage DDL is within zero to seven days, the yellow
+  `Follow Up` label and `Update` control appear again.
 - Completed projects display `Completed` and do not show a reminder.
 
 ## Delay Records editing

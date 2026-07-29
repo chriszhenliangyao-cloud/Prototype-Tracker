@@ -353,6 +353,17 @@ export async function toggleGtmTask(env: Env, id: string, completed: boolean) {
 		env.DB.prepare("UPDATE gtm_project_task SET is_completed=? WHERE id=?")
 			.bind(completed ? 1 : 0, id),
 	];
+	if (!completed) {
+		statements.push(
+			env.DB.prepare(
+				`UPDATE gtm_product
+				    SET project_status=NULL,
+				        status_review_stage=NULL,
+				        updated_at=CURRENT_TIMESTAMP
+				  WHERE id=?`,
+			).bind(task.product_id),
+		);
+	}
 	if (task.owner_role === "MARKETING") {
 		statements.push(
 			env.DB.prepare(
@@ -544,9 +555,18 @@ export async function updateGtmProject(
 	}>,
 ) {
 	const existing = await env.DB.prepare(
-		"SELECT id, task_name, owner_role FROM gtm_project_task WHERE product_id=?",
-	).bind(productId).all<{ id: string; task_name: string; owner_role: string }>();
+		"SELECT id, task_name, owner_role, is_completed FROM gtm_project_task WHERE product_id=?",
+	).bind(productId).all<{
+		id: string;
+		task_name: string;
+		owner_role: string;
+		is_completed: number;
+	}>();
 	const incomingIds = new Set(tasks.map((task) => task.id));
+	const reopenedTask = tasks.some((task) => {
+		const previous = existing.results.find((item) => item.id === task.id);
+		return !!previous?.is_completed && !task.is_completed;
+	});
 	const incomingMarketingNames = new Set(
 		tasks.filter((task) => task.owner_role === "MARKETING").map((task) => task.task_name.trim()),
 	);
@@ -610,6 +630,15 @@ export async function updateGtmProject(
 					task.task_name.trim(),
 					task.is_completed ? "COMPLETED" : "NOT_COMPLETED",
 				)),
+		...(reopenedTask ? [
+			env.DB.prepare(
+				`UPDATE gtm_product
+				    SET project_status=NULL,
+				        status_review_stage=NULL,
+				        updated_at=CURRENT_TIMESTAMP
+				  WHERE id=?`,
+			).bind(productId),
+		] : []),
 	];
 	if (statements.length) await env.DB.batch(statements);
 }
