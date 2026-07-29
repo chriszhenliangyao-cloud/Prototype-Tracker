@@ -571,44 +571,65 @@ function MaterialModule({ products, materials, focus }: {
 	focus: { id: string; token: number } | null;
 }) {
 	const types = [...new Set(materials.map((material) => material.material_type))];
-	const completed = materials.filter((material) => material.status === "COMPLETED").length;
+	const today = new Date().toISOString().slice(0, 10);
+	const launchedProducts = products.filter(
+		(product) => !!product.planned_launch_date && product.planned_launch_date <= today,
+	);
+	const upcomingCount = products.filter(
+		(product) => !!product.planned_launch_date && product.planned_launch_date > today,
+	).length;
+	const completeCount = launchedProducts.filter((product) => {
+		const productMaterials = materials.filter((material) => material.product_id === product.id);
+		return productMaterials.length > 0 && productMaterials.every(
+			(material) => material.status === "COMPLETED" || material.status === "NOT_REQUIRED",
+		);
+	}).length;
+	const incompleteCount = launchedProducts.length - completeCount;
+	const incompleteTone = incompleteCount === 0 ? "" : incompleteCount <= 3 ? " warning" : " danger";
+	const focusedProductId = focus
+		? materials.find((material) => material.id === focus.id)?.product_id
+		: undefined;
 	useEffect(() => {
-		if (!focus) return;
+		if (!focus || !focusedProductId) return;
 		requestAnimationFrame(() => {
-			document.getElementById(`product-material-${focus.id}`)?.scrollIntoView({
+			document.getElementById(`product-material-row-${focusedProductId}`)?.scrollIntoView({
 				behavior: "smooth",
 				block: "center",
-				inline: "center",
 			});
 		});
-	}, [focus]);
+	}, [focus, focusedProductId]);
 	return (
 		<>
 			<div className="gtm-cards">
-				<div className="gtm-card"><span className="gtm-muted">Upcoming Products</span><b>{products.length}</b></div>
-				<div className="gtm-card"><span className="gtm-muted">Completed Materials</span><b>{completed}</b></div>
-				<div className="gtm-card"><span className="gtm-muted">Open Materials</span><b>{materials.length - completed}</b></div>
+				<div className="gtm-card"><span className="gtm-muted">Upcoming Products</span><b>{upcomingCount}</b></div>
+				<div className="gtm-card success"><span className="gtm-muted">Launched Products (Complete)</span><b>{completeCount}</b></div>
+				<div className={`gtm-card${incompleteTone}`}><span className="gtm-muted">Launched Products (Incomplete)</span><b>{incompleteCount}</b></div>
 			</div>
 			<div className="gtm-section-head"><h2>Upcoming Product Materials</h2><span className="gtm-muted">💡 Click a status to edit</span></div>
 			<div className="gtm-table-wrap">
 				<table className="gtm-table gtm-material-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}</tr></thead>
-					<tbody>{products.map((product) => (
-						<tr key={product.id}>
+					<tbody>{products.map((product) => {
+						const highlighted = product.id === focusedProductId;
+						return (
+						<tr
+							className={highlighted ? "gtm-requirement-highlight" : undefined}
+							id={`product-material-row-${product.id}`}
+							key={`${product.id}-${highlighted ? focus?.token : "idle"}`}
+						>
 							<td className="gtm-model">{product.model}</td><td>{product.name}</td><td>{product.category}</td><td>{product.planned_launch_date}</td>
 							{types.map((type) => {
 								const material = materials.find((item) => item.product_id === product.id && item.material_type === type);
-								const highlighted = material?.id === focus?.id;
 								return <td
-									className={`gtm-material-cell${highlighted ? " gtm-material-highlight" : ""}`}
-									id={material ? `product-material-${material.id}` : undefined}
-									key={`${type}-${highlighted ? focus?.token : "idle"}`}
+									className="gtm-material-cell"
+									key={type}
 								>
 									{material ? <MaterialStatus material={material} /> : "—"}
 								</td>;
 							})}
 						</tr>
-					))}</tbody>
+						);
+					})}</tbody>
 				</table>
 			</div>
 		</>

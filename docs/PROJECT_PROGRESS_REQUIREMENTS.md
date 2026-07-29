@@ -40,8 +40,20 @@
   Management.
 - The target is matched by the same `product_id` and by an exact match between
   the project task name and `material_type`.
-- The matching material cell scrolls into view and is highlighted for
-  approximately 2.5 seconds.
+- The matching product row scrolls into view and uses the same approximately
+  2.5-second whole-row highlight as Prototype Management.
+
+## Product Material summary cards
+
+- Counts use only the products visible after applying the current search,
+  category, and model filters.
+- `Upcoming Products` counts products whose Launch Date is later than today and
+  always uses a white card.
+- `Launched Products (Complete)` counts products whose Launch Date is today or
+  earlier and whose materials are all `COMPLETED` or `NOT_REQUIRED`; its card is
+  green.
+- `Launched Products (Incomplete)` counts the remaining launched products.
+  Its card is white at zero, yellow from one through three, and red above three.
 
 ## Demo material provenance
 
