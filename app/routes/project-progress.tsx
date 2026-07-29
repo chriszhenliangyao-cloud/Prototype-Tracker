@@ -685,21 +685,33 @@ function MaterialModule({ products, materials, focus }: {
 	materials: GtmMaterial[];
 	focus: { id: string; token: number } | null;
 }) {
+	type MaterialFilter = "upcoming" | "launched-complete" | "launched-incomplete";
+	const [activeFilter, setActiveFilter] = useState<MaterialFilter>("upcoming");
 	const types = [...new Set(materials.map((material) => material.material_type))];
 	const launchedProducts = products.filter(
 		(product) => product.launch_status === "LAUNCHED",
 	);
-	const upcomingCount = products.filter(
+	const upcomingProducts = products.filter(
 		(product) => product.launch_status !== "LAUNCHED",
-	).length;
-	const completeCount = launchedProducts.filter((product) => {
+	);
+	const completeProducts = launchedProducts.filter((product) => {
 		const productMaterials = materials.filter((material) => material.product_id === product.id);
 		return productMaterials.length > 0 && productMaterials.every(
 			(material) => material.status === "COMPLETED" || material.status === "NOT_REQUIRED",
 		);
-	}).length;
-	const incompleteCount = launchedProducts.length - completeCount;
+	});
+	const completeIds = new Set(completeProducts.map((product) => product.id));
+	const incompleteProducts = launchedProducts.filter((product) => !completeIds.has(product.id));
+	const upcomingCount = upcomingProducts.length;
+	const completeCount = completeProducts.length;
+	const incompleteCount = incompleteProducts.length;
 	const incompleteTone = incompleteCount === 0 ? "" : incompleteCount <= 3 ? " warning" : " danger";
+	const visibleProducts =
+		activeFilter === "upcoming"
+			? upcomingProducts
+			: activeFilter === "launched-complete"
+				? completeProducts
+				: incompleteProducts;
 	const focusedProductId = focus
 		? materials.find((material) => material.id === focus.id)?.product_id
 		: undefined;
@@ -715,15 +727,36 @@ function MaterialModule({ products, materials, focus }: {
 	return (
 		<>
 			<div className="gtm-cards">
-				<div className="gtm-card"><span className="gtm-muted">Upcoming Products</span><b>{upcomingCount}</b></div>
-				<div className="gtm-card success"><span className="gtm-muted">Launched Products (Complete)</span><b>{completeCount}</b></div>
-				<div className={`gtm-card${incompleteTone}`}><span className="gtm-muted">Launched Products (Incomplete)</span><b>{incompleteCount}</b></div>
+				<button
+					aria-pressed={activeFilter === "upcoming"}
+					className={`gtm-card${activeFilter === "upcoming" ? " active" : ""}`}
+					onClick={() => setActiveFilter("upcoming")}
+					type="button"
+				>
+					<span className="gtm-muted">Upcoming Products</span><b>{upcomingCount}</b>
+				</button>
+				<button
+					aria-pressed={activeFilter === "launched-complete"}
+					className={`gtm-card success${activeFilter === "launched-complete" ? " active" : ""}`}
+					onClick={() => setActiveFilter("launched-complete")}
+					type="button"
+				>
+					<span className="gtm-muted">Launched Products (Complete)</span><b>{completeCount}</b>
+				</button>
+				<button
+					aria-pressed={activeFilter === "launched-incomplete"}
+					className={`gtm-card${incompleteTone}${activeFilter === "launched-incomplete" ? " active" : ""}`}
+					onClick={() => setActiveFilter("launched-incomplete")}
+					type="button"
+				>
+					<span className="gtm-muted">Launched Products (Incomplete)</span><b>{incompleteCount}</b>
+				</button>
 			</div>
 			<div className="gtm-section-head"><h2>Product Materials</h2><span className="gtm-muted">💡 Click a status to edit</span></div>
 			<div className="gtm-table-wrap">
 				<table className="gtm-table gtm-material-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}<th>Action</th></tr></thead>
-					<tbody>{products.map((product) => {
+					<tbody>{visibleProducts.map((product) => {
 						const highlighted = product.id === focusedProductId;
 						return (
 						<tr
@@ -747,7 +780,7 @@ function MaterialModule({ products, materials, focus }: {
 							</td>
 						</tr>
 						);
-					})}</tbody>
+					})}{visibleProducts.length === 0 && <tr><td className="gtm-empty-row" colSpan={types.length + 5}>No products in this category.</td></tr>}</tbody>
 				</table>
 			</div>
 		</>

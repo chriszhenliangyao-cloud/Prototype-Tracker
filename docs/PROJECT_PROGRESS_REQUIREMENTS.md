@@ -82,6 +82,10 @@
   is green.
 - `Launched Products (Incomplete)` counts the remaining launched products.
   Its card is white at zero, yellow from one through three, and red above three.
+- All three cards are clickable table filters. `Upcoming Products` is selected
+  by default.
+- Selecting a card limits the material table to that category while preserving
+  the current search, category, and model filters.
 
 ## Product launch lifecycle
 
