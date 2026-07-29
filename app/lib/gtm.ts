@@ -114,7 +114,9 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 	try {
 		const [products, stages, tasks, materials, requirements, delayRecords] = await Promise.all([
 			env.DB.prepare(
-				"SELECT * FROM gtm_product WHERE launch_status='UNLAUNCHED' ORDER BY planned_launch_date, model",
+				`SELECT * FROM gtm_product
+				  ORDER BY CASE launch_status WHEN 'UNLAUNCHED' THEN 0 ELSE 1 END,
+				           planned_launch_date, model`,
 			).all<GtmProduct>(),
 			env.DB.prepare(
 				"SELECT * FROM gtm_project_stage ORDER BY product_id, rowid",
@@ -291,11 +293,21 @@ export async function toggleGtmTask(env: Env, id: string, completed: boolean) {
 }
 
 export async function launchGtmProduct(env: Env, id: string) {
-	await env.DB.prepare(
+	const result = await env.DB.prepare(
 		"UPDATE gtm_product SET launch_status='LAUNCHED', updated_at=CURRENT_TIMESTAMP WHERE id=?",
 	)
 		.bind(id)
 		.run();
+	if (result.meta.changes !== 1) throw new Error("Product was not found");
+}
+
+export async function returnGtmProductToUpcoming(env: Env, id: string) {
+	const result = await env.DB.prepare(
+		"UPDATE gtm_product SET launch_status='UNLAUNCHED', updated_at=CURRENT_TIMESTAMP WHERE id=?",
+	)
+		.bind(id)
+		.run();
+	if (result.meta.changes !== 1) throw new Error("Product was not found");
 }
 
 export async function updateGtmOwners(env: Env, productOwner: string, marketingManager: string) {

@@ -56,8 +56,7 @@
 
 ## Excel import
 
-- Project Progress provides `Excel Template` and `Import Excel` controls in the
-  upper-right corner.
+- Project Progress provides an `Import Excel` control in the upper-right corner.
 - The workbook uses four named sheets: `Products`, `Stages`, `Tasks`, and
   `Materials`.
 - Import can update existing records and create missing project, stage, task,
@@ -76,13 +75,23 @@
 
 - Counts use only the products visible after applying the current search,
   category, and model filters.
-- `Upcoming Products` counts products whose Launch Date is later than today and
+- `Upcoming Products` counts products whose `launch_status` is `UNLAUNCHED` and
   always uses a white card.
-- `Launched Products (Complete)` counts products whose Launch Date is today or
-  earlier and whose materials are all `COMPLETED` or `NOT_REQUIRED`; its card is
-  green.
+- `Launched Products (Complete)` counts products whose `launch_status` is
+  `LAUNCHED` and whose materials are all `COMPLETED` or `NOT_REQUIRED`; its card
+  is green.
 - `Launched Products (Incomplete)` counts the remaining launched products.
   Its card is white at zero, yellow from one through three, and red above three.
+
+## Product launch lifecycle
+
+- Every Project Progress row has an `Action` column with a `Launch` button.
+- Launch sets the product's `launch_status` to `LAUNCHED`; React Router
+  revalidation then removes it from Project Progress.
+- Product Material Management always shows both upcoming and launched products.
+- Launched product rows provide a professional `Return to Upcoming` action,
+  which restores `launch_status` to `UNLAUNCHED` and returns the project to
+  Project Progress.
 
 ## Demo material provenance
 

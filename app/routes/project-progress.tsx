@@ -9,6 +9,7 @@ import {
 	importGtmWorkbook,
 	projectProgress,
 	projectStatus,
+	returnGtmProductToUpcoming,
 	launchGtmProduct,
 	updateGtmOwners,
 	updateGtmDelayRecord,
@@ -60,6 +61,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 			);
 		} else if (intent === "launch-product") {
 			await launchGtmProduct(context.cloudflare.env, String(form.get("id")));
+		} else if (intent === "return-product") {
+			await returnGtmProductToUpcoming(context.cloudflare.env, String(form.get("id")));
 		} else if (intent === "owners") {
 			await updateGtmOwners(
 				context.cloudflare.env,
@@ -133,6 +136,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 			}),
 		[data.products, query, category, model],
 	);
+	const upcomingProducts = products.filter((product) => product.launch_status !== "LAUNCHED");
 	const categories = [...new Set(data.products.map((product) => product.category))];
 	const title =
 		module === "progress"
@@ -144,7 +148,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 		module === "progress"
 			? "Track upcoming products from project confirmation through launch."
 			: module === "materials"
-				? "Manage launch materials and readiness for upcoming products."
+				? "Manage launch materials and readiness across upcoming and launched products."
 				: "Manage prototype requirements for upcoming product launches.";
 
 	useEffect(() => {
@@ -218,13 +222,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							<h1 className="gtm-title">{title}</h1>
 							<p className="gtm-sub">{subtitle}</p>
 						</div>
-						{module === "progress" && <ExcelImport
-							products={data.products}
-							stages={data.stages}
-							tasks={liveTasks}
-							materials={data.materials}
-							requirements={data.requirements}
-						/>}
+						{module === "progress" && <ExcelImport />}
 					</div>
 					{data.usingFallback && (
 						<div className="gtm-demo-banner">
@@ -248,7 +246,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 						</select>
 					</div>
 					{module === "progress" && <ProgressModule
-						products={products}
+						products={upcomingProducts}
 						stages={data.stages}
 						tasks={liveTasks}
 						delayRecords={data.delayRecords}
@@ -262,7 +260,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 						focus={materialFocus}
 					/>}
 					{module === "prototypes" && <PrototypeModule
-						products={products}
+						products={upcomingProducts}
 						requirements={data.requirements}
 						tasks={liveTasks}
 						focus={requirementFocus}
@@ -274,13 +272,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 	);
 }
 
-function ExcelImport({ products, stages, tasks, materials, requirements }: {
-	products: GtmProduct[];
-	stages: GtmStage[];
-	tasks: GtmTask[];
-	materials: GtmMaterial[];
-	requirements: GtmRequirement[];
-}) {
+function ExcelImport() {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const fetcher = useFetcher<{
 		ok: boolean;
@@ -288,42 +280,6 @@ function ExcelImport({ products, stages, tasks, materials, requirements }: {
 		imported?: { products: number; stages: number; tasks: number; materials: number };
 	}>();
 	const [parseError, setParseError] = useState("");
-
-	async function downloadTemplate() {
-		const { utils, writeFileXLSX } = await import("xlsx");
-		const workbook = utils.book_new();
-		utils.book_append_sheet(workbook, utils.json_to_sheet(products.map((product) => ({
-			Model: product.model,
-			"Product Name": product.name,
-			Category: product.category,
-			"Launch Date": product.planned_launch_date || "",
-			"Product Owner": product.product_owner || "",
-			"Marketing Project Manager": product.marketing_project_manager || "",
-		}))), "Products");
-		utils.book_append_sheet(workbook, utils.json_to_sheet(stages.map((stage) => ({
-			Model: products.find((product) => product.id === stage.product_id)?.model || "",
-			Stage: stage.stage_name,
-			DDL: stage.deadline || "",
-		}))), "Stages");
-		utils.book_append_sheet(workbook, utils.json_to_sheet(tasks.map((task) => ({
-			Model: products.find((product) => product.id === task.product_id)?.model || "",
-			Stage: task.stage_name,
-			"Task Name": task.task_name,
-			"Owner Role": task.owner_role,
-			"Prototype Type": task.prototype_type || "",
-			Completed: task.is_completed ? "Yes" : "No",
-			"Required Quantity": requirements.find((requirement) => requirement.source_task_id === task.id)?.required_quantity || "",
-			ETA: requirements.find((requirement) => requirement.source_task_id === task.id)?.eta || "",
-		}))), "Tasks");
-		utils.book_append_sheet(workbook, utils.json_to_sheet(materials.map((material) => ({
-			Model: products.find((product) => product.id === material.product_id)?.model || "",
-			"Material Type": material.material_type,
-			Status: material.status,
-			DDL: material.deadline || "",
-			Owner: material.owner || "",
-		}))), "Materials");
-		writeFileXLSX(workbook, "Project-Progress-Import-Template.xlsx");
-	}
 
 	async function importFile(event: ChangeEvent<HTMLInputElement>) {
 		const file = event.target.files?.[0];
@@ -401,7 +357,6 @@ function ExcelImport({ products, stages, tasks, materials, requirements }: {
 			ref={inputRef}
 			type="file"
 		/>
-		<button className="gtm-btn" onClick={downloadTemplate} type="button">⬇ Excel Template</button>
 		<button
 			className="gtm-btn primary"
 			disabled={fetcher.state !== "idle"}
@@ -463,7 +418,7 @@ function ProgressModule({
 			{products.length ? (
 				<div className="gtm-table-wrap">
 					<table className={`gtm-table gtm-progress-table${collapsed ? " is-collapsed" : ""}`}>
-						<thead><tr><th>Model</th><th>Product Name</th><th>Launch Date</th><th>Progress</th><th>Status</th><th>Project Pipeline</th>{collapsed && <th>Action</th>}</tr></thead>
+						<thead><tr><th>Model</th><th>Product Name</th><th>Launch Date</th><th>Progress</th><th>Status</th><th>Project Pipeline</th><th>Action</th></tr></thead>
 						<tbody>
 							{products.map((product) => {
 								const productTasks = tasks.filter((task) => task.product_id === product.id);
@@ -494,7 +449,7 @@ function ProgressModule({
 												/>
 											)}
 										</td>
-										{collapsed && <td><LaunchButton product={product} /></td>}
+										<td><LaunchButton product={product} /></td>
 									</tr>
 								);
 							})}
@@ -731,12 +686,11 @@ function MaterialModule({ products, materials, focus }: {
 	focus: { id: string; token: number } | null;
 }) {
 	const types = [...new Set(materials.map((material) => material.material_type))];
-	const today = new Date().toISOString().slice(0, 10);
 	const launchedProducts = products.filter(
-		(product) => !!product.planned_launch_date && product.planned_launch_date <= today,
+		(product) => product.launch_status === "LAUNCHED",
 	);
 	const upcomingCount = products.filter(
-		(product) => !!product.planned_launch_date && product.planned_launch_date > today,
+		(product) => product.launch_status !== "LAUNCHED",
 	).length;
 	const completeCount = launchedProducts.filter((product) => {
 		const productMaterials = materials.filter((material) => material.product_id === product.id);
@@ -765,10 +719,10 @@ function MaterialModule({ products, materials, focus }: {
 				<div className="gtm-card success"><span className="gtm-muted">Launched Products (Complete)</span><b>{completeCount}</b></div>
 				<div className={`gtm-card${incompleteTone}`}><span className="gtm-muted">Launched Products (Incomplete)</span><b>{incompleteCount}</b></div>
 			</div>
-			<div className="gtm-section-head"><h2>Upcoming Product Materials</h2><span className="gtm-muted">💡 Click a status to edit</span></div>
+			<div className="gtm-section-head"><h2>Product Materials</h2><span className="gtm-muted">💡 Click a status to edit</span></div>
 			<div className="gtm-table-wrap">
 				<table className="gtm-table gtm-material-table">
-					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}</tr></thead>
+					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}<th>Action</th></tr></thead>
 					<tbody>{products.map((product) => {
 						const highlighted = product.id === focusedProductId;
 						return (
@@ -787,6 +741,10 @@ function MaterialModule({ products, materials, focus }: {
 									{material ? <MaterialStatus material={material} /> : "—"}
 								</td>;
 							})}
+							<td>{product.launch_status === "LAUNCHED"
+								? <ReturnToUpcomingButton product={product} />
+								: <span className="gtm-muted">—</span>}
+							</td>
 						</tr>
 						);
 					})}</tbody>
@@ -794,6 +752,17 @@ function MaterialModule({ products, materials, focus }: {
 			</div>
 		</>
 	);
+}
+
+function ReturnToUpcomingButton({ product }: { product: GtmProduct }) {
+	const fetcher = useFetcher();
+	return <fetcher.Form method="post">
+		<input name="intent" type="hidden" value="return-product" />
+		<input name="id" type="hidden" value={product.id} />
+		<button className="gtm-return-btn" disabled={fetcher.state !== "idle"} type="submit">
+			Return to Upcoming
+		</button>
+	</fetcher.Form>;
 }
 
 function MaterialStatus({ material }: { material: GtmMaterial }) {
