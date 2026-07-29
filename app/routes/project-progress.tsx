@@ -8,6 +8,8 @@ import {
 	projectProgress,
 	projectStatus,
 	launchGtmProduct,
+	updateGtmOwners,
+	updateGtmProject,
 	toggleGtmTask,
 	updateGtmMaterial,
 	updateGtmRequirement,
@@ -15,6 +17,7 @@ import {
 	type GtmProduct,
 	type GtmRequirement,
 	type GtmStage,
+	type GtmStageName,
 	type GtmTask,
 } from "../lib/gtm";
 import "../gtm.css";
@@ -52,6 +55,15 @@ export async function action({ request, context }: Route.ActionArgs) {
 			);
 		} else if (intent === "launch-product") {
 			await launchGtmProduct(context.cloudflare.env, String(form.get("id")));
+		} else if (intent === "owners") {
+			await updateGtmOwners(
+				context.cloudflare.env,
+				String(form.get("product_owner") || ""),
+				String(form.get("marketing_manager") || ""),
+			);
+		} else if (intent === "project-edit") {
+			const payload = JSON.parse(String(form.get("payload") || "{}"));
+			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks);
 		}
 		return { ok: true };
 	} catch (error) {
@@ -189,7 +201,9 @@ function ProgressModule({
 	tasks: GtmTask[];
 }) {
 	const [collapsed, setCollapsed] = useState(false);
+	const [editingOwners, setEditingOwners] = useState(false);
 	const first = products[0];
+	const ownerFetcher = useFetcher();
 	return (
 		<>
 			<div className="gtm-section-head">
@@ -197,8 +211,19 @@ function ProgressModule({
 				<button className="gtm-btn" onClick={() => setCollapsed((value) => !value)}>
 					{collapsed ? "Expand All" : "Collapse All"}
 				</button>
-				<span className="gtm-owner">👤 Product Owner: {first?.product_owner || "—"}</span>
-				<span className="gtm-owner">📣 Marketing Project Manager: {first?.marketing_project_manager || "—"}</span>
+				{editingOwners ? (
+					<ownerFetcher.Form className="gtm-owner-edit" method="post" onSubmit={() => setEditingOwners(false)}>
+						<input name="intent" type="hidden" value="owners" />
+						<label>👤<input name="product_owner" defaultValue={first?.product_owner || ""} placeholder="Product Owner" /></label>
+						<label>📣<input name="marketing_manager" defaultValue={first?.marketing_project_manager || ""} placeholder="Marketing Project Manager" /></label>
+						<button className="gtm-btn primary">Save</button>
+						<button className="gtm-btn" type="button" onClick={() => setEditingOwners(false)}>Cancel</button>
+					</ownerFetcher.Form>
+				) : (
+					<button className="gtm-owner" onClick={() => setEditingOwners(true)}>
+						👤 Product Owner: {first?.product_owner || "—"}　 📣 Marketing Project Manager: {first?.marketing_project_manager || "—"}
+					</button>
+				)}
 			</div>
 			{products.length ? (
 				<div className="gtm-table-wrap">
@@ -221,7 +246,7 @@ function ProgressModule({
 											{collapsed ? (
 												<CollapsedPipeline tasks={productTasks} />
 											) : (
-												<Pipeline stages={productStages} tasks={productTasks} />
+												<Pipeline product={product} stages={productStages} tasks={productTasks} />
 											)}
 										</td>
 										{collapsed && <td><LaunchButton product={product} /></td>}
@@ -277,8 +302,64 @@ function LaunchButton({ product }: { product: GtmProduct }) {
 	);
 }
 
-function Pipeline({ stages, tasks }: { stages: GtmStage[]; tasks: GtmTask[] }) {
+function Pipeline({ product, stages, tasks }: { product: GtmProduct; stages: GtmStage[]; tasks: GtmTask[] }) {
 	const current = currentStage(tasks);
+	const [editing, setEditing] = useState(false);
+	const [draftStages, setDraftStages] = useState(stages.map((stage) => ({ ...stage })));
+	const [draftTasks, setDraftTasks] = useState(tasks.map((task) => ({ ...task })));
+	const fetcher = useFetcher();
+
+	function resetDraft() {
+		setDraftStages(stages.map((stage) => ({ ...stage })));
+		setDraftTasks(tasks.map((task) => ({ ...task })));
+	}
+	function updateTask(id: string, patch: Partial<GtmTask>) {
+		setDraftTasks((items) => items.map((task) => task.id === id ? { ...task, ...patch } : task));
+	}
+	function addTask(stage: GtmStageName) {
+		setDraftTasks((items) => [...items, {
+			id: `new-${product.id}-${Date.now()}`,
+			product_id: product.id,
+			stage_name: stage,
+			task_name: "New Task",
+			owner_role: "PRODUCT",
+			prototype_type: null,
+			is_completed: 0,
+			sort_order: items.filter((task) => task.stage_name === stage).length * 10 + 10,
+		}]);
+	}
+	if (editing) {
+		const payload = JSON.stringify({
+			productId: product.id,
+			stages: draftStages.map((stage) => ({ id: stage.id, deadline: stage.deadline || "" })),
+			tasks: draftTasks.map(({ id, stage_name, task_name, owner_role, prototype_type, is_completed, sort_order }) =>
+				({ id, stage_name, task_name, owner_role, prototype_type, is_completed, sort_order })),
+		});
+		return (
+			<fetcher.Form method="post" className="gtm-project-editor" onSubmit={() => setEditing(false)}>
+				<input name="intent" type="hidden" value="project-edit" />
+				<input name="payload" type="hidden" value={payload} />
+				<div className="gtm-editor-grid">
+					{GTM_STAGES.map((stageName) => {
+						const stage = draftStages.find((item) => item.stage_name === stageName);
+						const stageTasks = draftTasks.filter((task) => task.stage_name === stageName);
+						return <div className="gtm-editor-stage" key={stageName}>
+							<b>{stageName}</b>
+							<label>DDL<input type="date" value={stage?.deadline || ""} onChange={(e) => setDraftStages((items) => items.map((item) => item.stage_name === stageName ? { ...item, deadline: e.target.value } : item))} /></label>
+							{stageTasks.map((task) => <div className="gtm-editor-task" key={task.id}>
+								<div><input type="checkbox" checked={!!task.is_completed} onChange={(e) => updateTask(task.id, { is_completed: e.target.checked ? 1 : 0 })} /><input value={task.task_name} onChange={(e) => updateTask(task.id, { task_name: e.target.value })} /></div>
+								<select value={task.owner_role} onChange={(e) => updateTask(task.id, { owner_role: e.target.value as GtmTask["owner_role"] })}><option value="PRODUCT">👤 Product</option><option value="MARKETING">📣 Marketing</option><option value="GTM">GTM</option></select>
+								<select value={task.prototype_type || ""} onChange={(e) => updateTask(task.id, { prototype_type: e.target.value || null })}><option value="">Not a Sample</option><option>Dummy</option><option>Engineering Sample</option><option>Preproduction Sample</option><option>Mass Production Sample</option></select>
+								<button type="button" onClick={() => setDraftTasks((items) => items.filter((item) => item.id !== task.id))}>×</button>
+							</div>)}
+							<button className="gtm-add-task" type="button" onClick={() => addTask(stageName)}>＋ Add Task</button>
+						</div>;
+					})}
+				</div>
+				<div className="gtm-editor-actions"><button className="gtm-btn" type="button" onClick={() => { resetDraft(); setEditing(false); }}>Cancel</button><button className="gtm-btn primary">Save</button></div>
+			</fetcher.Form>
+		);
+	}
 	return (
 		<div className="gtm-pipeline">
 			<div className="gtm-line" />
@@ -300,22 +381,23 @@ function Pipeline({ stages, tasks }: { stages: GtmStage[]; tasks: GtmTask[] }) {
 					);
 				})}
 			</div>
+			<button className="gtm-btn gtm-edit-project" onClick={() => { resetDraft(); setEditing(true); }}>Edit</button>
 		</div>
 	);
 }
 
 function TaskToggle({ task }: { task: GtmTask }) {
 	const fetcher = useFetcher();
-	const optimistic = fetcher.formData
-		? String(fetcher.formData.get("completed")) === "true"
-		: !!task.is_completed;
+	const [checked, setChecked] = useState(!!task.is_completed);
+	useEffect(() => setChecked(!!task.is_completed), [task.is_completed]);
+	const optimistic = fetcher.formData ? String(fetcher.formData.get("completed")) === "true" : checked;
 	const icon = task.owner_role === "MARKETING" ? "📣" : task.owner_role === "PRODUCT" ? "👤" : "";
 	return (
 		<fetcher.Form method="post" className="gtm-task">
 			<input name="intent" type="hidden" value="toggle-task" />
 			<input name="id" type="hidden" value={task.id} />
 			<input name="completed" type="hidden" value={String(!optimistic)} />
-			<button className={optimistic ? "" : "todo"} title="Toggle task completion" type="submit">
+			<button className={optimistic ? "" : "todo"} title="Toggle task completion" type="submit" onClick={() => setChecked(!optimistic)}>
 				{optimistic ? "✓" : "○"}
 			</button>
 			<span>{icon} {task.task_name}</span>

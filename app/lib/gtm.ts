@@ -212,6 +212,58 @@ export async function launchGtmProduct(env: Env, id: string) {
 		.run();
 }
 
+export async function updateGtmOwners(env: Env, productOwner: string, marketingManager: string) {
+	await env.DB.prepare(
+		`UPDATE gtm_product
+		    SET product_owner=?, marketing_project_manager=?, updated_at=CURRENT_TIMESTAMP
+		  WHERE launch_status='UNLAUNCHED'`,
+	)
+		.bind(productOwner, marketingManager)
+		.run();
+}
+
+export async function updateGtmProject(
+	env: Env,
+	productId: string,
+	stages: Array<{ id: string; deadline: string }>,
+	tasks: Array<{
+		id: string;
+		stage_name: GtmStageName;
+		task_name: string;
+		owner_role: "PRODUCT" | "MARKETING" | "GTM";
+		prototype_type: string | null;
+		is_completed: number;
+		sort_order: number;
+	}>,
+) {
+	const existing = await env.DB.prepare(
+		"SELECT id FROM gtm_project_task WHERE product_id=?",
+	).bind(productId).all<{ id: string }>();
+	const incomingIds = new Set(tasks.map((task) => task.id));
+	const statements = [
+		...stages.map((stage) =>
+			env.DB.prepare("UPDATE gtm_project_stage SET deadline=? WHERE id=? AND product_id=?")
+				.bind(stage.deadline || null, stage.id, productId)),
+		...existing.results
+			.filter((task) => !incomingIds.has(task.id))
+			.map((task) => env.DB.prepare("DELETE FROM gtm_project_task WHERE id=? AND product_id=?").bind(task.id, productId)),
+		...tasks.map((task) =>
+			env.DB.prepare(
+				`INSERT INTO gtm_project_task
+				   (id,product_id,stage_name,task_name,owner_role,prototype_type,is_completed,sort_order)
+				 VALUES (?,?,?,?,?,?,?,?)
+				 ON CONFLICT(id) DO UPDATE SET
+				   stage_name=excluded.stage_name, task_name=excluded.task_name,
+				   owner_role=excluded.owner_role, prototype_type=excluded.prototype_type,
+				   is_completed=excluded.is_completed, sort_order=excluded.sort_order`,
+			).bind(
+				task.id, productId, task.stage_name, task.task_name.trim(),
+				task.owner_role, task.prototype_type, task.is_completed ? 1 : 0, task.sort_order,
+			)),
+	];
+	if (statements.length) await env.DB.batch(statements);
+}
+
 export async function updateGtmMaterial(
 	env: Env,
 	id: string,
