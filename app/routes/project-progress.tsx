@@ -92,21 +92,18 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 
 	return (
 		<div className="gtm">
-			<header className="gtm-top">
-				<div className="gtm-brand">
-					<span className="gtm-logo">◆</span>
-					<span>ProtoTrack</span>
-					<span className="gtm-muted">· GTM Workspace</span>
-				</div>
-				<Link className="gtm-back" to="/">← Prototype Control Tower</Link>
-			</header>
 			<div className="gtm-shell">
 				<aside className="gtm-side">
-					<div className="gtm-tree-title">▼ &nbsp;Project Progress Management</div>
-					<nav className="gtm-nav" aria-label="GTM Workspace">
-						<button className={module === "progress" ? "on" : ""} onClick={() => setModule("progress")}>
+					<div className="gtm-tree-root">
+						<span aria-hidden="true">▼</span>
+						<button
+							className={module === "progress" ? "gtm-tree-title on" : "gtm-tree-title"}
+							onClick={() => setModule("progress")}
+						>
 							Project Progress Management
 						</button>
+					</div>
+					<nav className="gtm-nav" aria-label="GTM Workspace">
 						<button className={module === "materials" ? "on" : ""} onClick={() => setModule("materials")}>
 							Product Material Management
 						</button>
@@ -114,6 +111,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							Prototype Management
 						</button>
 					</nav>
+					<Link className="gtm-back" to="/">← Prototype Control Tower</Link>
 				</aside>
 				<main className="gtm-main">
 					<h1 className="gtm-title">{title}</h1>

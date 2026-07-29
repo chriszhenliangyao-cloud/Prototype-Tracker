@@ -1,10 +1,8 @@
 .gtm{--ink:#101828;--muted:#667085;--line:#e4e7ec;--soft:#f8fafc;--blue:#2563eb;--green:#039855;min-height:100vh;background:#f8fafc;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .gtm *{box-sizing:border-box}
-.gtm-top{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:50}
-.gtm-brand{display:flex;align-items:center;gap:11px;font-weight:750}.gtm-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(145deg,#2563eb,#6d5dfc);display:grid;place-items:center;color:#fff}
-.gtm-back{color:#475467;text-decoration:none;border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600}.gtm-back:hover{background:#f2f4f7}
-.gtm-shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100vh - 60px)}
-.gtm-side{background:#fff;border-right:1px solid var(--line);padding:25px 18px}.gtm-tree-title{font-size:15px;font-weight:750;background:#f2f4f7;padding:12px;border-radius:10px;margin-bottom:7px}
+.gtm-back{color:#475467;text-decoration:none;border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;margin:24px 18px 0 28px;display:inline-flex}.gtm-back:hover{background:#f2f4f7}
+.gtm-shell{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+.gtm-side{background:#fff;border-right:1px solid var(--line);padding:34px 18px}.gtm-tree-root{display:flex;align-items:center;gap:8px;color:#667085}.gtm-tree-title{font:inherit;border:0;text-align:left;color:#344054;font-size:15px;font-weight:750;background:#fff;padding:12px;border-radius:10px;cursor:pointer}.gtm-tree-title:hover,.gtm-tree-title.on{background:#f2f4f7;color:#101828}
 .gtm-nav{display:grid;border-left:1px solid #dbe2ea;margin-left:11px;padding-left:10px;gap:3px}.gtm-nav button{border:0;background:#fff;text-align:left;padding:11px 12px;border-radius:8px;color:#344054;font-size:14px;cursor:pointer}.gtm-nav button:hover,.gtm-nav button.on{background:#eef4ff;color:#175cd3;font-weight:650}
 .gtm-main{min-width:0;padding:32px 40px 60px}.gtm-title{font-size:32px;line-height:1.1;margin:0;font-weight:800;letter-spacing:-.025em}.gtm-sub{color:var(--muted);margin:9px 0 26px}
 .gtm-demo-banner{margin:-10px 0 20px;border:1px solid #fec84b;background:#fffaeb;color:#93370d;border-radius:8px;padding:10px 13px;font-size:13px;font-weight:600}
