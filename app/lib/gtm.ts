@@ -112,6 +112,7 @@ export interface GtmExcelImport {
 
 export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 	try {
+		await syncGtmDelayRecords(env);
 		const [products, stages, tasks, materials, requirements, delayRecords] = await Promise.all([
 			env.DB.prepare(
 				`SELECT * FROM gtm_product
@@ -156,12 +157,45 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 async function getGtmDelayRecords(env: Env): Promise<GtmDelayRecord[]> {
 	try {
 		const records = await env.DB.prepare(
-			"SELECT * FROM gtm_delay_record ORDER BY product_id, original_deadline DESC, id",
+			`SELECT id, product_id, stage_name, task_name,
+			        original_deadline, delayed_until, notes
+			   FROM gtm_delay_record
+			  WHERE deleted_at IS NULL
+			  ORDER BY product_id, original_deadline DESC, id`,
 		).all<GtmDelayRecord>();
 		return records.results;
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		if (message.includes("no such table") && message.includes("gtm_delay_record")) return [];
+		throw error;
+	}
+}
+
+export async function syncGtmDelayRecords(env: Env) {
+	const today = new Date().toISOString().slice(0, 10);
+	try {
+		await env.DB.prepare(
+			`INSERT OR IGNORE INTO gtm_delay_record
+			   (id, product_id, stage_name, task_name, original_deadline)
+			 SELECT 'delay-auto-' || t.id,
+			        t.product_id,
+			        t.stage_name,
+			        t.task_name,
+			        s.deadline
+			   FROM gtm_project_task t
+			   JOIN gtm_project_stage s
+			     ON s.product_id=t.product_id
+			    AND s.stage_name=t.stage_name
+			  WHERE t.is_completed=0
+			    AND s.deadline IS NOT NULL
+			    AND s.deadline<=?`,
+		)
+			.bind(today)
+			.run();
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		if (message.includes("no such table") && message.includes("gtm_delay_record")) return;
+		if (message.includes("no column named deleted_at")) return;
 		throw error;
 	}
 }
@@ -251,8 +285,13 @@ function getGtmFallbackData(): GtmWorkspaceData {
 			};
 		});
 	const delayRecords: GtmDelayRecord[] = tasks
-		.filter((task) => !task.is_completed)
-		.slice(0, 8)
+		.filter((task) => {
+			if (task.is_completed) return false;
+			const deadline = stages.find(
+				(stage) => stage.product_id === task.product_id && stage.stage_name === task.stage_name,
+			)?.deadline;
+			return !!deadline && deadline <= new Date().toISOString().slice(0, 10);
+		})
 		.map((task, index) => ({
 			id: `fallback-delay-${index}`,
 			product_id: task.product_id,
@@ -267,6 +306,7 @@ function getGtmFallbackData(): GtmWorkspaceData {
 
 export async function toggleGtmTask(env: Env, id: string, completed: boolean) {
 	if (!id.trim()) throw new Error("Task id is required");
+	await syncGtmDelayRecords(env);
 	const task = await env.DB.prepare(
 		"SELECT product_id, task_name, owner_role FROM gtm_project_task WHERE id=?",
 	).bind(id).first<{ product_id: string; task_name: string; owner_role: string }>();
@@ -323,7 +363,9 @@ export async function updateGtmOwners(env: Env, productOwner: string, marketingM
 export async function updateGtmDelayRecord(env: Env, id: string, delayedUntil: string, notes: string) {
 	if (!id.trim()) throw new Error("Delay record id is required");
 	await env.DB.prepare(
-		"UPDATE gtm_delay_record SET delayed_until=?, notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
+		`UPDATE gtm_delay_record
+		    SET delayed_until=?, notes=?, updated_at=CURRENT_TIMESTAMP
+		  WHERE id=? AND deleted_at IS NULL`,
 	)
 		.bind(delayedUntil || null, notes.trim() || null, id)
 		.run();
@@ -332,7 +374,9 @@ export async function updateGtmDelayRecord(env: Env, id: string, delayedUntil: s
 export async function deleteGtmDelayRecord(env: Env, id: string) {
 	if (!id.trim()) throw new Error("Delay record id is required");
 	const result = await env.DB.prepare(
-		"DELETE FROM gtm_delay_record WHERE id=?",
+		`UPDATE gtm_delay_record
+		    SET deleted_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP
+		  WHERE id=? AND deleted_at IS NULL`,
 	)
 		.bind(id)
 		.run();
@@ -364,6 +408,23 @@ export async function updateGtmProject(
 		...stages.map((stage) =>
 			env.DB.prepare("UPDATE gtm_project_stage SET deadline=? WHERE id=? AND product_id=?")
 				.bind(stage.deadline || null, stage.id, productId)),
+		env.DB.prepare(
+			`INSERT OR IGNORE INTO gtm_delay_record
+			   (id, product_id, stage_name, task_name, original_deadline)
+			 SELECT 'delay-auto-' || t.id,
+			        t.product_id,
+			        t.stage_name,
+			        t.task_name,
+			        s.deadline
+			   FROM gtm_project_task t
+			   JOIN gtm_project_stage s
+			     ON s.product_id=t.product_id
+			    AND s.stage_name=t.stage_name
+			  WHERE t.product_id=?
+			    AND t.is_completed=0
+			    AND s.deadline IS NOT NULL
+			    AND s.deadline<=?`,
+		).bind(productId, new Date().toISOString().slice(0, 10)),
 		...existing.results
 			.filter((task) => !incomingIds.has(task.id))
 			.map((task) => env.DB.prepare("DELETE FROM gtm_project_task WHERE id=? AND product_id=?").bind(task.id, productId)),

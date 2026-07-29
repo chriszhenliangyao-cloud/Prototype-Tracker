@@ -12,9 +12,14 @@
 
 ## Delay Records editing
 
+- A Delay Record is created only when a task is incomplete and its stage DDL
+  has been reached or passed.
+- Once created, a Delay Record remains in history even if the task is later
+  completed.
 - Every Delay Record provides an `Edit` button.
 - Every Delay Record provides a `Delete` button with a confirmation prompt.
-- Confirmed deletion permanently removes only that `gtm_delay_record` row.
+- Confirmed deletion removes the record from the UI and prevents the automatic
+  delay synchronizer from recreating it.
 - Edit mode allows changes only to `Delayed Until` and `Notes`.
 - `Save` persists those fields; `Cancel` discards unsaved changes.
 - Stage, Task Name, and Original DDL remain read-only and are not submitted as
