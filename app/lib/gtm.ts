@@ -61,6 +61,13 @@ export interface GtmRequirement {
 	is_completed: number;
 }
 
+export interface GtmPrototypeAllocation {
+	requirement_id: string;
+	country: string;
+	channel: string;
+	quantity: number;
+}
+
 export interface GtmDelayRecord {
 	id: string;
 	product_id: string;
@@ -77,6 +84,7 @@ export interface GtmWorkspaceData {
 	tasks: GtmTask[];
 	materials: GtmMaterial[];
 	requirements: GtmRequirement[];
+	allocations: GtmPrototypeAllocation[];
 	delayRecords: GtmDelayRecord[];
 	usingFallback?: boolean;
 }
@@ -122,7 +130,7 @@ export interface NewGtmProduct {
 export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 	try {
 		await syncGtmDelayRecords(env);
-		const [products, stages, tasks, materials, requirements, delayRecords] = await Promise.all([
+		const [products, stages, tasks, materials, requirements, allocations, delayRecords] = await Promise.all([
 			env.DB.prepare(
 				`SELECT * FROM gtm_product
 				  ORDER BY CASE launch_status WHEN 'UNLAUNCHED' THEN 0 ELSE 1 END,
@@ -146,6 +154,24 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 			  WHERE p.launch_status='UNLAUNCHED'
 			  ORDER BY p.model, t.sort_order, r.id`,
 			).all<GtmRequirement>(),
+			env.DB.prepare(
+				`SELECT r.id AS requirement_id,
+				        COALESCE(NULLIF(TRIM(proto.country), ''), '—') AS country,
+				        COALESCE(NULLIF(TRIM(proto.customer), ''), '—') AS channel,
+				        SUM(proto.qty) AS quantity
+				   FROM gtm_prototype_requirement r
+				   JOIN gtm_product p ON p.id=r.product_id
+				   JOIN gtm_project_task t ON t.id=r.source_task_id
+				   JOIN prototype proto
+				     ON lower(TRIM(proto.model))=lower(TRIM(p.model))
+				    AND lower(TRIM(proto.sample_type))=lower(TRIM(t.prototype_type))
+				  WHERE proto.qty>0
+				    AND NULLIF(TRIM(proto.customer), '') IS NOT NULL
+				  GROUP BY r.id,
+				           COALESCE(NULLIF(TRIM(proto.country), ''), '—'),
+				           COALESCE(NULLIF(TRIM(proto.customer), ''), '—')
+				  ORDER BY r.id, country, channel`,
+			).all<GtmPrototypeAllocation>(),
 			getGtmDelayRecords(env),
 		]);
 		return {
@@ -154,6 +180,7 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 			tasks: tasks.results,
 			materials: materials.results,
 			requirements: requirements.results,
+			allocations: allocations.results,
 			delayRecords,
 		};
 	} catch (error) {
@@ -310,7 +337,7 @@ function getGtmFallbackData(): GtmWorkspaceData {
 			delayed_until: null,
 			notes: null,
 		}));
-	return { products, stages, tasks, materials, requirements, delayRecords, usingFallback: true };
+	return { products, stages, tasks, materials, requirements, allocations: [], delayRecords, usingFallback: true };
 }
 
 export async function toggleGtmTask(env: Env, id: string, completed: boolean) {

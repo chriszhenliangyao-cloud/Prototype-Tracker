@@ -21,6 +21,7 @@ import {
 	type GtmMaterial,
 	type GtmDelayRecord,
 	type GtmProduct,
+	type GtmPrototypeAllocation,
 	type GtmRequirement,
 	type GtmStage,
 	type GtmStageName,
@@ -283,6 +284,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 					{module === "prototypes" && <PrototypeModule
 						products={upcomingProducts}
 						requirements={data.requirements}
+						allocations={data.allocations}
 						tasks={liveTasks}
 						focus={requirementFocus}
 					/>}
@@ -871,13 +873,15 @@ function MaterialStatus({ material }: { material: GtmMaterial }) {
 	);
 }
 
-function PrototypeModule({ products, requirements, tasks, focus }: {
+function PrototypeModule({ products, requirements, allocations, tasks, focus }: {
 	products: GtmProduct[];
 	requirements: GtmRequirement[];
+	allocations: GtmPrototypeAllocation[];
 	tasks: GtmTask[];
 	focus: { id: string; token: number } | null;
 }) {
 	const visible = requirements.filter((requirement) => products.some((product) => product.id === requirement.product_id));
+	const [detailRequirement, setDetailRequirement] = useState<GtmRequirement | null>(null);
 	useEffect(() => {
 		if (!focus) return;
 		const row = document.getElementById(`prototype-requirement-${focus.id}`);
@@ -894,17 +898,24 @@ function PrototypeModule({ products, requirements, tasks, focus }: {
 						requirement={requirement}
 						tasks={tasks.filter((task) => task.product_id === requirement.product_id)}
 						highlighted={focus?.id === requirement.id}
+						onDetail={() => setDetailRequirement(requirement)}
 					/>)}</tbody>
 				</table>
 			</div>
+			{detailRequirement && <AllocationDrawer
+				requirement={detailRequirement}
+				allocations={allocations.filter((item) => item.requirement_id === detailRequirement.id)}
+				onClose={() => setDetailRequirement(null)}
+			/>}
 		</>
 	);
 }
 
-function RequirementRow({ requirement, tasks, highlighted }: {
+function RequirementRow({ requirement, tasks, highlighted, onDetail }: {
 	requirement: GtmRequirement;
 	tasks: GtmTask[];
 	highlighted: boolean;
+	onDetail: () => void;
 }) {
 	const [editing, setEditing] = useState(false);
 	const fetcher = useFetcher();
@@ -929,7 +940,35 @@ function RequirementRow({ requirement, tasks, highlighted }: {
 					</fetcher.Form>
 				) : requirement.required_quantity}
 			</td>
-			{!editing && <><td>{requirement.eta || "—"}</td><td><span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span></td><td><button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button></td></>}
+			{!editing && <><td>{requirement.eta || "—"}</td><td><span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span></td><td><div className="gtm-requirement-actions"><button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button><button className="gtm-btn" onClick={onDetail}>Detail</button></div></td></>}
 		</tr>
 	);
+}
+
+function AllocationDrawer({ requirement, allocations, onClose }: {
+	requirement: GtmRequirement;
+	allocations: GtmPrototypeAllocation[];
+	onClose: () => void;
+}) {
+	return <div className="gtm-delay-overlay gtm-allocation-overlay" onClick={onClose}>
+		<aside className="gtm-delay-drawer gtm-allocation-drawer" onClick={(event) => event.stopPropagation()}>
+			<header>
+				<div>
+					<h2>Allocation Details</h2>
+					<p>{requirement.model} · {requirement.prototype_type}</p>
+				</div>
+				<button aria-label="Close allocation details" onClick={onClose}>×</button>
+			</header>
+			<div className="gtm-allocation-content">
+				{allocations.length ? <table className="gtm-allocation-table">
+					<thead><tr><th>Country</th><th>Channel</th><th>Quantity</th></tr></thead>
+					<tbody>{allocations.map((allocation) => <tr key={`${allocation.country}-${allocation.channel}`}>
+						<td>{allocation.country}</td>
+						<td>{allocation.channel}</td>
+						<td>{allocation.quantity}</td>
+					</tr>)}</tbody>
+				</table> : <div className="gtm-empty">No allocation details available.</div>}
+			</div>
+		</aside>
+	</div>;
 }

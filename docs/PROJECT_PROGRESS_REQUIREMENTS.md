@@ -39,6 +39,21 @@
 - Task completion remains the single source of truth, so Project Progress and
   Prototype Management update together without a duplicate status field.
 
+## Prototype allocation details
+
+- Every Prototype Management row provides `Edit` and `Detail` actions.
+- `Detail` opens a right-side drawer containing only Country, Channel, and
+  Quantity.
+- Allocation data comes directly from Control Tower's `prototype` table.
+- Requirements match Control Tower records by normalized Model and Sample Type.
+- Rows with the same Country and Channel are grouped, and their `qty` values
+  are summed.
+- Control Tower's `customer` field is displayed as Channel.
+- Control Tower rows without a Channel are unallocated inventory and are
+  excluded from the allocation drawer.
+- Prototype status, requirement totals, serial numbers, and logistics fields
+  are not displayed in the allocation drawer.
+
 ## Marketing task navigation
 
 - Clicking the name of a task owned by `MARKETING` opens Product Material
