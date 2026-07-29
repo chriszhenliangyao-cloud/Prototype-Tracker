@@ -110,6 +110,15 @@ export interface GtmExcelImport {
 	}>;
 }
 
+export interface NewGtmProduct {
+	model: string;
+	name: string;
+	category: string;
+	launchDate: string;
+	productOwner: string;
+	marketingManager: string;
+}
+
 export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 	try {
 		await syncGtmDelayRecords(env);
@@ -348,6 +357,114 @@ export async function returnGtmProductToUpcoming(env: Env, id: string) {
 		.bind(id)
 		.run();
 	if (result.meta.changes !== 1) throw new Error("Product was not found");
+}
+
+export async function createGtmProduct(env: Env, input: NewGtmProduct) {
+	const model = input.model.trim();
+	const name = input.name.trim();
+	const category = input.category.trim();
+	const launchDate = input.launchDate.trim();
+	if (!model || !name || !category || !launchDate) {
+		throw new Error("Model, Product Name, Category, and Launch Date are required");
+	}
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) {
+		throw new Error("Launch Date must use YYYY-MM-DD");
+	}
+	const duplicate = await env.DB.prepare(
+		"SELECT id FROM gtm_product WHERE lower(model)=lower(?)",
+	).bind(model).first<{ id: string }>();
+	if (duplicate) throw new Error(`Model ${model} already exists`);
+
+	const productId = `gtm-${crypto.randomUUID()}`;
+	const taskTemplates: Array<{
+		stage: GtmStageName;
+		name: string;
+		role: GtmTask["owner_role"];
+		prototype: string | null;
+	}> = [
+		{ stage: "Project Confirm to Start", name: "Dummy", role: "PRODUCT", prototype: "Dummy" },
+		{ stage: "DVT1", name: "Product Introduction Slides", role: "MARKETING", prototype: null },
+		{ stage: "DVT1", name: "Engineering Sample", role: "PRODUCT", prototype: "Engineering Sample" },
+		{ stage: "DVT2", name: "Packaging Design Final Draft", role: "MARKETING", prototype: null },
+		{ stage: "DVT2", name: "Product Sheet", role: "PRODUCT", prototype: null },
+		{ stage: "Trial Production Start", name: "Preproduction Sample", role: "PRODUCT", prototype: "Preproduction Sample" },
+		{ stage: "Trial Production Start", name: "Product & Packaging Images & Manual", role: "MARKETING", prototype: null },
+		{ stage: "Mass Production", name: "Mass Production Sample", role: "PRODUCT", prototype: "Mass Production Sample" },
+		{ stage: "Mass Production", name: "POSM", role: "MARKETING", prototype: null },
+		{ stage: "Launch", name: "Social Copy & PR Release", role: "MARKETING", prototype: null },
+	];
+	const statements: D1PreparedStatement[] = [
+		env.DB.prepare(
+			`INSERT INTO gtm_product
+			   (id,model,name,category,launch_status,planned_launch_date,
+			    product_owner,marketing_project_manager)
+			 VALUES (?,?,?,?,'UNLAUNCHED',?,?,?)`,
+		).bind(
+			productId,
+			model,
+			name,
+			category,
+			launchDate,
+			input.productOwner.trim() || null,
+			input.marketingManager.trim() || null,
+		),
+		...GTM_STAGES.map((stage, index) =>
+			env.DB.prepare(
+				`INSERT INTO gtm_project_stage
+				   (id,product_id,stage_name,deadline,estimated_shipping_date)
+				 VALUES (?,?,?,NULL,NULL)`,
+			).bind(`stage-${productId}-${index + 1}`, productId, stage)),
+	];
+	for (const [index, task] of taskTemplates.entries()) {
+		const taskId = `task-${productId}-${index + 1}`;
+		statements.push(
+			env.DB.prepare(
+				`INSERT INTO gtm_project_task
+				   (id,product_id,stage_name,task_name,owner_role,
+				    prototype_type,is_completed,sort_order)
+				 VALUES (?,?,?,?,?,?,0,?)`,
+			).bind(
+				taskId,
+				productId,
+				task.stage,
+				task.name,
+				task.role,
+				task.prototype,
+				(index + 1) * 10,
+			),
+		);
+		if (task.prototype) {
+			const quantity =
+				task.prototype === "Dummy" ? 2
+					: task.prototype === "Engineering Sample" ? 4
+						: task.prototype === "Preproduction Sample" ? 6 : 8;
+			statements.push(
+				env.DB.prepare(
+					`INSERT INTO gtm_prototype_requirement
+					   (id,product_id,source_task_id,required_quantity,eta)
+					 VALUES (?,?,?,?,NULL)`,
+				).bind(`requirement-${taskId}`, productId, taskId, quantity),
+			);
+		}
+		if (task.role === "MARKETING" || task.name === "Product Sheet") {
+			statements.push(
+				env.DB.prepare(
+					`INSERT INTO gtm_material_task
+					   (id,product_id,material_type,status,deadline,owner)
+					 VALUES (?,?,?,'NOT_COMPLETED',NULL,?)`,
+				).bind(
+					`material-${taskId}`,
+					productId,
+					task.name,
+					task.role === "MARKETING"
+						? input.marketingManager.trim() || null
+						: input.productOwner.trim() || null,
+				),
+			);
+		}
+	}
+	await env.DB.batch(statements);
+	return { id: productId, model };
 }
 
 export async function updateGtmOwners(env: Env, productOwner: string, marketingManager: string) {

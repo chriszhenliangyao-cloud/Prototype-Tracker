@@ -102,6 +102,18 @@
   which restores `launch_status` to `UNLAUNCHED` and returns the project to
   Project Progress.
 
+## Product creation
+
+- Project Progress provides an `Add Product` button in the upper-right actions.
+- The form requires Model, Product Name, Category, and Launch Date; Product
+  Owner and Marketing Project Manager are optional.
+- Creating a product generates the standard six project stages, ten standard
+  tasks, linked marketing materials, and four prototype requirements.
+- Every generated stage DDL and prototype ETA starts blank and can be completed
+  later through the existing project and prototype editors.
+- Prototype Management does not provide a separate `Add Prototype` button;
+  prototype requirements originate from sample tasks in the project pipeline.
+
 ## Demo material provenance
 
 - `Launch Assets Archive` was introduced by the GTM demo seed migrations.

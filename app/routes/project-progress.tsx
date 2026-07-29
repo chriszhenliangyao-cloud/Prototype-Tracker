@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEv
 import type { Route } from "./+types/project-progress";
 import {
 	GTM_STAGES,
+	createGtmProduct,
 	currentStage,
 	deleteGtmDelayRecord,
 	getGtmWorkspace,
@@ -63,6 +64,16 @@ export async function action({ request, context }: Route.ActionArgs) {
 			await launchGtmProduct(context.cloudflare.env, String(form.get("id")));
 		} else if (intent === "return-product") {
 			await returnGtmProductToUpcoming(context.cloudflare.env, String(form.get("id")));
+		} else if (intent === "create-product") {
+			const product = await createGtmProduct(context.cloudflare.env, {
+				model: String(form.get("model") || ""),
+				name: String(form.get("name") || ""),
+				category: String(form.get("category") || ""),
+				launchDate: String(form.get("launch_date") || ""),
+				productOwner: String(form.get("product_owner") || ""),
+				marketingManager: String(form.get("marketing_manager") || ""),
+			});
+			return { ok: true, product };
 		} else if (intent === "owners") {
 			await updateGtmOwners(
 				context.cloudflare.env,
@@ -222,7 +233,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 							<h1 className="gtm-title">{title}</h1>
 							<p className="gtm-sub">{subtitle}</p>
 						</div>
-						{module === "progress" && <ExcelImport />}
+						{module === "progress" && <ProgressPageActions />}
 					</div>
 					{data.usingFallback && (
 						<div className="gtm-demo-banner">
@@ -270,6 +281,65 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 			</div>
 		</div>
 	);
+}
+
+function ProgressPageActions() {
+	return <div className="gtm-progress-actions">
+		<AddProduct />
+		<ExcelImport />
+	</div>;
+}
+
+function AddProduct() {
+	const [open, setOpen] = useState(false);
+	const fetcher = useFetcher<{
+		ok: boolean;
+		error?: string;
+		product?: { id: string; model: string };
+	}>();
+	useEffect(() => {
+		if (fetcher.state === "idle" && fetcher.data?.ok && fetcher.data.product) {
+			setOpen(false);
+		}
+	}, [fetcher.state, fetcher.data]);
+	return <>
+		<button className="gtm-btn primary" onClick={() => setOpen(true)} type="button">＋ Add Product</button>
+		{open && <div className="gtm-product-modal-overlay" onMouseDown={() => setOpen(false)}>
+			<div
+				aria-labelledby="gtm-add-product-title"
+				aria-modal="true"
+				className="gtm-product-modal"
+				onMouseDown={(event) => event.stopPropagation()}
+				role="dialog"
+			>
+				<header>
+					<div>
+						<h2 id="gtm-add-product-title">Add Product</h2>
+						<p>Create a product with the standard project pipeline. Stage DDLs will remain blank.</p>
+					</div>
+					<button aria-label="Close Add Product" onClick={() => setOpen(false)} type="button">×</button>
+				</header>
+				<fetcher.Form method="post">
+					<input name="intent" type="hidden" value="create-product" />
+					<div className="gtm-product-form-grid">
+						<label>Model *<input autoFocus name="model" required /></label>
+						<label>Product Name *<input name="name" required /></label>
+						<label>Category *<input name="category" placeholder="e.g. Charger" required /></label>
+						<label>Launch Date *<input name="launch_date" required type="date" /></label>
+						<label>Product Owner<input name="product_owner" /></label>
+						<label>Marketing Project Manager<input name="marketing_manager" /></label>
+					</div>
+					{fetcher.data?.error && <p className="gtm-form-error">{fetcher.data.error}</p>}
+					<div className="gtm-product-modal-actions">
+						<button className="gtm-btn" disabled={fetcher.state !== "idle"} onClick={() => setOpen(false)} type="button">Cancel</button>
+						<button className="gtm-btn primary" disabled={fetcher.state !== "idle"} type="submit">
+							{fetcher.state === "idle" ? "Create Product" : "Creating…"}
+						</button>
+					</div>
+				</fetcher.Form>
+			</div>
+		</div>}
+	</>;
 }
 
 function ExcelImport() {
@@ -831,7 +901,7 @@ function PrototypeModule({ products, requirements, tasks, focus }: {
 	}, [focus]);
 	return (
 		<>
-			<div className="gtm-section-head"><h2>Prototype Requirements</h2><button className="gtm-btn primary">+ Add Prototype</button></div>
+			<div className="gtm-section-head"><h2>Prototype Requirements</h2></div>
 			<div className="gtm-table-wrap">
 				<table className="gtm-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Sample Type</th><th>Project Stage</th><th>Required Quantity</th><th>ETA</th><th>Status</th><th>Action</th></tr></thead>
