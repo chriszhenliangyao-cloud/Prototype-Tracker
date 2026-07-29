@@ -105,9 +105,7 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 			  WHERE p.launch_status='UNLAUNCHED'
 			  ORDER BY p.model, t.sort_order, r.id`,
 			).all<GtmRequirement>(),
-			env.DB.prepare(
-				"SELECT * FROM gtm_delay_record ORDER BY product_id, original_deadline DESC, id",
-			).all<GtmDelayRecord>(),
+			getGtmDelayRecords(env),
 		]);
 		return {
 			products: products.results,
@@ -115,12 +113,25 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 			tasks: tasks.results,
 			materials: materials.results,
 			requirements: requirements.results,
-			delayRecords: delayRecords.results,
+			delayRecords,
 		};
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		if (!message.includes("no such table") || !message.includes("gtm_")) throw error;
 		return getGtmFallbackData();
+	}
+}
+
+async function getGtmDelayRecords(env: Env): Promise<GtmDelayRecord[]> {
+	try {
+		const records = await env.DB.prepare(
+			"SELECT * FROM gtm_delay_record ORDER BY product_id, original_deadline DESC, id",
+		).all<GtmDelayRecord>();
+		return records.results;
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		if (message.includes("no such table") && message.includes("gtm_delay_record")) return [];
+		throw error;
 	}
 }
 
@@ -224,11 +235,13 @@ function getGtmFallbackData(): GtmWorkspaceData {
 }
 
 export async function toggleGtmTask(env: Env, id: string, completed: boolean) {
-	await env.DB.prepare(
+	if (!id.trim()) throw new Error("Task id is required");
+	const result = await env.DB.prepare(
 		"UPDATE gtm_project_task SET is_completed=? WHERE id=?",
 	)
 		.bind(completed ? 1 : 0, id)
 		.run();
+	if (result.meta.changes !== 1) throw new Error("Task was not found");
 }
 
 export async function launchGtmProduct(env: Env, id: string) {
