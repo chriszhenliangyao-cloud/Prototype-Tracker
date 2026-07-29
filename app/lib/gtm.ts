@@ -18,6 +18,8 @@ export interface GtmProduct {
 	planned_launch_date: string | null;
 	product_owner: string | null;
 	marketing_project_manager: string | null;
+	project_status: string | null;
+	status_review_stage: string | null;
 }
 
 export interface GtmStage {
@@ -238,11 +240,11 @@ export async function syncGtmDelayRecords(env: Env) {
 
 function getGtmFallbackData(): GtmWorkspaceData {
 	const products: GtmProduct[] = [
-		{ id: "gtm-p61l-p1", model: "P61L-P1", name: "Pocket 10K", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-07-31", product_owner: "Ivy", marketing_project_manager: "Ivy" },
-		{ id: "gtm-p61l-p2", model: "P61L-P2", name: "Pocket 10K 45W", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-07-30", product_owner: "Ivy", marketing_project_manager: "Ivy" },
-		{ id: "gtm-p51l-p2", model: "P51L-P2", name: "Pocket 20K 45W", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-08-18", product_owner: "Ivy", marketing_project_manager: "Ivy" },
-		{ id: "gtm-pm61-black", model: "PM61-Black", name: "MagPro Slim 10K Qi2.2 - Black", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-09-05", product_owner: "Ivy", marketing_project_manager: "Ivy" },
-		{ id: "gtm-px51", model: "PX51", name: "MagPro Neo 10K Qi2.0", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-09-22", product_owner: "Ivy", marketing_project_manager: "Ivy" },
+		{ id: "gtm-p61l-p1", model: "P61L-P1", name: "Pocket 10K", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-07-31", product_owner: "Ivy", marketing_project_manager: "Ivy", project_status: null, status_review_stage: null },
+		{ id: "gtm-p61l-p2", model: "P61L-P2", name: "Pocket 10K 45W", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-07-30", product_owner: "Ivy", marketing_project_manager: "Ivy", project_status: null, status_review_stage: null },
+		{ id: "gtm-p51l-p2", model: "P51L-P2", name: "Pocket 20K 45W", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-08-18", product_owner: "Ivy", marketing_project_manager: "Ivy", project_status: null, status_review_stage: null },
+		{ id: "gtm-pm61-black", model: "PM61-Black", name: "MagPro Slim 10K Qi2.2 - Black", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-09-05", product_owner: "Ivy", marketing_project_manager: "Ivy", project_status: null, status_review_stage: null },
+		{ id: "gtm-px51", model: "PX51", name: "MagPro Neo 10K Qi2.0", category: "Power Bank", launch_status: "UNLAUNCHED", planned_launch_date: "2026-09-22", product_owner: "Ivy", marketing_project_manager: "Ivy", project_status: null, status_review_stage: null },
 	];
 	const deadlines = [
 		["2026-07-03", "2026-07-10", "2026-07-18", "2026-07-23", "2026-07-28", "2026-07-31"],
@@ -820,6 +822,29 @@ export async function updateGtmRequirement(
 		.run();
 }
 
+export async function updateGtmProjectStatus(
+	env: Env,
+	id: string,
+	status: string,
+	reviewStage: string,
+) {
+	const normalizedStatus = status.trim().toUpperCase();
+	if (!["COMPLETED", "ON_TRACK", "DELAYED"].includes(normalizedStatus)) {
+		throw new Error("Project status must be Completed, On Track, or Delayed");
+	}
+	if (!GTM_STAGES.includes(reviewStage as GtmStageName)) {
+		throw new Error("A valid current stage is required");
+	}
+	const result = await env.DB.prepare(
+		`UPDATE gtm_product
+		    SET project_status=?, status_review_stage=?, updated_at=CURRENT_TIMESTAMP
+		  WHERE id=?`,
+	)
+		.bind(normalizedStatus, reviewStage, id)
+		.run();
+	if (result.meta.changes !== 1) throw new Error("Product was not found");
+}
+
 export function projectProgress(tasks: GtmTask[]) {
 	if (!tasks.length) return 100;
 	const done = tasks.filter((task) => !!task.is_completed).length;
@@ -835,17 +860,34 @@ export function currentStage(tasks: GtmTask[]): GtmStageName | null {
 	return null;
 }
 
-export function projectStatus(tasks: GtmTask[], stages: GtmStage[]) {
+export function projectStatus(product: GtmProduct, tasks: GtmTask[], stages: GtmStage[]) {
 	if (tasks.length && tasks.every((task) => !!task.is_completed)) return "Completed";
 	const today = new Date().toISOString().slice(0, 10);
 	const current = currentStage(tasks);
+	if (current && product.status_review_stage === current) {
+		if (product.project_status === "COMPLETED") return "Completed";
+		if (product.project_status === "DELAYED") return "Delayed";
+		if (product.project_status === "ON_TRACK") return "On Track";
+	}
 	const currentDeadline = stages.find((stage) => stage.stage_name === current)?.deadline;
 	if (currentDeadline && currentDeadline <= today) return "Delayed";
-	if (currentDeadline) {
-		const days = Math.ceil(
-			(new Date(currentDeadline).getTime() - new Date(today).getTime()) / 86400000,
-		);
-		if (days <= 3) return "At Risk";
-	}
 	return "On Track";
+}
+
+export function projectNeedsStatusReview(
+	product: GtmProduct,
+	tasks: GtmTask[],
+	stages: GtmStage[],
+) {
+	const current = currentStage(tasks);
+	if (!current || product.status_review_stage === current) return false;
+	const currentDeadline = stages.find((stage) => stage.stage_name === current)?.deadline;
+	if (!currentDeadline) return false;
+	const today = new Date().toISOString().slice(0, 10);
+	const daysRemaining = Math.ceil(
+		(new Date(`${currentDeadline}T00:00:00Z`).getTime() -
+			new Date(`${today}T00:00:00Z`).getTime()) /
+			86400000,
+	);
+	return daysRemaining <= 7;
 }

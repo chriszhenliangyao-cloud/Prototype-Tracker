@@ -10,6 +10,18 @@
 - Toggling a completed task back to unfinished may move Current Stage back to
   that task's stage.
 
+## Project status and DDL reminder
+
+- Project Status has exactly three values: `Completed`, `On Track`, and
+  `Delayed`. `At Risk` is not used.
+- Status is editable directly from the Status column and is persisted in D1.
+- When the current stage is seven days or less from its DDL, a bell reminder is
+  shown until a user confirms one of the three project statuses.
+- A status confirmation is associated with the current stage. If task changes
+  move the project to another stage, that next stage can generate its own
+  seven-day reminder.
+- Completed projects display `Completed` and do not show a reminder.
+
 ## Delay Records editing
 
 - A Delay Record is created only when a task is incomplete and its stage DDL

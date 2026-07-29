@@ -9,6 +9,7 @@ import {
 	getGtmWorkspace,
 	importGtmWorkbook,
 	projectProgress,
+	projectNeedsStatusReview,
 	projectStatus,
 	returnGtmProductToUpcoming,
 	launchGtmProduct,
@@ -18,6 +19,7 @@ import {
 	toggleGtmTask,
 	updateGtmMaterial,
 	updateGtmRequirement,
+	updateGtmProjectStatus,
 	type GtmMaterial,
 	type GtmDelayRecord,
 	type GtmProduct,
@@ -60,6 +62,13 @@ export async function action({ request, context }: Route.ActionArgs) {
 				String(form.get("id")),
 				Number(form.get("quantity")),
 				String(form.get("eta") || ""),
+			);
+		} else if (intent === "project-status") {
+			await updateGtmProjectStatus(
+				context.cloudflare.env,
+				String(form.get("id") || ""),
+				String(form.get("status") || ""),
+				String(form.get("review_stage") || ""),
 			);
 		} else if (intent === "launch-product") {
 			await launchGtmProduct(context.cloudflare.env, String(form.get("id")));
@@ -480,7 +489,9 @@ function ProgressModule({
 								const productTasks = tasks.filter((task) => task.product_id === product.id);
 								const productStages = stages.filter((stage) => stage.product_id === product.id);
 								const progress = projectProgress(productTasks);
-								const status = projectStatus(productTasks, productStages);
+								const status = projectStatus(product, productTasks, productStages);
+								const needsStatusReview = projectNeedsStatusReview(product, productTasks, productStages);
+								const activeStage = currentStage(productTasks);
 								return (
 									<tr className="gtm-project-row" key={product.id}>
 										<td><span className="gtm-model">{product.model}</span></td>
@@ -488,7 +499,12 @@ function ProgressModule({
 										<td>{product.planned_launch_date || "—"}</td>
 										<td><ProgressRing value={progress} total={productTasks.length} /></td>
 										<td>
-											<span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span>
+											<ProjectStatusCell
+												product={product}
+												status={status}
+												activeStage={activeStage}
+												needsReview={needsStatusReview}
+											/>
 											<button className="gtm-delay-trigger" onClick={() => setDelayProduct(product)}>⏰ {delayRecords.filter((record) => record.product_id === product.id).length}</button>
 										</td>
 										<td>
@@ -515,6 +531,60 @@ function ProgressModule({
 			) : <div className="gtm-empty">No matching projects found.</div>}
 			{delayProduct && <DelayDrawer product={delayProduct} records={delayRecords.filter((record) => record.product_id === delayProduct.id)} onClose={() => setDelayProduct(null)} />}
 		</>
+	);
+}
+
+function ProjectStatusCell({
+	product,
+	status,
+	activeStage,
+	needsReview,
+}: {
+	product: GtmProduct;
+	status: string;
+	activeStage: GtmStageName | null;
+	needsReview: boolean;
+}) {
+	const fetcher = useFetcher<{ ok: boolean; error?: string }>();
+	const pending = String(fetcher.formData?.get("status") || "");
+	const displayedStatus = pending === "COMPLETED" ? "Completed" :
+		pending === "DELAYED" ? "Delayed" :
+		pending === "ON_TRACK" ? "On Track" :
+		status;
+	return (
+		<div className="gtm-project-status">
+			<span className={`gtm-badge ${displayedStatus.replaceAll(" ", "-")}`}>{displayedStatus}</span>
+			<select
+				aria-label={`Status for ${product.model}`}
+				className="gtm-status-select"
+				disabled={!activeStage || fetcher.state !== "idle"}
+				onChange={(event) => {
+					if (!activeStage) return;
+					fetcher.submit({
+						intent: "project-status",
+						id: product.id,
+						status: event.currentTarget.value,
+						review_stage: activeStage,
+					}, { method: "post" });
+				}}
+				value=""
+			>
+				<option disabled value="">Update</option>
+				<option value="COMPLETED">Completed</option>
+				<option value="ON_TRACK">On Track</option>
+				<option value="DELAYED">Delayed</option>
+			</select>
+			{needsReview && !pending && (
+				<span
+					aria-label="Status review required: current stage DDL is within 7 days"
+					className="gtm-status-reminder"
+					title="Current stage DDL is within 7 days. Please confirm the project status."
+				>
+					🔔
+				</span>
+			)}
+			{fetcher.data?.error && <span className="gtm-status-error">{fetcher.data.error}</span>}
+		</div>
 	);
 }
 
