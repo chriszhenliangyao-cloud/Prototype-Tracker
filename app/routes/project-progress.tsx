@@ -556,7 +556,7 @@ function ProjectStatusCell({
 	return (
 		<div className="gtm-project-status">
 			<span className={`gtm-badge ${displayedStatus.replaceAll(" ", "-")}`}>{displayedStatus}</span>
-			{activeStage && !isConfirmedForCurrentStage && !pending && (
+			{needsReview && activeStage && !isConfirmedForCurrentStage && !pending && (
 				<select
 					aria-label={`Status for ${product.model}`}
 					className="gtm-status-select"
@@ -579,9 +579,9 @@ function ProjectStatusCell({
 			)}
 			{needsReview && !pending && (
 				<span
-					aria-label="Status review required: current stage DDL is in 7 days"
+					aria-label="Status review required: current stage DDL is within 7 days"
 					className="gtm-status-reminder"
-					title="Current stage DDL is in 7 days. Please follow up and confirm the project status."
+					title="Current stage DDL is within 7 days. Please follow up and confirm the project status."
 				>
 					Follow Up
 				</span>

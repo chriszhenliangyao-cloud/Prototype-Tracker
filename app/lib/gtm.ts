@@ -889,5 +889,5 @@ export function projectNeedsStatusReview(
 			new Date(`${today}T00:00:00Z`).getTime()) /
 			86400000,
 	);
-	return daysRemaining === 7;
+	return daysRemaining >= 0 && daysRemaining <= 7;
 }

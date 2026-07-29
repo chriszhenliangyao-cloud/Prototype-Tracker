@@ -15,11 +15,14 @@
 - Project Status has exactly three values: `Completed`, `On Track`, and
   `Delayed`. `At Risk` is not used.
 - Status is editable directly from the Status column and is persisted in D1.
-- Exactly seven days before the current stage DDL, a prominent yellow
-  `Follow Up` label is shown until a user confirms one of the three project
-  statuses.
+- Once a current stage enters the zero-to-seven-day window before its DDL, a
+  prominent yellow `Follow Up` label is shown until a user confirms one of the
+  three project statuses. Projects already inside that window when this
+  feature is introduced also receive the reminder.
 - After the current stage status is confirmed, both the `Update` control and
   the `Follow Up` label disappear.
+- A stage receives this reminder only once. Overdue stages do not generate a
+  new seven-day reminder.
 - A status confirmation is associated with the current stage. If task changes
   move the project to another stage, that next stage can generate its own
   seven-day reminder.
