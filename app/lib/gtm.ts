@@ -249,6 +249,15 @@ export async function updateGtmOwners(env: Env, productOwner: string, marketingM
 		.run();
 }
 
+export async function updateGtmDelayRecord(env: Env, id: string, delayedUntil: string, notes: string) {
+	if (!id.trim()) throw new Error("Delay record id is required");
+	await env.DB.prepare(
+		"UPDATE gtm_delay_record SET delayed_until=?, notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
+	)
+		.bind(delayedUntil || null, notes.trim() || null, id)
+		.run();
+}
+
 export async function updateGtmProject(
 	env: Env,
 	productId: string,

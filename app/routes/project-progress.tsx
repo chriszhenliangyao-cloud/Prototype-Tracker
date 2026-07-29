@@ -9,6 +9,7 @@ import {
 	projectStatus,
 	launchGtmProduct,
 	updateGtmOwners,
+	updateGtmDelayRecord,
 	updateGtmProject,
 	toggleGtmTask,
 	updateGtmMaterial,
@@ -65,6 +66,13 @@ export async function action({ request, context }: Route.ActionArgs) {
 		} else if (intent === "project-edit") {
 			const payload = JSON.parse(String(form.get("payload") || "{}"));
 			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks);
+		} else if (intent === "delay-edit") {
+			await updateGtmDelayRecord(
+				context.cloudflare.env,
+				String(form.get("id") || ""),
+				String(form.get("delayed_until") || ""),
+				String(form.get("notes") || ""),
+			);
 		}
 		return { ok: true };
 	} catch (error) {
@@ -280,14 +288,35 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 	return <div className="gtm-delay-overlay" onClick={onClose}>
 		<aside className="gtm-delay-drawer" onClick={(event) => event.stopPropagation()}>
 			<header><div><h2>Delay Records — {product.model}</h2><p>{records.length} Delay Record{records.length === 1 ? "" : "s"}</p></div><button onClick={onClose}>×</button></header>
-			<div className="gtm-delay-list">{records.length ? records.map((record) => <article key={record.id}>
-				<h3>{record.stage_name} · {record.task_name}</h3>
-				<p>Original DDL: {record.original_deadline || "Not set"}</p>
-				<p>Delayed Until: {record.delayed_until || "Not set"}</p>
-				<p>Notes: {record.notes || "No notes"}</p>
-			</article>) : <div className="gtm-empty">No delay records.</div>}</div>
+			<div className="gtm-delay-list">{records.length ? records.map((record) =>
+				<DelayRecordItem key={record.id} record={record} />
+			) : <div className="gtm-empty">No delay records.</div>}</div>
 		</aside>
 	</div>;
+}
+
+function DelayRecordItem({ record }: { record: GtmDelayRecord }) {
+	const [editing, setEditing] = useState(false);
+	const fetcher = useFetcher<{ ok: boolean; error?: string }>();
+	return <article>
+		<h3>{record.stage_name} · {record.task_name}</h3>
+		<p>Original DDL: {record.original_deadline || "Not set"}</p>
+		{editing ? <fetcher.Form method="post" className="gtm-delay-edit" onSubmit={() => setEditing(false)}>
+			<input name="intent" type="hidden" value="delay-edit" />
+			<input name="id" type="hidden" value={record.id} />
+			<label>Delayed Until<input name="delayed_until" type="date" defaultValue={record.delayed_until || ""} /></label>
+			<label>Notes<textarea name="notes" defaultValue={record.notes || ""} rows={4} /></label>
+			{fetcher.data?.error && <p className="gtm-form-error">{fetcher.data.error}</p>}
+			<div className="gtm-delay-actions">
+				<button className="gtm-btn primary" disabled={fetcher.state !== "idle"} type="submit">Save</button>
+				<button className="gtm-btn" disabled={fetcher.state !== "idle"} type="button" onClick={() => setEditing(false)}>Cancel</button>
+			</div>
+		</fetcher.Form> : <>
+			<p>Delayed Until: {record.delayed_until || "Not set"}</p>
+			<p>Notes: {record.notes || "No notes"}</p>
+			<div className="gtm-delay-actions"><button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button></div>
+		</>}
+	</article>;
 }
 
 function ProgressRing({ value, total }: { value: number; total: number }) {
@@ -423,16 +452,22 @@ function TaskToggle({ task, onToggle }: { task: GtmTask; onToggle?: (completed: 
 	useEffect(() => setChecked(!!task.is_completed), [task.is_completed]);
 	const optimistic = fetcher.formData ? String(fetcher.formData.get("completed")) === "true" : checked;
 	const icon = task.owner_role === "MARKETING" ? "📣" : task.owner_role === "PRODUCT" ? "👤" : "";
+	function toggle() {
+		const completed = !optimistic;
+		setChecked(completed);
+		onToggle?.(completed);
+		fetcher.submit(
+			{ intent: "toggle-task", id: task.id, completed: String(completed) },
+			{ method: "post" },
+		);
+	}
 	return (
-		<fetcher.Form method="post" className="gtm-task">
-			<input name="intent" type="hidden" value="toggle-task" />
-			<input name="id" type="hidden" value={task.id} />
-			<input name="completed" type="hidden" value={String(!optimistic)} />
-			<button className={optimistic ? "" : "todo"} title="Toggle task completion" type="submit" onClick={() => { setChecked(!optimistic); onToggle?.(!optimistic); }}>
+		<div className="gtm-task">
+			<button aria-pressed={optimistic} className={optimistic ? "" : "todo"} title="Toggle task completion" type="button" onClick={toggle}>
 				{optimistic ? "✓" : "○"}
 			</button>
 			<span>{icon} {task.task_name}</span>
-		</fetcher.Form>
+		</div>
 	);
 }
 
