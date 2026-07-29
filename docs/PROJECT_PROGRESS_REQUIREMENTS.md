@@ -43,6 +43,35 @@
 - The matching product row scrolls into view and uses the same approximately
   2.5-second whole-row highlight as Prototype Management.
 
+## Marketing task and material status synchronization
+
+- A completed `MARKETING` task sets the matching Product Material record to
+  `COMPLETED`.
+- Reopening a `MARKETING` task sets the matching Product Material record to
+  `NOT_COMPLETED`.
+- Deleting a `MARKETING` task through the project editor sets the matching
+  Product Material record to `NOT_REQUIRED`.
+- Matching uses the same `product_id` and exact task/material name. Task and
+  material changes are submitted together in one D1 batch.
+
+## Excel import
+
+- Project Progress provides `Excel Template` and `Import Excel` controls in the
+  upper-right corner.
+- The workbook uses four named sheets: `Products`, `Stages`, `Tasks`, and
+  `Materials`.
+- Import can update existing records and create missing project, stage, task,
+  material, and prototype-requirement records. Existing records are matched by
+  Model and their corresponding natural keys.
+- Excel is parsed in the browser. Only validated structured data is submitted
+  to the route action; the original workbook file is not uploaded.
+- Dates must use `YYYY-MM-DD`. Stage names, owner roles, and material statuses
+  are validated before the D1 batch is applied.
+- Sample tasks can include `Required Quantity` and `ETA`; imported sample tasks
+  remain visible and editable in Prototype Management.
+- When Tasks and Materials sheets contain the same marketing material, the
+  task's completion state is applied last and remains the source of truth.
+
 ## Product Material summary cards
 
 - Counts use only the products visible after applying the current search,

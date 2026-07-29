@@ -81,6 +81,35 @@ export interface GtmWorkspaceData {
 	usingFallback?: boolean;
 }
 
+export interface GtmExcelImport {
+	products: Array<{
+		model: string;
+		name: string;
+		category: string;
+		launchDate: string;
+		productOwner: string;
+		marketingManager: string;
+	}>;
+	stages: Array<{ model: string; stage: string; deadline: string }>;
+	tasks: Array<{
+		model: string;
+		stage: string;
+		name: string;
+		ownerRole: string;
+		prototypeType: string;
+		completed: boolean;
+		requiredQuantity: number;
+		eta: string;
+	}>;
+	materials: Array<{
+		model: string;
+		type: string;
+		status: string;
+		deadline: string;
+		owner: string;
+	}>;
+}
+
 export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 	try {
 		const [products, stages, tasks, materials, requirements, delayRecords] = await Promise.all([
@@ -236,12 +265,29 @@ function getGtmFallbackData(): GtmWorkspaceData {
 
 export async function toggleGtmTask(env: Env, id: string, completed: boolean) {
 	if (!id.trim()) throw new Error("Task id is required");
-	const result = await env.DB.prepare(
-		"UPDATE gtm_project_task SET is_completed=? WHERE id=?",
-	)
-		.bind(completed ? 1 : 0, id)
-		.run();
-	if (result.meta.changes !== 1) throw new Error("Task was not found");
+	const task = await env.DB.prepare(
+		"SELECT product_id, task_name, owner_role FROM gtm_project_task WHERE id=?",
+	).bind(id).first<{ product_id: string; task_name: string; owner_role: string }>();
+	if (!task) throw new Error("Task was not found");
+	const statements = [
+		env.DB.prepare("UPDATE gtm_project_task SET is_completed=? WHERE id=?")
+			.bind(completed ? 1 : 0, id),
+	];
+	if (task.owner_role === "MARKETING") {
+		statements.push(
+			env.DB.prepare(
+				`INSERT INTO gtm_material_task
+				   (id,product_id,material_type,status,deadline,owner,updated_at)
+				 VALUES (?,?,?,?,NULL,NULL,CURRENT_TIMESTAMP)
+				 ON CONFLICT(product_id,material_type) DO UPDATE SET
+				   status=excluded.status, updated_at=CURRENT_TIMESTAMP`,
+			).bind(
+				`material-${id}`, task.product_id, task.task_name,
+				completed ? "COMPLETED" : "NOT_COMPLETED",
+			),
+		);
+	}
+	await env.DB.batch(statements);
 }
 
 export async function launchGtmProduct(env: Env, id: string) {
@@ -296,9 +342,12 @@ export async function updateGtmProject(
 	}>,
 ) {
 	const existing = await env.DB.prepare(
-		"SELECT id FROM gtm_project_task WHERE product_id=?",
-	).bind(productId).all<{ id: string }>();
+		"SELECT id, task_name, owner_role FROM gtm_project_task WHERE product_id=?",
+	).bind(productId).all<{ id: string; task_name: string; owner_role: string }>();
 	const incomingIds = new Set(tasks.map((task) => task.id));
+	const incomingMarketingNames = new Set(
+		tasks.filter((task) => task.owner_role === "MARKETING").map((task) => task.task_name.trim()),
+	);
 	const statements = [
 		...stages.map((stage) =>
 			env.DB.prepare("UPDATE gtm_project_stage SET deadline=? WHERE id=? AND product_id=?")
@@ -306,6 +355,14 @@ export async function updateGtmProject(
 		...existing.results
 			.filter((task) => !incomingIds.has(task.id))
 			.map((task) => env.DB.prepare("DELETE FROM gtm_project_task WHERE id=? AND product_id=?").bind(task.id, productId)),
+		...existing.results
+			.filter((task) => task.owner_role === "MARKETING" && !incomingMarketingNames.has(task.task_name))
+			.map((task) =>
+				env.DB.prepare(
+					`UPDATE gtm_material_task
+					    SET status='NOT_REQUIRED', updated_at=CURRENT_TIMESTAMP
+					  WHERE product_id=? AND material_type=?`,
+				).bind(productId, task.task_name)),
 		...tasks.map((task) =>
 			env.DB.prepare(
 				`INSERT INTO gtm_project_task
@@ -319,8 +376,200 @@ export async function updateGtmProject(
 				task.id, productId, task.stage_name, task.task_name.trim(),
 				task.owner_role, task.prototype_type, task.is_completed ? 1 : 0, task.sort_order,
 			)),
+		...tasks
+			.filter((task) => task.owner_role === "MARKETING")
+			.map((task) =>
+				env.DB.prepare(
+					`INSERT INTO gtm_material_task
+					   (id,product_id,material_type,status,deadline,owner,updated_at)
+					 VALUES (?,?,?,?,NULL,NULL,CURRENT_TIMESTAMP)
+					 ON CONFLICT(product_id,material_type) DO UPDATE SET
+					   status=excluded.status, updated_at=CURRENT_TIMESTAMP`,
+				).bind(
+					`material-${task.id}`,
+					productId,
+					task.task_name.trim(),
+					task.is_completed ? "COMPLETED" : "NOT_COMPLETED",
+				)),
 	];
 	if (statements.length) await env.DB.batch(statements);
+}
+
+export async function importGtmWorkbook(env: Env, input: GtmExcelImport) {
+	const date = (value: string, label: string) => {
+		const normalized = value.trim();
+		if (normalized && !/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+			throw new Error(`${label} must use YYYY-MM-DD`);
+		}
+		return normalized || null;
+	};
+	const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item";
+	const products = await env.DB.prepare("SELECT id, model FROM gtm_product").all<{ id: string; model: string }>();
+	const productIds = new Map(products.results.map((product) => [product.model.trim().toLowerCase(), product.id]));
+	const normalizedProducts = new Map<string, GtmExcelImport["products"][number]>();
+	for (const product of input.products) {
+		const model = product.model.trim();
+		if (!model || !product.name.trim()) throw new Error("Products requires Model and Product Name");
+		normalizedProducts.set(model.toLowerCase(), { ...product, model });
+		if (!productIds.has(model.toLowerCase())) productIds.set(model.toLowerCase(), `gtm-import-${slug(model)}`);
+	}
+	const resolveProduct = (model: string) => {
+		const id = productIds.get(model.trim().toLowerCase());
+		if (!id) throw new Error(`Unknown product model: ${model || "(blank)"}`);
+		return id;
+	};
+	const existingStages = await env.DB.prepare(
+		"SELECT id, product_id, stage_name FROM gtm_project_stage",
+	).all<{ id: string; product_id: string; stage_name: string }>();
+	const existingTasks = await env.DB.prepare(
+		"SELECT id, product_id, stage_name, task_name FROM gtm_project_task",
+	).all<{ id: string; product_id: string; stage_name: string; task_name: string }>();
+	const existingRequirements = await env.DB.prepare(
+		"SELECT id, source_task_id FROM gtm_prototype_requirement",
+	).all<{ id: string; source_task_id: string }>();
+	const validStages = new Set<string>(GTM_STAGES);
+	const validRoles = new Set(["PRODUCT", "MARKETING", "GTM"]);
+	const validMaterialStatuses = new Set(["COMPLETED", "NOT_COMPLETED", "NOT_REQUIRED"]);
+	const statements: D1PreparedStatement[] = [];
+	for (const product of normalizedProducts.values()) {
+		const id = resolveProduct(product.model);
+		statements.push(env.DB.prepare(
+			`INSERT INTO gtm_product
+			   (id,model,name,category,launch_status,planned_launch_date,product_owner,marketing_project_manager,updated_at)
+			 VALUES (?,?,?,?, 'UNLAUNCHED',?,?,?,CURRENT_TIMESTAMP)
+			 ON CONFLICT(model) DO UPDATE SET
+			   name=excluded.name, category=excluded.category,
+			   planned_launch_date=excluded.planned_launch_date,
+			   product_owner=excluded.product_owner,
+			   marketing_project_manager=excluded.marketing_project_manager,
+			   updated_at=CURRENT_TIMESTAMP`,
+		).bind(
+			id, product.model, product.name.trim(), product.category.trim(),
+			date(product.launchDate, `${product.model} Launch Date`),
+			product.productOwner.trim() || null, product.marketingManager.trim() || null,
+		));
+	}
+	for (const [index, stage] of input.stages.entries()) {
+		const productId = resolveProduct(stage.model);
+		if (!validStages.has(stage.stage)) throw new Error(`Invalid stage: ${stage.stage}`);
+		const existing = existingStages.results.find(
+			(item) => item.product_id === productId && item.stage_name === stage.stage,
+		);
+		statements.push(env.DB.prepare(
+			`INSERT INTO gtm_project_stage (id,product_id,stage_name,deadline)
+			 VALUES (?,?,?,?)
+			 ON CONFLICT(product_id,stage_name) DO UPDATE SET deadline=excluded.deadline`,
+		).bind(
+			existing?.id || `stage-import-${slug(productId)}-${index}`,
+			productId, stage.stage, date(stage.deadline, `${stage.model} ${stage.stage} DDL`),
+		));
+	}
+	for (const [index, task] of input.tasks.entries()) {
+		const productId = resolveProduct(task.model);
+		const stage = task.stage as GtmStageName;
+		const role = task.ownerRole.trim().toUpperCase();
+		if (!validStages.has(stage)) throw new Error(`Invalid stage: ${task.stage}`);
+		if (!task.name.trim()) throw new Error("Tasks requires Task Name");
+		if (!validRoles.has(role)) throw new Error(`Invalid Owner Role: ${task.ownerRole}`);
+		const existing = existingTasks.results.find(
+			(item) => item.product_id === productId && item.stage_name === stage && item.task_name === task.name.trim(),
+		);
+		const taskId = existing?.id || `task-import-${slug(productId)}-${index}`;
+		statements.push(env.DB.prepare(
+			`INSERT INTO gtm_project_task
+			   (id,product_id,stage_name,task_name,owner_role,prototype_type,is_completed,sort_order)
+			 VALUES (?,?,?,?,?,?,?,?)
+			 ON CONFLICT(id) DO UPDATE SET
+			   stage_name=excluded.stage_name, task_name=excluded.task_name,
+			   owner_role=excluded.owner_role, prototype_type=excluded.prototype_type,
+			   is_completed=excluded.is_completed, sort_order=excluded.sort_order`,
+		).bind(
+			taskId, productId, stage, task.name.trim(), role,
+			task.prototypeType.trim() || null, task.completed ? 1 : 0, (index + 1) * 10,
+		));
+		const existingRequirement = existingRequirements.results.find(
+			(requirement) => requirement.source_task_id === taskId,
+		);
+		if (task.prototypeType.trim()) {
+			if (!Number.isInteger(task.requiredQuantity) || task.requiredQuantity < 1) {
+				throw new Error(`${task.model} ${task.name} Required Quantity must be a positive integer`);
+			}
+			statements.push(env.DB.prepare(
+				`INSERT INTO gtm_prototype_requirement
+				   (id,product_id,source_task_id,required_quantity,eta)
+				 VALUES (?,?,?,?,?)
+				 ON CONFLICT(source_task_id) DO UPDATE SET
+				   product_id=excluded.product_id,
+				   required_quantity=excluded.required_quantity,
+				   eta=excluded.eta`,
+			).bind(
+				existingRequirement?.id || `requirement-${taskId}`,
+				productId, taskId, task.requiredQuantity,
+				date(task.eta, `${task.model} ${task.name} ETA`),
+			));
+		} else if (existingRequirement) {
+			statements.push(
+				env.DB.prepare("DELETE FROM gtm_prototype_requirement WHERE source_task_id=?").bind(taskId),
+			);
+		}
+		if (role === "MARKETING") {
+			statements.push(env.DB.prepare(
+				`INSERT INTO gtm_material_task
+				   (id,product_id,material_type,status,deadline,owner,updated_at)
+				 VALUES (?,?,?,?,NULL,NULL,CURRENT_TIMESTAMP)
+				 ON CONFLICT(product_id,material_type) DO UPDATE SET
+				   status=excluded.status, updated_at=CURRENT_TIMESTAMP`,
+			).bind(
+				`material-${taskId}`, productId, task.name.trim(),
+				task.completed ? "COMPLETED" : "NOT_COMPLETED",
+			));
+		}
+	}
+	for (const [index, material] of input.materials.entries()) {
+		const productId = resolveProduct(material.model);
+		const status = material.status.trim().toUpperCase().replaceAll(" ", "_");
+		if (!material.type.trim()) throw new Error("Materials requires Material Type");
+		if (!validMaterialStatuses.has(status)) throw new Error(`Invalid material status: ${material.status}`);
+		statements.push(env.DB.prepare(
+			`INSERT INTO gtm_material_task
+			   (id,product_id,material_type,status,deadline,owner,updated_at)
+			 VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)
+			 ON CONFLICT(product_id,material_type) DO UPDATE SET
+			   status=excluded.status, deadline=excluded.deadline,
+			   owner=excluded.owner, updated_at=CURRENT_TIMESTAMP`,
+		).bind(
+			`material-import-${slug(productId)}-${index}`, productId, material.type.trim(), status,
+			date(material.deadline, `${material.model} ${material.type} DDL`), material.owner.trim() || null,
+		));
+	}
+	// Marketing tasks are the final source of truth when both Tasks and
+	// Materials sheets contain the same material.
+	for (const [index, task] of input.tasks.entries()) {
+		if (task.ownerRole.trim().toUpperCase() !== "MARKETING") continue;
+		const productId = resolveProduct(task.model);
+		const existing = existingTasks.results.find(
+			(item) => item.product_id === productId && item.stage_name === task.stage && item.task_name === task.name.trim(),
+		);
+		const taskId = existing?.id || `task-import-${slug(productId)}-${index}`;
+		statements.push(env.DB.prepare(
+			`INSERT INTO gtm_material_task
+			   (id,product_id,material_type,status,deadline,owner,updated_at)
+			 VALUES (?,?,?,?,NULL,NULL,CURRENT_TIMESTAMP)
+			 ON CONFLICT(product_id,material_type) DO UPDATE SET
+			   status=excluded.status, updated_at=CURRENT_TIMESTAMP`,
+		).bind(
+			`material-${taskId}`, productId, task.name.trim(),
+			task.completed ? "COMPLETED" : "NOT_COMPLETED",
+		));
+	}
+	if (!statements.length) throw new Error("The workbook does not contain any importable rows");
+	await env.DB.batch(statements);
+	return {
+		products: normalizedProducts.size,
+		stages: input.stages.length,
+		tasks: input.tasks.length,
+		materials: input.materials.length,
+	};
 }
 
 export async function updateGtmMaterial(

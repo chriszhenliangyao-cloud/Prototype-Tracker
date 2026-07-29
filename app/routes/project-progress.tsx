@@ -1,11 +1,12 @@
 import { Link, useFetcher } from "react-router";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent } from "react";
 import type { Route } from "./+types/project-progress";
 import {
 	GTM_STAGES,
 	currentStage,
 	deleteGtmDelayRecord,
 	getGtmWorkspace,
+	importGtmWorkbook,
 	projectProgress,
 	projectStatus,
 	launchGtmProduct,
@@ -22,6 +23,7 @@ import {
 	type GtmStage,
 	type GtmStageName,
 	type GtmTask,
+	type GtmExcelImport,
 } from "../lib/gtm";
 import "../gtm.css";
 
@@ -67,6 +69,10 @@ export async function action({ request, context }: Route.ActionArgs) {
 		} else if (intent === "project-edit") {
 			const payload = JSON.parse(String(form.get("payload") || "{}"));
 			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks);
+		} else if (intent === "excel-import") {
+			const payload = JSON.parse(String(form.get("payload") || "{}")) as GtmExcelImport;
+			const imported = await importGtmWorkbook(context.cloudflare.env, payload);
+			return { ok: true, imported };
 		} else if (intent === "delay-edit") {
 			await updateGtmDelayRecord(
 				context.cloudflare.env,
@@ -207,8 +213,19 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 					</nav>
 				</aside>
 				<main className="gtm-main">
-					<h1 className="gtm-title">{title}</h1>
-					<p className="gtm-sub">{subtitle}</p>
+					<div className="gtm-page-head">
+						<div>
+							<h1 className="gtm-title">{title}</h1>
+							<p className="gtm-sub">{subtitle}</p>
+						</div>
+						{module === "progress" && <ExcelImport
+							products={data.products}
+							stages={data.stages}
+							tasks={liveTasks}
+							materials={data.materials}
+							requirements={data.requirements}
+						/>}
+					</div>
 					{data.usingFallback && (
 						<div className="gtm-demo-banner">
 							Demo preview · GTM database migration is pending. Data shown here is read-only sample content.
@@ -255,6 +272,149 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 			</div>
 		</div>
 	);
+}
+
+function ExcelImport({ products, stages, tasks, materials, requirements }: {
+	products: GtmProduct[];
+	stages: GtmStage[];
+	tasks: GtmTask[];
+	materials: GtmMaterial[];
+	requirements: GtmRequirement[];
+}) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	const fetcher = useFetcher<{
+		ok: boolean;
+		error?: string;
+		imported?: { products: number; stages: number; tasks: number; materials: number };
+	}>();
+	const [parseError, setParseError] = useState("");
+
+	async function downloadTemplate() {
+		const { utils, writeFileXLSX } = await import("xlsx");
+		const workbook = utils.book_new();
+		utils.book_append_sheet(workbook, utils.json_to_sheet(products.map((product) => ({
+			Model: product.model,
+			"Product Name": product.name,
+			Category: product.category,
+			"Launch Date": product.planned_launch_date || "",
+			"Product Owner": product.product_owner || "",
+			"Marketing Project Manager": product.marketing_project_manager || "",
+		}))), "Products");
+		utils.book_append_sheet(workbook, utils.json_to_sheet(stages.map((stage) => ({
+			Model: products.find((product) => product.id === stage.product_id)?.model || "",
+			Stage: stage.stage_name,
+			DDL: stage.deadline || "",
+		}))), "Stages");
+		utils.book_append_sheet(workbook, utils.json_to_sheet(tasks.map((task) => ({
+			Model: products.find((product) => product.id === task.product_id)?.model || "",
+			Stage: task.stage_name,
+			"Task Name": task.task_name,
+			"Owner Role": task.owner_role,
+			"Prototype Type": task.prototype_type || "",
+			Completed: task.is_completed ? "Yes" : "No",
+			"Required Quantity": requirements.find((requirement) => requirement.source_task_id === task.id)?.required_quantity || "",
+			ETA: requirements.find((requirement) => requirement.source_task_id === task.id)?.eta || "",
+		}))), "Tasks");
+		utils.book_append_sheet(workbook, utils.json_to_sheet(materials.map((material) => ({
+			Model: products.find((product) => product.id === material.product_id)?.model || "",
+			"Material Type": material.material_type,
+			Status: material.status,
+			DDL: material.deadline || "",
+			Owner: material.owner || "",
+		}))), "Materials");
+		writeFileXLSX(workbook, "Project-Progress-Import-Template.xlsx");
+	}
+
+	async function importFile(event: ChangeEvent<HTMLInputElement>) {
+		const file = event.target.files?.[0];
+		event.target.value = "";
+		if (!file) return;
+		setParseError("");
+		try {
+			const { read, utils } = await import("xlsx");
+			const workbook = read(await file.arrayBuffer(), { cellDates: true });
+			const rows = (sheetName: string) => {
+				const sheet = workbook.Sheets[sheetName];
+				if (!sheet) return [] as Record<string, unknown>[];
+				return utils.sheet_to_json<Record<string, unknown>>(sheet, {
+					defval: "",
+					raw: false,
+					dateNF: "yyyy-mm-dd",
+				});
+			};
+			const text = (value: unknown) => String(value ?? "").trim();
+			const completed = (value: unknown) => ["yes", "true", "1", "completed", "done", "✓"].includes(text(value).toLowerCase());
+			const positiveInteger = (value: unknown, fallback = 1) => {
+				const normalized = text(value);
+				return normalized ? Number(normalized) : fallback;
+			};
+			const payload: GtmExcelImport = {
+				products: rows("Products").map((row) => ({
+					model: text(row.Model),
+					name: text(row["Product Name"]),
+					category: text(row.Category),
+					launchDate: text(row["Launch Date"]),
+					productOwner: text(row["Product Owner"]),
+					marketingManager: text(row["Marketing Project Manager"]),
+				})),
+				stages: rows("Stages").map((row) => ({
+					model: text(row.Model),
+					stage: text(row.Stage),
+					deadline: text(row.DDL),
+				})),
+				tasks: rows("Tasks").map((row) => ({
+					model: text(row.Model),
+					stage: text(row.Stage),
+					name: text(row["Task Name"]),
+					ownerRole: text(row["Owner Role"]),
+					prototypeType: text(row["Prototype Type"]),
+					completed: completed(row.Completed),
+					requiredQuantity: positiveInteger(row["Required Quantity"]),
+					eta: text(row.ETA),
+				})),
+				materials: rows("Materials").map((row) => ({
+					model: text(row.Model),
+					type: text(row["Material Type"]),
+					status: text(row.Status),
+					deadline: text(row.DDL),
+					owner: text(row.Owner),
+				})),
+			};
+			if (![payload.products, payload.stages, payload.tasks, payload.materials].some((items) => items.length)) {
+				throw new Error("No Products, Stages, Tasks, or Materials rows were found.");
+			}
+			fetcher.submit(
+				{ intent: "excel-import", payload: JSON.stringify(payload) },
+				{ method: "post" },
+			);
+		} catch (error) {
+			setParseError(error instanceof Error ? error.message : String(error));
+		}
+	}
+
+	return <div className="gtm-excel-import">
+		<input
+			accept=".xlsx,.xls,.xlsm"
+			aria-label="Choose Excel workbook"
+			hidden
+			onChange={importFile}
+			ref={inputRef}
+			type="file"
+		/>
+		<button className="gtm-btn" onClick={downloadTemplate} type="button">⬇ Excel Template</button>
+		<button
+			className="gtm-btn primary"
+			disabled={fetcher.state !== "idle"}
+			onClick={() => inputRef.current?.click()}
+			type="button"
+		>
+			{fetcher.state === "idle" ? "⬆ Import Excel" : "Importing…"}
+		</button>
+		{(parseError || fetcher.data?.error) && <span className="gtm-import-message error">{parseError || fetcher.data?.error}</span>}
+		{fetcher.data?.ok && fetcher.data.imported && <span className="gtm-import-message success">
+			Imported {fetcher.data.imported.products} products, {fetcher.data.imported.stages} stages, {fetcher.data.imported.tasks} tasks, and {fetcher.data.imported.materials} materials.
+		</span>}
+	</div>;
 }
 
 function ProgressModule({
