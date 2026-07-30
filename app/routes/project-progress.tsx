@@ -893,10 +893,9 @@ function MaterialModule({ products, materials, focus }: {
 	useEffect(() => {
 		if (!focus || !focusedMaterial) return;
 		requestAnimationFrame(() => {
-			document.getElementById(`product-material-${focusedMaterial.id}`)?.scrollIntoView({
+			document.getElementById(`product-material-row-${focusedMaterial.product_id}`)?.scrollIntoView({
 				behavior: "smooth",
 				block: "center",
-				inline: "center",
 			});
 		});
 	}, [focus, focusedMaterial]);
@@ -933,19 +932,19 @@ function MaterialModule({ products, materials, focus }: {
 				<table className="gtm-table gtm-material-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}<th>Action</th></tr></thead>
 					<tbody>{visibleProducts.map((product) => {
+						const highlighted = product.id === focusedProductId;
 						return (
 						<tr
+							className={highlighted ? "gtm-requirement-highlight" : undefined}
 							id={`product-material-row-${product.id}`}
-							key={product.id}
+							key={`${product.id}-${highlighted ? focus?.token : "idle"}`}
 						>
 							<td className="gtm-model">{product.model}</td><td>{product.name}</td><td>{product.category}</td><td>{product.planned_launch_date}</td>
 							{types.map((type) => {
 								const material = visibleMaterials.find((item) => item.product_id === product.id && item.material_type === type);
-								const highlighted = material?.id === focusedMaterial?.id;
 								return <td
-									className={`gtm-material-cell${highlighted ? " gtm-material-focus" : ""}`}
-									id={material ? `product-material-${material.id}` : undefined}
-									key={`${type}-${highlighted ? focus?.token : "idle"}`}
+									className="gtm-material-cell"
+									key={type}
 								>
 									{material ? <MaterialStatus material={material} /> : "—"}
 								</td>;
