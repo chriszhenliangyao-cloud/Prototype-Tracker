@@ -929,6 +929,7 @@ function ReturnToUpcomingButton({ product }: { product: GtmProduct }) {
 
 function MaterialStatus({ material }: { material: GtmMaterial }) {
 	const fetcher = useFetcher();
+	const [editing, setEditing] = useState(false);
 	const status = fetcher.formData ? String(fetcher.formData.get("status")) : material.status;
 	const statusLabel =
 		status === "COMPLETED"
@@ -936,25 +937,57 @@ function MaterialStatus({ material }: { material: GtmMaterial }) {
 			: status === "NOT_COMPLETED"
 				? "Not Completed"
 				: "Not Required";
+	const statusIcon =
+		status === "COMPLETED" ? "✓" : status === "NOT_COMPLETED" ? "✗" : "—";
+	const updateStatus = (nextStatus: string) => {
+		fetcher.submit(
+			{ intent: "material-status", id: material.id, status: nextStatus },
+			{ method: "post" },
+		);
+		setEditing(false);
+	};
 	return (
-		<fetcher.Form method="post">
-			<input name="intent" type="hidden" value="material-status" />
-			<input name="id" type="hidden" value={material.id} />
-			<div className={`gtm-status ${status}`}>
-				<select
-					aria-label={`${material.material_type} status: ${statusLabel}`}
-					name="status"
-					title={statusLabel}
-					value={status}
-					onChange={(event) => fetcher.submit(event.currentTarget.form)}
-				>
-					<option value="COMPLETED">✓</option>
-					<option value="NOT_COMPLETED">✗</option>
-					<option value="NOT_REQUIRED">—</option>
-				</select>
-			</div>
-			{status === "NOT_COMPLETED" && <small className="gtm-muted">DDL: {material.deadline || "—"}<br />Owner: {material.owner || "—"}</small>}
-		</fetcher.Form>
+		<div className={`gtm-material-status gtm-status ${status}`}>
+			<button
+				aria-expanded={editing}
+				aria-label={`${material.material_type} status: ${statusLabel}. Click to edit.`}
+				className="gtm-material-status-trigger"
+				disabled={fetcher.state !== "idle"}
+				title={`${statusLabel} — click to edit`}
+				type="button"
+				onClick={() => setEditing((value) => !value)}
+			>
+				{statusIcon}
+			</button>
+			{editing && (
+				<div aria-label="Choose material status" className="gtm-material-status-menu" role="menu">
+					<button
+						className="COMPLETED"
+						role="menuitem"
+						type="button"
+						onClick={() => updateStatus("COMPLETED")}
+					>
+						✓
+					</button>
+					<button
+						className="NOT_COMPLETED"
+						role="menuitem"
+						type="button"
+						onClick={() => updateStatus("NOT_COMPLETED")}
+					>
+						✗
+					</button>
+					<button
+						className="NOT_REQUIRED"
+						role="menuitem"
+						type="button"
+						onClick={() => updateStatus("NOT_REQUIRED")}
+					>
+						—
+					</button>
+				</div>
+			)}
+		</div>
 	);
 }
 
