@@ -33,6 +33,9 @@
 
 ## Delay Records editing
 
+- The Status column uses a text entry in the form `Delay Records (count)`.
+- Selecting it opens a centered modal table with Stage, Task Name, Original
+  DDL, Delayed Until, Notes, and Action columns.
 - A Delay Record is created only when a task is incomplete and its stage DDL
   has been reached or passed.
 - Once created, a Delay Record remains in history even if the task is later

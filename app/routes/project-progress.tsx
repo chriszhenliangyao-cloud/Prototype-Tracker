@@ -505,7 +505,9 @@ function ProgressModule({
 												activeStage={activeStage}
 												needsReview={needsStatusReview}
 											/>
-											<button className="gtm-delay-trigger" onClick={() => setDelayProduct(product)}>⏰ {delayRecords.filter((record) => record.product_id === product.id).length}</button>
+											<button className="gtm-delay-trigger" onClick={() => setDelayProduct(product)}>
+												Delay Records ({delayRecords.filter((record) => record.product_id === product.id).length})
+											</button>
 										</td>
 										<td>
 											{collapsed ? (
@@ -592,37 +594,71 @@ function ProjectStatusCell({
 }
 
 function DelayDrawer({ product, records, onClose }: { product: GtmProduct; records: GtmDelayRecord[]; onClose: () => void }) {
+	useEffect(() => {
+		const closeOnEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") onClose();
+		};
+		document.addEventListener("keydown", closeOnEscape);
+		return () => document.removeEventListener("keydown", closeOnEscape);
+	}, [onClose]);
 	return <div className="gtm-delay-overlay" onClick={onClose}>
-		<aside className="gtm-delay-drawer" onClick={(event) => event.stopPropagation()}>
+		<section aria-modal="true" className="gtm-delay-modal" role="dialog" onClick={(event) => event.stopPropagation()}>
 			<header><div><h2>Delay Records — {product.model}</h2><p>{records.length} Delay Record{records.length === 1 ? "" : "s"}</p></div><button onClick={onClose}>×</button></header>
-			<div className="gtm-delay-list">{records.length ? records.map((record) =>
-				<DelayRecordItem key={record.id} record={record} />
-			) : <div className="gtm-empty">No delay records.</div>}</div>
-		</aside>
+			<div className="gtm-delay-table-wrap">
+				<table className="gtm-delay-table">
+					<thead>
+						<tr>
+							<th>Stage</th>
+							<th>Task Name</th>
+							<th>Original DDL</th>
+							<th>Delayed Until</th>
+							<th>Notes</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						{records.length
+							? records.map((record) => <DelayRecordRow key={record.id} record={record} />)
+							: <tr><td className="gtm-delay-empty" colSpan={6}>No delay records.</td></tr>}
+					</tbody>
+				</table>
+			</div>
+		</section>
 	</div>;
 }
 
-function DelayRecordItem({ record }: { record: GtmDelayRecord }) {
+function DelayRecordRow({ record }: { record: GtmDelayRecord }) {
 	const [editing, setEditing] = useState(false);
 	const fetcher = useFetcher<{ ok: boolean; error?: string }>();
 	const deleteFetcher = useFetcher<{ ok: boolean; error?: string }>();
-	return <article>
-		<h3>{record.stage_name} · {record.task_name}</h3>
-		<p>Original DDL: {record.original_deadline || "Not set"}</p>
-		{editing ? <fetcher.Form method="post" className="gtm-delay-edit" onSubmit={() => setEditing(false)}>
-			<input name="intent" type="hidden" value="delay-edit" />
-			<input name="id" type="hidden" value={record.id} />
-			<label>Delayed Until<input name="delayed_until" type="date" defaultValue={record.delayed_until || ""} /></label>
-			<label>Notes<textarea name="notes" defaultValue={record.notes || ""} rows={4} /></label>
-			{fetcher.data?.error && <p className="gtm-form-error">{fetcher.data.error}</p>}
-			<div className="gtm-delay-actions">
-				<button className="gtm-btn primary" disabled={fetcher.state !== "idle"} type="submit">Save</button>
-				<button className="gtm-btn" disabled={fetcher.state !== "idle"} type="button" onClick={() => setEditing(false)}>Cancel</button>
-			</div>
-		</fetcher.Form> : <>
-			<p>Delayed Until: {record.delayed_until || "Not set"}</p>
-			<p>Notes: {record.notes || "No notes"}</p>
-			<div className="gtm-delay-actions">
+	const editFormId = `delay-edit-${record.id}`;
+	return <tr>
+		<td>{record.stage_name}</td>
+		<td>{record.task_name}</td>
+		<td>{record.original_deadline || "Not set"}</td>
+		{editing ? <>
+			<td>
+				<fetcher.Form id={editFormId} method="post" onSubmit={() => setEditing(false)}>
+					<input name="intent" type="hidden" value="delay-edit" />
+					<input name="id" type="hidden" value={record.id} />
+					<input aria-label="Delayed Until" name="delayed_until" type="date" defaultValue={record.delayed_until || ""} />
+				</fetcher.Form>
+			</td>
+			<td>
+				<textarea aria-label="Notes" form={editFormId} name="notes" defaultValue={record.notes || ""} rows={2} />
+				{fetcher.data?.error && <span className="gtm-form-error">{fetcher.data.error}</span>}
+			</td>
+			<td>
+				<div className="gtm-delay-actions">
+					<button className="gtm-btn primary" disabled={fetcher.state !== "idle"} form={editFormId} type="submit">Save</button>
+					<button className="gtm-btn" disabled={fetcher.state !== "idle"} type="button" onClick={() => setEditing(false)}>Cancel</button>
+				</div>
+			</td>
+		</> : <>
+			<td>{record.delayed_until || "Not set"}</td>
+			<td>{record.notes || "No notes"}</td>
+			<td>
+				<div className="gtm-delay-actions">
 				<button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button>
 				<deleteFetcher.Form method="post" onSubmit={(event) => {
 					if (!window.confirm("Delete this delay record? This action cannot be undone.")) event.preventDefault();
@@ -631,10 +667,11 @@ function DelayRecordItem({ record }: { record: GtmDelayRecord }) {
 					<input name="id" type="hidden" value={record.id} />
 					<button className="gtm-btn danger" disabled={deleteFetcher.state !== "idle"} type="submit">Delete</button>
 				</deleteFetcher.Form>
-			</div>
+				</div>
+				{deleteFetcher.data?.error && <span className="gtm-form-error">{deleteFetcher.data.error}</span>}
+			</td>
 		</>}
-		{deleteFetcher.data?.error && <p className="gtm-form-error">{deleteFetcher.data.error}</p>}
-	</article>;
+	</tr>;
 }
 
 function ProgressRing({ value, total }: { value: number; total: number }) {
