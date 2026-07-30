@@ -102,6 +102,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 				context.cloudflare.env,
 				String(form.get("id") || ""),
 				String(form.get("delayed_until") || ""),
+				String(form.get("delay_reason") || ""),
+				String(form.get("schedule_impact") || ""),
 				String(form.get("notes") || ""),
 			);
 		} else if (intent === "delay-delete") {
@@ -608,18 +610,19 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 				<table className="gtm-delay-table">
 					<thead>
 						<tr>
-							<th>Stage</th>
-							<th>Task Name</th>
-							<th>Original DDL</th>
-							<th>Delayed Until</th>
+							<th>Delay</th>
+							<th>Delay Item</th>
+							<th>DDL Change</th>
+							<th>Delay Reason</th>
+							<th>Schedule Impact</th>
 							<th>Notes</th>
 							<th>Action</th>
 						</tr>
 					</thead>
 					<tbody>
 						{records.length
-							? records.map((record) => <DelayRecordRow key={record.id} record={record} />)
-							: <tr><td className="gtm-delay-empty" colSpan={6}>No delay records.</td></tr>}
+							? records.map((record, index) => <DelayRecordRow delayNumber={index + 1} key={record.id} record={record} />)
+							: <tr><td className="gtm-delay-empty" colSpan={7}>No delay records.</td></tr>}
 					</tbody>
 				</table>
 			</div>
@@ -627,22 +630,28 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 	</div>;
 }
 
-function DelayRecordRow({ record }: { record: GtmDelayRecord }) {
+function DelayRecordRow({ record, delayNumber }: { record: GtmDelayRecord; delayNumber: number }) {
 	const [editing, setEditing] = useState(false);
 	const fetcher = useFetcher<{ ok: boolean; error?: string }>();
 	const deleteFetcher = useFetcher<{ ok: boolean; error?: string }>();
 	const editFormId = `delay-edit-${record.id}`;
 	return <tr>
-		<td>{record.stage_name}</td>
-		<td>{record.task_name}</td>
-		<td>{record.original_deadline || "Not set"}</td>
+		<td className="gtm-delay-number">Delay {delayNumber}</td>
+		<td><b>{record.stage_name}</b><br /><span className="gtm-muted">{record.task_name}</span></td>
 		{editing ? <>
 			<td>
 				<fetcher.Form id={editFormId} method="post" onSubmit={() => setEditing(false)}>
 					<input name="intent" type="hidden" value="delay-edit" />
 					<input name="id" type="hidden" value={record.id} />
+					<span>{record.original_deadline || "Not set"} →</span>
 					<input aria-label="Delayed Until" name="delayed_until" type="date" defaultValue={record.delayed_until || ""} />
 				</fetcher.Form>
+			</td>
+			<td>
+				<textarea aria-label="Delay Reason" form={editFormId} name="delay_reason" defaultValue={record.delay_reason || ""} rows={2} />
+			</td>
+			<td>
+				<textarea aria-label="Schedule Impact" form={editFormId} name="schedule_impact" defaultValue={record.schedule_impact || ""} rows={2} />
 			</td>
 			<td>
 				<textarea aria-label="Notes" form={editFormId} name="notes" defaultValue={record.notes || ""} rows={2} />
@@ -655,7 +664,9 @@ function DelayRecordRow({ record }: { record: GtmDelayRecord }) {
 				</div>
 			</td>
 		</> : <>
-			<td>{record.delayed_until || "Not set"}</td>
+			<td>{record.original_deadline || "Not set"}<br /><span className="gtm-muted">→ {record.delayed_until || "Not set"}</span></td>
+			<td>{record.delay_reason || "—"}</td>
+			<td>{record.schedule_impact || "—"}</td>
 			<td>{record.notes || "No notes"}</td>
 			<td>
 				<div className="gtm-delay-actions">

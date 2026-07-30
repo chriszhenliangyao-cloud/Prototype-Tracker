@@ -77,6 +77,8 @@ export interface GtmDelayRecord {
 	task_name: string;
 	original_deadline: string | null;
 	delayed_until: string | null;
+	delay_reason: string | null;
+	schedule_impact: string | null;
 	notes: string | null;
 }
 
@@ -196,10 +198,11 @@ async function getGtmDelayRecords(env: Env): Promise<GtmDelayRecord[]> {
 	try {
 		const records = await env.DB.prepare(
 			`SELECT id, product_id, stage_name, task_name,
-			        original_deadline, delayed_until, notes
+			        original_deadline, delayed_until, delay_reason,
+			        schedule_impact, notes
 			   FROM gtm_delay_record
 			  WHERE deleted_at IS NULL
-			  ORDER BY product_id, original_deadline DESC, id`,
+			  ORDER BY product_id, created_at, id`,
 		).all<GtmDelayRecord>();
 		return records.results;
 	} catch (error) {
@@ -337,6 +340,8 @@ function getGtmFallbackData(): GtmWorkspaceData {
 			task_name: task.task_name,
 			original_deadline: stages.find((stage) => stage.product_id === task.product_id && stage.stage_name === task.stage_name)?.deadline || null,
 			delayed_until: null,
+			delay_reason: null,
+			schedule_impact: null,
 			notes: null,
 		}));
 	return { products, stages, tasks, materials, requirements, allocations: [], delayRecords, usingFallback: true };
@@ -517,14 +522,28 @@ export async function updateGtmOwners(env: Env, productOwner: string, marketingM
 		.run();
 }
 
-export async function updateGtmDelayRecord(env: Env, id: string, delayedUntil: string, notes: string) {
+export async function updateGtmDelayRecord(
+	env: Env,
+	id: string,
+	delayedUntil: string,
+	delayReason: string,
+	scheduleImpact: string,
+	notes: string,
+) {
 	if (!id.trim()) throw new Error("Delay record id is required");
 	await env.DB.prepare(
 		`UPDATE gtm_delay_record
-		    SET delayed_until=?, notes=?, updated_at=CURRENT_TIMESTAMP
+		    SET delayed_until=?, delay_reason=?, schedule_impact=?,
+		        notes=?, updated_at=CURRENT_TIMESTAMP
 		  WHERE id=? AND deleted_at IS NULL`,
 	)
-		.bind(delayedUntil || null, notes.trim() || null, id)
+		.bind(
+			delayedUntil || null,
+			delayReason.trim() || null,
+			scheduleImpact.trim() || null,
+			notes.trim() || null,
+			id,
+		)
 		.run();
 }
 
@@ -562,6 +581,13 @@ export async function updateGtmProject(
 		owner_role: string;
 		is_completed: number;
 	}>();
+	const existingStages = await env.DB.prepare(
+		"SELECT id, stage_name, deadline FROM gtm_project_stage WHERE product_id=?",
+	).bind(productId).all<{
+		id: string;
+		stage_name: string;
+		deadline: string | null;
+	}>();
 	const incomingIds = new Set(tasks.map((task) => task.id));
 	const reopenedTask = tasks.some((task) => {
 		const previous = existing.results.find((item) => item.id === task.id);
@@ -570,7 +596,27 @@ export async function updateGtmProject(
 	const incomingMarketingNames = new Set(
 		tasks.filter((task) => task.owner_role === "MARKETING").map((task) => task.task_name.trim()),
 	);
+	const ddlChangeRecords = stages.flatMap((stage, index) => {
+		const previous = existingStages.results.find((item) => item.id === stage.id);
+		const nextDeadline = stage.deadline || null;
+		if (!previous?.deadline || previous.deadline === nextDeadline) return [];
+		return [
+			env.DB.prepare(
+				`INSERT INTO gtm_delay_record
+				   (id, product_id, stage_name, task_name,
+				    original_deadline, delayed_until)
+				 VALUES (?, ?, ?, 'Stage DDL Change', ?, ?)`,
+			).bind(
+				`delay-ddl-${stage.id}-${Date.now()}-${index}`,
+				productId,
+				previous.stage_name,
+				previous.deadline,
+				nextDeadline,
+			),
+		];
+	});
 	const statements = [
+		...ddlChangeRecords,
 		...stages.map((stage) =>
 			env.DB.prepare("UPDATE gtm_project_stage SET deadline=? WHERE id=? AND product_id=?")
 				.bind(stage.deadline || null, stage.id, productId)),

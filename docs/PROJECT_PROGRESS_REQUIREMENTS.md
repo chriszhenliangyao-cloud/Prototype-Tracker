@@ -34,8 +34,14 @@
 ## Delay Records editing
 
 - The Status column uses a text entry in the form `Delay Records (count)`.
-- Selecting it opens a centered modal table with Stage, Task Name, Original
-  DDL, Delayed Until, Notes, and Action columns.
+- Selecting it opens a centered modal table. Its first column numbers the
+  product history as `Delay 1`, `Delay 2`, and so on.
+- Changing an existing stage DDL automatically creates a new historical Delay
+  Record containing the old and new DDL. Initial entry of a blank DDL does not
+  create a Delay Record.
+- The table combines Stage and Task Name as `Delay Item`, combines the old and
+  new dates as `DDL Change`, and includes manually editable `Delay Reason` and
+  `Schedule Impact` columns.
 - A Delay Record is created only when a task is incomplete and its stage DDL
   has been reached or passed.
 - Once created, a Delay Record remains in history even if the task is later
