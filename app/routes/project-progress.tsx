@@ -1138,8 +1138,16 @@ function AllocationDrawer({ requirement, allocations, onClose }: {
 	allocations: GtmPrototypeAllocation[];
 	onClose: () => void;
 }) {
+	useEffect(() => {
+		const closeOnEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") onClose();
+		};
+		document.addEventListener("keydown", closeOnEscape);
+		return () => document.removeEventListener("keydown", closeOnEscape);
+	}, [onClose]);
+
 	return <div className="gtm-delay-overlay gtm-allocation-overlay" onClick={onClose}>
-		<aside className="gtm-delay-drawer gtm-allocation-drawer" onClick={(event) => event.stopPropagation()}>
+		<aside aria-modal="true" className="gtm-allocation-drawer" role="dialog" onClick={(event) => event.stopPropagation()}>
 			<header>
 				<div>
 					<h2>Allocation Details</h2>
