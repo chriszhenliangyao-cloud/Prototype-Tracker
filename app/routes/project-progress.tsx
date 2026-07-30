@@ -838,7 +838,7 @@ function TaskToggle({ task, onToggle, onOpenSample, onOpenMaterial }: {
 			<button aria-pressed={optimistic} className={optimistic ? "" : "todo"} title="Toggle task completion" type="button" onClick={toggle}>
 				{optimistic ? "✓" : "○"}
 			</button>
-			{task.owner_role === "MARKETING" ? (
+			{task.owner_role === "MARKETING" || task.task_name === "Product Sheet" ? (
 				<button className="gtm-material-link" type="button" onClick={() => onOpenMaterial?.(task)}>
 					{icon} {task.task_name}
 				</button>
@@ -886,18 +886,20 @@ function MaterialModule({ products, materials, focus }: {
 			: activeFilter === "launched-complete"
 				? completeProducts
 				: incompleteProducts;
-	const focusedProductId = focus
-		? visibleMaterials.find((material) => material.id === focus.id)?.product_id
+	const focusedMaterial = focus
+		? visibleMaterials.find((material) => material.id === focus.id)
 		: undefined;
+	const focusedProductId = focusedMaterial?.product_id;
 	useEffect(() => {
-		if (!focus || !focusedProductId) return;
+		if (!focus || !focusedMaterial) return;
 		requestAnimationFrame(() => {
-			document.getElementById(`product-material-row-${focusedProductId}`)?.scrollIntoView({
+			document.getElementById(`product-material-${focusedMaterial.id}`)?.scrollIntoView({
 				behavior: "smooth",
 				block: "center",
+				inline: "center",
 			});
 		});
-	}, [focus, focusedProductId]);
+	}, [focus, focusedMaterial]);
 	return (
 		<>
 			<div className="gtm-cards">
@@ -931,19 +933,19 @@ function MaterialModule({ products, materials, focus }: {
 				<table className="gtm-table gtm-material-table">
 					<thead><tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th>{types.map((type) => <th key={type}>{type}</th>)}<th>Action</th></tr></thead>
 					<tbody>{visibleProducts.map((product) => {
-						const highlighted = product.id === focusedProductId;
 						return (
 						<tr
-							className={highlighted ? "gtm-requirement-highlight" : undefined}
 							id={`product-material-row-${product.id}`}
-							key={`${product.id}-${highlighted ? focus?.token : "idle"}`}
+							key={product.id}
 						>
 							<td className="gtm-model">{product.model}</td><td>{product.name}</td><td>{product.category}</td><td>{product.planned_launch_date}</td>
 							{types.map((type) => {
 								const material = visibleMaterials.find((item) => item.product_id === product.id && item.material_type === type);
+								const highlighted = material?.id === focusedMaterial?.id;
 								return <td
-									className="gtm-material-cell"
-									key={type}
+									className={`gtm-material-cell${highlighted ? " gtm-material-focus" : ""}`}
+									id={material ? `product-material-${material.id}` : undefined}
+									key={`${type}-${highlighted ? focus?.token : "idle"}`}
 								>
 									{material ? <MaterialStatus material={material} /> : "—"}
 								</td>;
