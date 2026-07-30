@@ -930,6 +930,7 @@ function ReturnToUpcomingButton({ product }: { product: GtmProduct }) {
 function MaterialStatus({ material }: { material: GtmMaterial }) {
 	const fetcher = useFetcher();
 	const [editing, setEditing] = useState(false);
+	const statusControlRef = useRef<HTMLDivElement>(null);
 	const status = fetcher.formData ? String(fetcher.formData.get("status")) : material.status;
 	const statusLabel =
 		status === "COMPLETED"
@@ -946,8 +947,23 @@ function MaterialStatus({ material }: { material: GtmMaterial }) {
 		);
 		setEditing(false);
 	};
+	useEffect(() => {
+		if (!editing) return;
+		const closeOnOutsideClick = (event: MouseEvent) => {
+			if (!statusControlRef.current?.contains(event.target as Node)) setEditing(false);
+		};
+		const closeOnEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") setEditing(false);
+		};
+		document.addEventListener("mousedown", closeOnOutsideClick);
+		document.addEventListener("keydown", closeOnEscape);
+		return () => {
+			document.removeEventListener("mousedown", closeOnOutsideClick);
+			document.removeEventListener("keydown", closeOnEscape);
+		};
+	}, [editing]);
 	return (
-		<div className={`gtm-material-status gtm-status ${status}`}>
+		<div className={`gtm-material-status gtm-status ${status}`} ref={statusControlRef}>
 			<button
 				aria-expanded={editing}
 				aria-label={`${material.material_type} status: ${statusLabel}. Click to edit.`}
@@ -962,28 +978,31 @@ function MaterialStatus({ material }: { material: GtmMaterial }) {
 			{editing && (
 				<div aria-label="Choose material status" className="gtm-material-status-menu" role="menu">
 					<button
+						aria-checked={status === "COMPLETED"}
 						className="COMPLETED"
-						role="menuitem"
+						role="menuitemradio"
 						type="button"
 						onClick={() => updateStatus("COMPLETED")}
 					>
-						✓
+						<span>✓</span> Completed
 					</button>
 					<button
+						aria-checked={status === "NOT_COMPLETED"}
 						className="NOT_COMPLETED"
-						role="menuitem"
+						role="menuitemradio"
 						type="button"
 						onClick={() => updateStatus("NOT_COMPLETED")}
 					>
-						✗
+						<span>✗</span> Not Completed
 					</button>
 					<button
+						aria-checked={status === "NOT_REQUIRED"}
 						className="NOT_REQUIRED"
-						role="menuitem"
+						role="menuitemradio"
 						type="button"
 						onClick={() => updateStatus("NOT_REQUIRED")}
 					>
-						—
+						<span>—</span> Not Required
 					</button>
 				</div>
 			)}
