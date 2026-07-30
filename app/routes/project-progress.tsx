@@ -930,15 +930,27 @@ function ReturnToUpcomingButton({ product }: { product: GtmProduct }) {
 function MaterialStatus({ material }: { material: GtmMaterial }) {
 	const fetcher = useFetcher();
 	const status = fetcher.formData ? String(fetcher.formData.get("status")) : material.status;
+	const statusLabel =
+		status === "COMPLETED"
+			? "Completed"
+			: status === "NOT_COMPLETED"
+				? "Not Completed"
+				: "Not Required";
 	return (
 		<fetcher.Form method="post">
 			<input name="intent" type="hidden" value="material-status" />
 			<input name="id" type="hidden" value={material.id} />
 			<div className={`gtm-status ${status}`}>
-				<select name="status" value={status} onChange={(event) => fetcher.submit(event.currentTarget.form)}>
-					<option value="COMPLETED">✓ Completed</option>
-					<option value="NOT_COMPLETED">✗ Not Completed</option>
-					<option value="NOT_REQUIRED">— Not Required</option>
+				<select
+					aria-label={`${material.material_type} status: ${statusLabel}`}
+					name="status"
+					title={statusLabel}
+					value={status}
+					onChange={(event) => fetcher.submit(event.currentTarget.form)}
+				>
+					<option value="COMPLETED">✓</option>
+					<option value="NOT_COMPLETED">✗</option>
+					<option value="NOT_REQUIRED">—</option>
 				</select>
 			</div>
 			{status === "NOT_COMPLETED" && <small className="gtm-muted">DDL: {material.deadline || "—"}<br />Owner: {material.owner || "—"}</small>}
