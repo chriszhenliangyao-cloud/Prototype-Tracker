@@ -154,6 +154,8 @@
 ## Demo material provenance
 
 - `Launch Assets Archive` was introduced by the GTM demo seed migrations.
+- `Launch Assets Archive` is retained only as historical seed data and is not
+  displayed or included in Product Material Management readiness calculations.
 - It is not sourced from the original ProtoTrack prototype-management records.
 - It remains isolated in `gtm_material_task` and does not alter the original
   prototype tables.

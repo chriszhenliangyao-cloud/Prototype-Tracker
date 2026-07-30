@@ -816,7 +816,10 @@ function MaterialModule({ products, materials, focus }: {
 }) {
 	type MaterialFilter = "upcoming" | "launched-complete" | "launched-incomplete";
 	const [activeFilter, setActiveFilter] = useState<MaterialFilter>("upcoming");
-	const types = [...new Set(materials.map((material) => material.material_type))];
+	const visibleMaterials = materials.filter(
+		(material) => material.material_type.trim().toLowerCase() !== "launch assets archive",
+	);
+	const types = [...new Set(visibleMaterials.map((material) => material.material_type))];
 	const launchedProducts = products.filter(
 		(product) => product.launch_status === "LAUNCHED",
 	);
@@ -824,7 +827,7 @@ function MaterialModule({ products, materials, focus }: {
 		(product) => product.launch_status !== "LAUNCHED",
 	);
 	const completeProducts = launchedProducts.filter((product) => {
-		const productMaterials = materials.filter((material) => material.product_id === product.id);
+		const productMaterials = visibleMaterials.filter((material) => material.product_id === product.id);
 		return productMaterials.length > 0 && productMaterials.every(
 			(material) => material.status === "COMPLETED" || material.status === "NOT_REQUIRED",
 		);
@@ -842,7 +845,7 @@ function MaterialModule({ products, materials, focus }: {
 				? completeProducts
 				: incompleteProducts;
 	const focusedProductId = focus
-		? materials.find((material) => material.id === focus.id)?.product_id
+		? visibleMaterials.find((material) => material.id === focus.id)?.product_id
 		: undefined;
 	useEffect(() => {
 		if (!focus || !focusedProductId) return;
@@ -895,7 +898,7 @@ function MaterialModule({ products, materials, focus }: {
 						>
 							<td className="gtm-model">{product.model}</td><td>{product.name}</td><td>{product.category}</td><td>{product.planned_launch_date}</td>
 							{types.map((type) => {
-								const material = materials.find((item) => item.product_id === product.id && item.material_type === type);
+								const material = visibleMaterials.find((item) => item.product_id === product.id && item.material_type === type);
 								return <td
 									className="gtm-material-cell"
 									key={type}
@@ -921,8 +924,14 @@ function ReturnToUpcomingButton({ product }: { product: GtmProduct }) {
 	return <fetcher.Form method="post">
 		<input name="intent" type="hidden" value="return-product" />
 		<input name="id" type="hidden" value={product.id} />
-		<button className="gtm-return-btn" disabled={fetcher.state !== "idle"} type="submit">
-			Return to Upcoming
+		<button
+			aria-label={`Return ${product.model} to Upcoming Products`}
+			className="gtm-return-btn"
+			disabled={fetcher.state !== "idle"}
+			title="Return to Upcoming Products"
+			type="submit"
+		>
+			Reopen
 		</button>
 	</fetcher.Form>;
 }
