@@ -102,7 +102,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 				context.cloudflare.env,
 				String(form.get("id") || ""),
 				String(form.get("delayed_until") || ""),
-				String(form.get("delay_reason") || ""),
 				String(form.get("schedule_impact") || ""),
 				String(form.get("notes") || ""),
 			);
@@ -613,7 +612,6 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 							<th>Delay</th>
 							<th>Delay Item</th>
 							<th>DDL Change</th>
-							<th>Delay Reason</th>
 							<th>Schedule Impact</th>
 							<th>Notes</th>
 							<th>Action</th>
@@ -622,7 +620,7 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 					<tbody>
 						{records.length
 							? records.map((record, index) => <DelayRecordRow delayNumber={index + 1} key={record.id} record={record} />)
-							: <tr><td className="gtm-delay-empty" colSpan={7}>No delay records.</td></tr>}
+							: <tr><td className="gtm-delay-empty" colSpan={6}>No delay records.</td></tr>}
 					</tbody>
 				</table>
 			</div>
@@ -648,9 +646,6 @@ function DelayRecordRow({ record, delayNumber }: { record: GtmDelayRecord; delay
 				</fetcher.Form>
 			</td>
 			<td>
-				<textarea aria-label="Delay Reason" form={editFormId} name="delay_reason" defaultValue={record.delay_reason || ""} rows={2} />
-			</td>
-			<td>
 				<textarea aria-label="Schedule Impact" form={editFormId} name="schedule_impact" defaultValue={record.schedule_impact || ""} rows={2} />
 			</td>
 			<td>
@@ -665,7 +660,6 @@ function DelayRecordRow({ record, delayNumber }: { record: GtmDelayRecord; delay
 			</td>
 		</> : <>
 			<td>{record.original_deadline || "Not set"}<br /><span className="gtm-muted">→ {record.delayed_until || "Not set"}</span></td>
-			<td>{record.delay_reason || "—"}</td>
 			<td>{record.schedule_impact || "—"}</td>
 			<td>{record.notes || "No notes"}</td>
 			<td>

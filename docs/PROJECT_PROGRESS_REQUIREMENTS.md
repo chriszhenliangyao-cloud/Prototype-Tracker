@@ -40,8 +40,8 @@
   Record containing the old and new DDL. Initial entry of a blank DDL does not
   create a Delay Record.
 - The table combines Stage and Task Name as `Delay Item`, combines the old and
-  new dates as `DDL Change`, and includes manually editable `Delay Reason` and
-  `Schedule Impact` columns.
+  new dates as `DDL Change`, and includes a manually editable `Schedule Impact`
+  column.
 - A Delay Record is created only when a task is incomplete and its stage DDL
   has been reached or passed.
 - Once created, a Delay Record remains in history even if the task is later

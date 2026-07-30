@@ -77,7 +77,6 @@ export interface GtmDelayRecord {
 	task_name: string;
 	original_deadline: string | null;
 	delayed_until: string | null;
-	delay_reason: string | null;
 	schedule_impact: string | null;
 	notes: string | null;
 }
@@ -198,8 +197,7 @@ async function getGtmDelayRecords(env: Env): Promise<GtmDelayRecord[]> {
 	try {
 		const records = await env.DB.prepare(
 			`SELECT id, product_id, stage_name, task_name,
-			        original_deadline, delayed_until, delay_reason,
-			        schedule_impact, notes
+			        original_deadline, delayed_until, schedule_impact, notes
 			   FROM gtm_delay_record
 			  WHERE deleted_at IS NULL
 			  ORDER BY product_id, created_at, id`,
@@ -340,7 +338,6 @@ function getGtmFallbackData(): GtmWorkspaceData {
 			task_name: task.task_name,
 			original_deadline: stages.find((stage) => stage.product_id === task.product_id && stage.stage_name === task.stage_name)?.deadline || null,
 			delayed_until: null,
-			delay_reason: null,
 			schedule_impact: null,
 			notes: null,
 		}));
@@ -526,20 +523,18 @@ export async function updateGtmDelayRecord(
 	env: Env,
 	id: string,
 	delayedUntil: string,
-	delayReason: string,
 	scheduleImpact: string,
 	notes: string,
 ) {
 	if (!id.trim()) throw new Error("Delay record id is required");
 	await env.DB.prepare(
 		`UPDATE gtm_delay_record
-		    SET delayed_until=?, delay_reason=?, schedule_impact=?,
-		        notes=?, updated_at=CURRENT_TIMESTAMP
+		    SET delayed_until=?, schedule_impact=?, notes=?,
+		        updated_at=CURRENT_TIMESTAMP
 		  WHERE id=? AND deleted_at IS NULL`,
 	)
 		.bind(
 			delayedUntil || null,
-			delayReason.trim() || null,
 			scheduleImpact.trim() || null,
 			notes.trim() || null,
 			id,
