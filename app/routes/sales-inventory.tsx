@@ -337,7 +337,7 @@ export default function SalesInventory() {
 	const visibleHistoryMonths = historyRange.filter((month) => month >= rangeFrom && month <= rangeTo);
 	const visiblePlanningMonths = months.filter((month) => month >= rangeFrom && month <= rangeTo);
 	const planningColumnCount = visiblePlanningMonths.length * 3;
-	const tableWidth = 536 + (visibleHistoryMonths.length * 3 + 3 + planningColumnCount + (visiblePlanningMonths.length ? 2 : 0)) * 78;
+	const tableWidth = (5 + visibleHistoryMonths.length * 3 + 3 + planningColumnCount + (visiblePlanningMonths.length ? 2 : 0)) * 100;
 
 	const beginEdit = () => {
 		setDraftRows(clone(rows));

@@ -415,6 +415,7 @@
 
 .sip-table.planning th,
 .sip-table.planning td {
+  box-sizing: border-box;
   height: 46px;
   padding: 6px 5px;
   border-right: 1px solid color-mix(in srgb, var(--sip-border) 72%, transparent);
@@ -423,26 +424,21 @@
   word-break: normal;
   overflow-wrap: normal;
   hyphens: none;
+  overflow: hidden;
 }
 
-.sip-table.planning col.sip-col-model {
-  width: 90px;
-}
-
-.sip-table.planning col.sip-col-product {
-  width: 150px;
-}
-
-.sip-table.planning col.sip-col-category {
-  width: 120px;
-}
-
-.sip-table.planning col.sip-col-date {
-  width: 98px;
-}
-
+.sip-table.planning col.sip-col-model,
+.sip-table.planning col.sip-col-product,
+.sip-table.planning col.sip-col-category,
+.sip-table.planning col.sip-col-date,
 .sip-table.planning col.sip-col-number {
-  width: 78px;
+  width: 100px;
+}
+
+.sip-table.planning .sip-input,
+.sip-table.planning .sip-number {
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .sip-table.planning .sip-month-row th {
