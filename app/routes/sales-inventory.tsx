@@ -94,6 +94,42 @@ function NumberInput({
 	);
 }
 
+function ModelMultiSelect({
+	options,
+	selected,
+	onChange,
+}: {
+	options: string[];
+	selected: string[];
+	onChange: (models: string[]) => void;
+}) {
+	const label = selected.length === 0 ? "All Models" : selected.length === 1 ? selected[0] : `${selected.length} Models`;
+	return (
+		<div className="sip-filter-field">
+			<span>Model</span>
+			<details className="sip-multi-select">
+				<summary>{label}</summary>
+				<div className="sip-multi-menu">
+					<button className={selected.length === 0 ? "active" : ""} onClick={() => onChange([])} type="button">
+						<span>{selected.length === 0 ? "✓" : ""}</span>All Models
+					</button>
+					{options.map((model) => {
+						const checked = selected.includes(model);
+						return <label key={model}>
+							<input
+								checked={checked}
+								onChange={() => onChange(checked ? selected.filter((item) => item !== model) : [...selected, model])}
+								type="checkbox"
+							/>
+							{model}
+						</label>;
+					})}
+				</div>
+			</details>
+		</div>
+	);
+}
+
 function ModeHeader({ theme, onToggleTheme }: { theme: string | null; onToggleTheme: () => void }) {
 	return (
 		<header className="sip-mode-bar">
@@ -261,7 +297,7 @@ function InventoryTrend({
 	history,
 	months,
 	availableMonths,
-	tableModel,
+	tableModels,
 	tableCategory,
 	tableFrom,
 	tableTo,
@@ -270,17 +306,17 @@ function InventoryTrend({
 	history: HistoryRow[];
 	months: string[];
 	availableMonths: string[];
-	tableModel: string;
+	tableModels: string[];
 	tableCategory: string;
 	tableFrom: string;
 	tableTo: string;
 }) {
-	const [model, setModel] = useState(tableModel);
+	const [models, setModels] = useState<string[]>(tableModels);
 	const [category, setCategory] = useState(tableCategory);
 	const [from, setFrom] = useState(tableFrom);
 	const [to, setTo] = useState(tableTo);
 
-	useEffect(() => setModel(tableModel), [tableModel]);
+	useEffect(() => setModels([...tableModels]), [tableModels]);
 	useEffect(() => setCategory(tableCategory), [tableCategory]);
 	useEffect(() => setFrom(tableFrom), [tableFrom]);
 	useEffect(() => setTo(tableTo), [tableTo]);
@@ -291,7 +327,7 @@ function InventoryTrend({
 		.map((row) => row.model)
 		.sort();
 	const chartRows = rows.filter((row) =>
-		(model === "all" || row.model === model) &&
+		(models.length === 0 || models.includes(row.model)) &&
 		(category === "all" || row.category === category));
 	const chartMonths = availableMonths.filter((month) => month >= from && month <= to);
 	const data = chartMonths.map((month) => {
@@ -328,12 +364,12 @@ function InventoryTrend({
 					<h3>Production &amp; Shipment</h3>
 					<p>Planning filters sync down automatically. Changes here only affect this chart.</p>
 				</div>
-				<div className="sip-chart-filters">
-					<label>Model<select value={model} onChange={(event) => setModel(event.target.value)}><option value="all">All Models</option>{modelOptions.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+				<div className="sip-filter-controls">
+					<ModelMultiSelect onChange={setModels} options={modelOptions} selected={models} />
 					<label>Category<select value={category} onChange={(event) => {
 						const value = event.target.value;
 						setCategory(value);
-						if (model !== "all" && !rows.some((row) => row.model === model && (value === "all" || row.category === value))) setModel("all");
+						setModels((current) => current.filter((model) => rows.some((row) => row.model === model && (value === "all" || row.category === value))));
 					}}><option value="all">All Categories</option>{categories.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
 					<label>From<select value={from} onChange={(event) => {
 						const value = event.target.value;
@@ -385,7 +421,7 @@ export default function SalesInventory() {
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
 	const [loaded, setLoaded] = useState(false);
 	const [riskOnly, setRiskOnly] = useState(false);
-	const [modelFilter, setModelFilter] = useState("all");
+	const [modelFilter, setModelFilter] = useState<string[]>([]);
 	const [categoryFilter, setCategoryFilter] = useState("all");
 	const historyRange = useMemo(() => [...new Set(history.map((row) => row.month))].sort(), [history]);
 	const [rangeFrom, setRangeFrom] = useState(initialPlanningMonths[0]);
@@ -453,7 +489,7 @@ export default function SalesInventory() {
 	const categoryOptions = [...new Set(tableRows.map((row) => row.category))].sort();
 	const visibleRows = tableRows.filter((row) =>
 		(!riskOnly || riskModels.has(row.model)) &&
-		(modelFilter === "all" || row.model === modelFilter) &&
+		(modelFilter.length === 0 || modelFilter.includes(row.model)) &&
 		(categoryFilter === "all" || row.category === categoryFilter));
 	const availableMonths = [...new Set([...historyRange, ...months])].sort();
 	const visibleHistoryMonths = historyRange.filter((month) => month >= rangeFrom && month <= rangeTo);
@@ -542,8 +578,8 @@ export default function SalesInventory() {
 						</div>
 					</header>
 					<div className="sip-open-row"><span><i />{monthLabel(months[0])} · Open</span><span>{lastClosedMonth ? `${monthLabel(lastClosedMonth)} · Closed` : "Mock data"}</span></div>
-					<div className="sip-planning-filters">
-						<label>Model<select value={modelFilter} onChange={(event) => setModelFilter(event.target.value)}><option value="all">All Models</option>{modelOptions.map((model) => <option value={model} key={model}>{model}</option>)}</select></label>
+					<div className="sip-filter-controls sip-planning-filters">
+						<ModelMultiSelect onChange={setModelFilter} options={modelOptions} selected={modelFilter} />
 						<label>Category<select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">All Categories</option>{categoryOptions.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
 						<label>From<select value={rangeFrom} onChange={(event) => {
 							const value = event.target.value;
@@ -650,7 +686,7 @@ export default function SalesInventory() {
 						rows={tableRows}
 						tableCategory={categoryFilter}
 						tableFrom={rangeFrom}
-						tableModel={modelFilter}
+						tableModels={modelFilter}
 						tableTo={rangeTo}
 					/>
 				</section>

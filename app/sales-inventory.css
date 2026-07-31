@@ -606,7 +606,7 @@
   font-size: 11px;
 }
 
-.sip-chart-filters {
+.sip-filter-controls {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -614,7 +614,8 @@
   gap: 8px;
 }
 
-.sip-chart-filters label {
+.sip-filter-controls > label,
+.sip-filter-controls > .sip-filter-field {
   display: grid;
   gap: 4px;
   color: var(--sip-muted);
@@ -624,8 +625,10 @@
   text-transform: uppercase;
 }
 
-.sip-chart-filters select {
-  width: 138px;
+.sip-filter-controls select,
+.sip-multi-select > summary {
+  box-sizing: border-box;
+  width: 150px;
   height: 32px;
   padding: 0 8px;
   border: 1px solid #cbd5e1;
@@ -635,6 +638,83 @@
   font: inherit;
   font-size: 11px;
   text-transform: none;
+}
+
+.sip-multi-select {
+  position: relative;
+}
+
+.sip-multi-select > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  cursor: pointer;
+}
+
+.sip-multi-select > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sip-multi-select > summary::after {
+  content: "▾";
+  color: #64748b;
+  font-size: 10px;
+}
+
+.sip-multi-select[open] > summary {
+  border-color: #7da1f5;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 14%);
+}
+
+.sip-multi-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 5px);
+  right: 0;
+  width: 190px;
+  padding: 6px;
+  border: 1px solid var(--sip-border);
+  border-radius: 9px;
+  background: var(--sip-panel);
+  box-shadow: 0 12px 28px rgb(15 23 42 / 16%);
+  text-transform: none;
+}
+
+.sip-multi-menu button,
+.sip-multi-menu label {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 30px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sip-text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sip-multi-menu button:hover,
+.sip-multi-menu button.active,
+.sip-multi-menu label:hover {
+  background: var(--sip-blue-soft);
+}
+
+.sip-multi-menu button > span {
+  width: 13px;
+  color: var(--sip-blue);
+  font-weight: 900;
+}
+
+.sip-multi-menu input {
+  accent-color: var(--sip-blue);
 }
 
 .sip-chart-legend {
@@ -734,37 +814,10 @@
 }
 
 .sip-planning-filters {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 10px;
+  justify-content: flex-end;
   padding: 11px 18px;
   border-bottom: 1px solid var(--sip-border);
   background: var(--sip-panel-soft);
-}
-
-.sip-planning-filters label {
-  display: grid;
-  gap: 5px;
-  color: var(--sip-muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.sip-planning-filters select,
-.sip-planning-filters input {
-  width: 160px;
-  height: 34px;
-  padding: 0 9px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: var(--sip-panel);
-  color: var(--sip-text);
-  font: inherit;
-  font-size: 12px;
-  text-transform: none;
 }
 
 .sip-filters {
@@ -963,7 +1016,7 @@
     flex-direction: column;
   }
 
-  .sip-chart-filters {
+  .sip-filter-controls {
     justify-content: flex-start;
     width: 100%;
   }
