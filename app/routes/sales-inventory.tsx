@@ -315,6 +315,7 @@ function InventoryTrend({
 	const [category, setCategory] = useState(tableCategory);
 	const [from, setFrom] = useState(tableFrom);
 	const [to, setTo] = useState(tableTo);
+	const [focusedSeries, setFocusedSeries] = useState<number | null>(null);
 
 	useEffect(() => setModels([...tableModels]), [tableModels]);
 	useEffect(() => setCategory(tableCategory), [tableCategory]);
@@ -330,7 +331,7 @@ function InventoryTrend({
 		(models.length === 0 || models.includes(row.model)) &&
 		(category === "all" || row.category === category));
 	const chartMonths = availableMonths.filter((month) => month >= from && month <= to);
-	const series = chartRows.map((row) => ({
+	const allSeries = chartRows.map((row) => ({
 		model: row.model,
 		product: row.product,
 		data: chartMonths.map((month) => {
@@ -344,10 +345,11 @@ function InventoryTrend({
 			};
 		}),
 	}));
+	const series = allSeries.slice(0, 4);
 
-	const width = 520;
-	const height = 270;
-	const margin = { top: 25, right: 18, bottom: 60, left: 58 };
+	const width = 1120;
+	const height = 390;
+	const margin = { top: 30, right: 32, bottom: 70, left: 72 };
 	const plotWidth = width - margin.left - margin.right;
 	const plotHeight = height - margin.top - margin.bottom;
 	const maximum = Math.max(1, ...series.flatMap((product) => product.data.flatMap((item) => [item.production, item.shipment])));
@@ -355,6 +357,13 @@ function InventoryTrend({
 	const x = (index: number) => margin.left + plotWidth * ((index + 0.5) / Math.max(chartMonths.length, 1));
 	const y = (value: number) => margin.top + plotHeight - (value / axisMax) * plotHeight;
 	const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ({ ratio, value: axisMax * ratio }));
+	const slotWidth = plotWidth / Math.max(chartMonths.length, 1);
+	const barGap = 3;
+	const barWidth = Math.min(28, Math.max(9, (slotWidth * 0.58 - barGap * Math.max(series.length - 1, 0)) / Math.max(series.length, 1)));
+	const barGroupWidth = barWidth * series.length + barGap * Math.max(series.length - 1, 0);
+	const dashPatterns = ["none", "10 6", "3 5", "13 4 3 4"];
+	const markerShapes = ["circle", "square", "diamond", "triangle"];
+	const seriesLabel = (product: typeof series[number]) => `${product.model} · ${product.product}`;
 
 	return (
 		<section className="sip-trend">
@@ -385,37 +394,92 @@ function InventoryTrend({
 			</div>
 			<div className="sip-chart-wrap">
 				{series.length === 0 || chartMonths.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
-					<div className="sip-chart-grid-layout">
-						{series.map((product) => {
-							const linePoints = product.data.map((item, index) => `${x(index)},${y(item.production)}`).join(" ");
-							const barWidth = Math.min(34, plotWidth / Math.max(product.data.length, 1) * 0.4);
-							return <article className="sip-product-chart" key={product.model}>
-								<header><strong>{product.model}</strong><span>{product.product}</span></header>
-								<svg className="sip-chart" role="img" aria-label={`${product.model} production line and shipment bar trend`} viewBox={`0 0 ${width} ${height}`}>
-									{ticks.map(({ ratio, value }) => {
-										const tickY = margin.top + plotHeight - ratio * plotHeight;
-										return <g key={ratio}>
-											<line className="sip-chart-grid" x1={margin.left} x2={width - margin.right} y1={tickY} y2={tickY} />
-											<text className="sip-chart-axis" textAnchor="end" x={margin.left - 9} y={tickY + 4}>{formatNumber(value)}</text>
-										</g>;
-									})}
-									{product.data.map((item, index) => {
-										const barY = y(item.shipment);
-										return <g key={item.month}>
-											<rect className="sip-shipment-bar" height={margin.top + plotHeight - barY} rx="4" width={barWidth} x={x(index) - barWidth / 2} y={barY}>
-												<title>{`${product.model} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nShipment: ${formatNumber(item.shipment)}\nProduction: ${formatNumber(item.production)}`}</title>
-											</rect>
-											<text className="sip-chart-month" textAnchor="middle" x={x(index)} y={height - 34}>{monthLabel(item.month)}</text>
-											{item.forecast && <text className="sip-chart-forecast" textAnchor="middle" x={x(index)} y={height - 17}>Forecast</text>}
-										</g>;
-									})}
-									<polyline className="sip-production-line" points={linePoints} />
-									{product.data.map((item, index) => <circle className="sip-production-point" cx={x(index)} cy={y(item.production)} key={item.month} r="4">
-										<title>{`${product.model} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nProduction: ${formatNumber(item.production)}\nShipment: ${formatNumber(item.shipment)}`}</title>
-									</circle>)}
+					<div className="sip-combined-chart">
+						<div className="sip-product-legend" aria-label="Products shown in chart">
+							{series.map((product, seriesIndex) => <button
+								className={focusedSeries === seriesIndex ? "active" : ""}
+								key={`${product.model}-${product.product}-${seriesIndex}`}
+								onBlur={() => setFocusedSeries(null)}
+								onFocus={() => setFocusedSeries(seriesIndex)}
+								onMouseEnter={() => setFocusedSeries(seriesIndex)}
+								onMouseLeave={() => setFocusedSeries(null)}
+								type="button"
+							>
+								<svg aria-hidden="true" viewBox="0 0 36 14">
+									<line className="sip-product-key-line" strokeDasharray={dashPatterns[seriesIndex]} x1="1" x2="35" y1="7" y2="7" />
+									{markerShapes[seriesIndex] === "circle" && <circle className="sip-product-key-point" cx="18" cy="7" r="3" />}
+									{markerShapes[seriesIndex] === "square" && <rect className="sip-product-key-point" height="6" width="6" x="15" y="4" />}
+									{markerShapes[seriesIndex] === "diamond" && <rect className="sip-product-key-point" height="6" transform="rotate(45 18 7)" width="6" x="15" y="4" />}
+									{markerShapes[seriesIndex] === "triangle" && <polygon className="sip-product-key-point" points="18,3 22,11 14,11" />}
 								</svg>
-							</article>;
-						})}
+								<span><strong>{product.model}</strong>{product.product}</span>
+							</button>)}
+						</div>
+						{allSeries.length > 4 && <p className="sip-chart-limit">Showing the first 4 selected products. Refine the Model filter to compare a different set.</p>}
+						<svg className="sip-chart combined" role="img" aria-label="Combined production line and shipment bar trends by product" viewBox={`0 0 ${width} ${height}`}>
+							<defs>
+								{series.map((_, seriesIndex) => <pattern height="8" id={`sip-bar-pattern-${seriesIndex}`} key={seriesIndex} patternUnits="userSpaceOnUse" width="8">
+									<rect fill="#2563eb" height="8" opacity={0.88 - seriesIndex * 0.12} width="8" />
+									{seriesIndex === 1 && <path d="M0 8L8 0" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="1.5" />}
+									{seriesIndex === 2 && <path d="M0 2H8M0 6H8" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="1.2" />}
+									{seriesIndex === 3 && <circle cx="2" cy="2" fill="#ffffff" fillOpacity="0.6" r="1" />}
+								</pattern>)}
+							</defs>
+							{ticks.map(({ ratio, value }) => {
+								const tickY = margin.top + plotHeight - ratio * plotHeight;
+								return <g key={ratio}>
+									<line className="sip-chart-grid" x1={margin.left} x2={width - margin.right} y1={tickY} y2={tickY} />
+									<text className="sip-chart-axis" textAnchor="end" x={margin.left - 11} y={tickY + 4}>{formatNumber(value)}</text>
+								</g>;
+							})}
+							{chartMonths.map((month, monthIndex) => {
+								const forecast = month > months[0];
+								return <g key={month}>
+									<text className="sip-chart-month" textAnchor="middle" x={x(monthIndex)} y={height - 36}>{monthLabel(month)}</text>
+									{forecast && <text className="sip-chart-forecast" textAnchor="middle" x={x(monthIndex)} y={height - 18}>Forecast</text>}
+								</g>;
+							})}
+							{series.map((product, seriesIndex) => {
+								const dimmed = focusedSeries !== null && focusedSeries !== seriesIndex;
+								return <g
+									className={`sip-chart-series${dimmed ? " dimmed" : ""}`}
+									key={`${product.model}-${product.product}-${seriesIndex}`}
+									onMouseEnter={() => setFocusedSeries(seriesIndex)}
+									onMouseLeave={() => setFocusedSeries(null)}
+								>
+									{product.data.map((item, monthIndex) => {
+										const barY = y(item.shipment);
+										const barX = x(monthIndex) - barGroupWidth / 2 + seriesIndex * (barWidth + barGap);
+										return <rect
+											className="sip-shipment-bar"
+											fill={`url(#sip-bar-pattern-${seriesIndex})`}
+											height={margin.top + plotHeight - barY}
+											key={item.month}
+											rx="3"
+											width={barWidth}
+											x={barX}
+											y={barY}
+										>
+											<title>{`${seriesLabel(product)} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nShipment: ${formatNumber(item.shipment)}\nProduction: ${formatNumber(item.production)}`}</title>
+										</rect>;
+									})}
+									<polyline
+										className="sip-production-line"
+										points={product.data.map((item, monthIndex) => `${x(monthIndex)},${y(item.production)}`).join(" ")}
+										strokeDasharray={dashPatterns[seriesIndex]}
+									/>
+									{product.data.map((item, monthIndex) => {
+										const pointX = x(monthIndex);
+										const pointY = y(item.production);
+										const title = `${seriesLabel(product)} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nProduction: ${formatNumber(item.production)}\nShipment: ${formatNumber(item.shipment)}`;
+										if (markerShapes[seriesIndex] === "square") return <rect className="sip-production-point" height="8" key={item.month} width="8" x={pointX - 4} y={pointY - 4}><title>{title}</title></rect>;
+										if (markerShapes[seriesIndex] === "diamond") return <rect className="sip-production-point" height="8" key={item.month} transform={`rotate(45 ${pointX} ${pointY})`} width="8" x={pointX - 4} y={pointY - 4}><title>{title}</title></rect>;
+										if (markerShapes[seriesIndex] === "triangle") return <polygon className="sip-production-point" key={item.month} points={`${pointX},${pointY - 5} ${pointX + 5},${pointY + 5} ${pointX - 5},${pointY + 5}`}><title>{title}</title></polygon>;
+										return <circle className="sip-production-point" cx={pointX} cy={pointY} key={item.month} r="4"><title>{title}</title></circle>;
+									})}
+								</g>;
+							})}
+						</svg>
 					</div>
 				)}
 			</div>
