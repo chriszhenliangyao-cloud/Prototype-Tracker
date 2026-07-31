@@ -211,6 +211,7 @@ export default function ProjectProgress({ loaderData }: Route.ComponentProps) {
 					<Link className="gtm-mode-btn" to="/">🛰️ Control Tower</Link>
 					<Link className="gtm-mode-btn" to="/?view=field">🧳 Field View</Link>
 					<span className="gtm-mode-btn active">📈 Project Progress</span>
+					<Link className="gtm-mode-btn" to="/sales-inventory">📊 Sales &amp; Inventory</Link>
 				</nav>
 				<div className="gtm-mode-right">
 					<button className="gtm-theme-btn" title="Toggle light / dark" onClick={toggleTheme}>{theme === "dark" ? "☀️" : "🌙"}</button>
