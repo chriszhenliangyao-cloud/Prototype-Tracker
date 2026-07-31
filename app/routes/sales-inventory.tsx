@@ -265,10 +265,9 @@ export default function SalesInventory() {
 	const [riskOnly, setRiskOnly] = useState(false);
 	const [modelFilter, setModelFilter] = useState("all");
 	const [categoryFilter, setCategoryFilter] = useState("all");
-	const [showHistory, setShowHistory] = useState(false);
 	const historyRange = useMemo(() => [...new Set(history.map((row) => row.month))].sort(), [history]);
-	const [historyFrom, setHistoryFrom] = useState(() => initialHistoryRows.map((row) => row.month).sort()[0] || "");
-	const [historyTo, setHistoryTo] = useState(() => initialHistoryRows.map((row) => row.month).sort().at(-1) || "");
+	const [rangeFrom, setRangeFrom] = useState(initialPlanningMonths[0]);
+	const [rangeTo, setRangeTo] = useState(initialPlanningMonths.at(-1) || initialPlanningMonths[0]);
 	const [editing, setEditing] = useState(false);
 	const [draftRows, setDraftRows] = useState<PlanningRow[]>([]);
 	const [addOpen, setAddOpen] = useState(false);
@@ -334,9 +333,11 @@ export default function SalesInventory() {
 		(!riskOnly || riskModels.has(row.model)) &&
 		(modelFilter === "all" || row.model === modelFilter) &&
 		(categoryFilter === "all" || row.category === categoryFilter));
-	const visibleHistoryMonths = showHistory
-		? historyRange.filter((month) => (!historyFrom || month >= historyFrom) && (!historyTo || month <= historyTo))
-		: [];
+	const availableMonths = [...new Set([...historyRange, ...months])].sort();
+	const visibleHistoryMonths = historyRange.filter((month) => month >= rangeFrom && month <= rangeTo);
+	const visiblePlanningMonths = months.filter((month) => month >= rangeFrom && month <= rangeTo);
+	const planningColumnCount = visiblePlanningMonths.length * 3;
+	const tableWidth = 536 + (visibleHistoryMonths.length * 3 + 3 + planningColumnCount + (visiblePlanningMonths.length ? 2 : 0)) * 78;
 
 	const beginEdit = () => {
 		setDraftRows(clone(rows));
@@ -422,26 +423,47 @@ export default function SalesInventory() {
 					<div className="sip-planning-filters">
 						<label>Model<select value={modelFilter} onChange={(event) => setModelFilter(event.target.value)}><option value="all">All Models</option>{modelOptions.map((model) => <option value={model} key={model}>{model}</option>)}</select></label>
 						<label>Category<select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">All Categories</option>{categoryOptions.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
-						<button className={`sip-history-toggle${showHistory ? " active" : ""}`} onClick={() => setShowHistory((current) => !current)}>
-							{showHistory ? "Hide Historical Data" : "Show Historical Data"}
-						</button>
-						{showHistory && <>
-							<label>From<input min={historyRange[0]} max={historyTo || historyRange.at(-1)} type="month" value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} /></label>
-							<label>To<input min={historyFrom || historyRange[0]} max={historyRange.at(-1)} type="month" value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} /></label>
-						</>}
+						<label>From<select value={rangeFrom} onChange={(event) => {
+							const value = event.target.value;
+							setRangeFrom(value);
+							if (value > rangeTo) setRangeTo(value);
+						}}>{availableMonths.filter((month) => month <= rangeTo).map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
+						<label>To<select value={rangeTo} onChange={(event) => setRangeTo(event.target.value)}>{availableMonths.filter((month) => month >= rangeFrom).map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
 					</div>
 					{error && <p className="sip-error">{error}</p>}
 					<div className="sip-table-scroll">
-						<table className="sip-table planning" style={{ minWidth: `${(22 + visibleHistoryMonths.length * 3) * 100}px` }}>
+						<table className="sip-table planning" style={{ minWidth: `${tableWidth}px`, width: `${tableWidth}px` }}>
+							<colgroup>
+								<col className="sip-col-model" />
+								<col className="sip-col-product" />
+								<col className="sip-col-category" />
+								<col className="sip-col-date" />
+								<col className="sip-col-number" />
+								{visibleHistoryMonths.flatMap((month) => [
+									<col className="sip-col-number" key={`${month}-history-actual-col`} />,
+									<col className="sip-col-number" key={`${month}-history-supply-col`} />,
+									<col className="sip-col-number" key={`${month}-history-ending-col`} />,
+								])}
+								{["fcst", "mass", "gap"].map((name) => <col className="sip-col-number" key={`first-${name}-col`} />)}
+								{visiblePlanningMonths.flatMap((month) => [
+									<col className="sip-col-number" key={`${month}-forecast-col`} />,
+									<col className="sip-col-number" key={`${month}-supply-col`} />,
+									<col className="sip-col-number" key={`${month}-ending-col`} />,
+								])}
+								{visiblePlanningMonths.length > 0 && <>
+									<col className="sip-col-number" />
+									<col className="sip-col-number" />
+								</>}
+							</colgroup>
 							<thead>
 								<tr className="sip-month-row">
 									<th className="sip-group-base" colSpan={5} />
 									{visibleHistoryMonths.map((month) => <th className="sip-group-history" colSpan={3} key={`history-${month}`}>{monthLabel(month)}</th>)}
 									<th className="sip-group-first" colSpan={3}>First Batch</th>
-									{months.map((month, index) => <th className={index === 0 ? "sip-group-current" : "sip-group-month"} colSpan={3} key={month}>
-										{index === 0 && <span className="sip-current-tag">Current</span>}{monthLabel(month)}
+									{visiblePlanningMonths.map((month) => <th className={month === months[0] ? "sip-group-current" : "sip-group-month"} colSpan={3} key={month}>
+										{month === months[0] && <span className="sip-current-tag">Current</span>}{monthLabel(month)}
 									</th>)}
-									<th className="sip-group-total" colSpan={2}>4-Month Total</th>
+									{visiblePlanningMonths.length > 0 && <th className="sip-group-total" colSpan={2}>{visiblePlanningMonths.length}-Month Total</th>}
 								</tr>
 								<tr>
 									{["Model", "Product Name", "Category", "Launch Date", "Current Inventory"].map((heading) => <th className="sip-group-base" key={heading}>{heading}</th>)}
@@ -451,20 +473,22 @@ export default function SalesInventory() {
 										<th className="sip-group-history" key={`${month}-history-ending`}>Ending Inventory</th>,
 									])}
 									{["FCST 1st", "Mass 1st", "Gap"].map((heading) => <th className="sip-group-first" key={heading}>{heading}</th>)}
-									{months.flatMap((month, index) => [
-										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-f`}>Forecast</th>,
-										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-s`}>Supply Plan</th>,
-										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-e`}>Projected On Hand</th>,
+									{visiblePlanningMonths.flatMap((month) => [
+										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-f`}>Forecast</th>,
+										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-s`}>Supply Plan</th>,
+										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-e`}>Projected On Hand</th>,
 									])}
-									<th className="sip-group-total">Forecast</th>
-									<th className="sip-group-total">Supply Plan</th>
+									{visiblePlanningMonths.length > 0 && <>
+										<th className="sip-group-total">Forecast</th>
+										<th className="sip-group-total">Supply Plan</th>
+									</>}
 								</tr>
 							</thead>
 							<tbody>{visibleRows.map((row) => {
 								const endings = calculateEndings(row, months);
 								const gap = row.firstMass - row.firstForecast;
-								const totalForecast = months.reduce((sum, month) => sum + (row.months[month]?.forecast || 0), 0);
-								const totalSupply = months.reduce((sum, month) => sum + (row.months[month]?.supply || 0), 0);
+								const totalForecast = visiblePlanningMonths.reduce((sum, month) => sum + (row.months[month]?.forecast || 0), 0);
+								const totalSupply = visiblePlanningMonths.reduce((sum, month) => sum + (row.months[month]?.supply || 0), 0);
 								return <tr key={row.model}>
 									{(["model", "product", "category", "launchDate"] as const).map((field) => <td key={field} className={`sip-group-base${field === "model" ? " model" : ""}`}>{editing ? <input className="sip-input" type={field === "launchDate" ? "date" : "text"} value={row[field]} onChange={(event) => updateRow(row.model, (current) => ({ ...current, [field]: event.target.value }))} /> : row[field]}</td>)}
 									<td className="sip-group-base">{editing ? <NumberInput label={`${row.model} current inventory`} value={row.inventory} onChange={(value) => updateRow(row.model, (current) => ({ ...current, inventory: value }))} /> : formatNumber(row.inventory)}</td>
@@ -478,23 +502,25 @@ export default function SalesInventory() {
 									})}
 									{(["firstForecast", "firstMass"] as const).map((field) => <td className="sip-group-first" key={field}>{editing ? <NumberInput label={`${row.model} ${field}`} value={row[field]} onChange={(value) => updateRow(row.model, (current) => ({ ...current, [field]: value }))} /> : formatNumber(row[field])}</td>)}
 									<td className={`sip-group-first sip-gap ${gap >= 0 ? "positive" : "negative"}`}>{gap > 0 ? "+" : ""}{formatNumber(gap)}</td>
-									{months.flatMap((month, index) => {
+									{visiblePlanningMonths.flatMap((month) => {
 										const plan = row.months[month] || { forecast: 0, supply: 0 };
 										const change = (field: "forecast" | "supply", value: number) => updateRow(row.model, (current) => ({ ...current, months: { ...current.months, [month]: { ...plan, [field]: value } } }));
-										const groupClass = index === 0 ? "sip-group-current" : "sip-group-month";
+										const groupClass = month === months[0] ? "sip-group-current" : "sip-group-month";
 										return [
 											<td className={groupClass} key={`${month}-f`}>{editing ? <NumberInput label={`${row.model} ${month} forecast`} value={plan.forecast} onChange={(value) => change("forecast", value)} /> : formatNumber(plan.forecast)}</td>,
 											<td className={groupClass} key={`${month}-s`}>{editing ? <NumberInput label={`${row.model} ${month} supply`} value={plan.supply} onChange={(value) => change("supply", value)} /> : formatNumber(plan.supply)}</td>,
 											<td className={`${groupClass} sip-projected ${stockTone(endings[month])}`} key={`${month}-e`}><span>{formatNumber(endings[month])}</span></td>,
 										];
 									})}
-									<td className="sip-group-total sip-total-value">{formatNumber(totalForecast)}</td>
-									<td className="sip-group-total sip-total-value">{formatNumber(totalSupply)}</td>
+									{visiblePlanningMonths.length > 0 && <>
+										<td className="sip-group-total sip-total-value">{formatNumber(totalForecast)}</td>
+										<td className="sip-group-total sip-total-value">{formatNumber(totalSupply)}</td>
+									</>}
 								</tr>;
 							})}</tbody>
 						</table>
 					</div>
-					<footer className="sip-table-foot"><span>{visibleRows.length} products</span><span>{showHistory ? `${visibleHistoryMonths.length} historical months shown` : "Historical data hidden"} · Mock Data + localStorage</span></footer>
+					<footer className="sip-table-foot"><span>{visibleRows.length} products</span><span>{monthLabel(rangeFrom)} – {monthLabel(rangeTo)} · Mock Data + localStorage</span></footer>
 				</section>
 			</main>
 			{addOpen && <AddProductModal months={months} rows={rows} onClose={() => setAddOpen(false)} onAdd={(row) => { setRows((current) => [...current, row]); setAddOpen(false); }} />}

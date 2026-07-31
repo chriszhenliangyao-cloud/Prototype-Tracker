@@ -415,10 +415,8 @@
 
 .sip-table.planning th,
 .sip-table.planning td {
-  width: 100px;
-  min-width: 100px;
-  height: 54px;
-  padding: 8px 6px;
+  height: 46px;
+  padding: 6px 5px;
   border-right: 1px solid color-mix(in srgb, var(--sip-border) 72%, transparent);
   text-align: center;
   white-space: normal;
@@ -427,9 +425,29 @@
   hyphens: none;
 }
 
+.sip-table.planning col.sip-col-model {
+  width: 90px;
+}
+
+.sip-table.planning col.sip-col-product {
+  width: 150px;
+}
+
+.sip-table.planning col.sip-col-category {
+  width: 120px;
+}
+
+.sip-table.planning col.sip-col-date {
+  width: 98px;
+}
+
+.sip-table.planning col.sip-col-number {
+  width: 78px;
+}
+
 .sip-table.planning .sip-month-row th {
-  height: 48px;
-  padding-block: 9px;
+  height: 40px;
+  padding-block: 6px;
   border-bottom: 1px solid #ccd8e8;
   font-size: 12px;
 }
@@ -589,25 +607,6 @@
   font: inherit;
   font-size: 12px;
   text-transform: none;
-}
-
-.sip-history-toggle {
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid #aebbd0;
-  border-radius: 8px;
-  background: var(--sip-panel);
-  color: #52627a;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.sip-history-toggle.active {
-  border-color: #77869e;
-  background: #e5eaf1;
-  color: #344054;
 }
 
 .sip-filters {
