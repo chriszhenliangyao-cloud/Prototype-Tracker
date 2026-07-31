@@ -330,30 +330,30 @@ function InventoryTrend({
 		(models.length === 0 || models.includes(row.model)) &&
 		(category === "all" || row.category === category));
 	const chartMonths = availableMonths.filter((month) => month >= from && month <= to);
-	const data = chartMonths.map((month) => {
-		const planning = months.includes(month);
-		const production = planning
-			? chartRows.reduce((sum, row) => sum + (row.months[month]?.supply || 0), 0)
-			: history.filter((entry) => entry.month === month && chartRows.some((row) => row.model === entry.model))
-				.reduce((sum, entry) => sum + entry.actualSupply, 0);
-		const shipment = planning
-			? chartRows.reduce((sum, row) => sum + (row.months[month]?.forecast || 0), 0)
-			: history.filter((entry) => entry.month === month && chartRows.some((row) => row.model === entry.model))
-				.reduce((sum, entry) => sum + entry.actualSales, 0);
-		return { month, production, shipment, forecast: month > months[0] };
-	});
+	const series = chartRows.map((row) => ({
+		model: row.model,
+		product: row.product,
+		data: chartMonths.map((month) => {
+			const planning = months.includes(month);
+			const record = history.find((entry) => entry.month === month && entry.model === row.model);
+			return {
+				month,
+				production: planning ? row.months[month]?.supply || 0 : record?.actualSupply || 0,
+				shipment: planning ? row.months[month]?.forecast || 0 : record?.actualSales || 0,
+				forecast: month > months[0],
+			};
+		}),
+	}));
 
-	const width = 1000;
-	const height = 320;
-	const margin = { top: 34, right: 24, bottom: 70, left: 66 };
+	const width = 520;
+	const height = 270;
+	const margin = { top: 25, right: 18, bottom: 60, left: 58 };
 	const plotWidth = width - margin.left - margin.right;
 	const plotHeight = height - margin.top - margin.bottom;
-	const maximum = Math.max(1, ...data.flatMap((item) => [item.production, item.shipment]));
+	const maximum = Math.max(1, ...series.flatMap((product) => product.data.flatMap((item) => [item.production, item.shipment])));
 	const axisMax = Math.ceil(maximum / 100) * 100;
-	const x = (index: number) => margin.left + plotWidth * ((index + 0.5) / Math.max(data.length, 1));
+	const x = (index: number) => margin.left + plotWidth * ((index + 0.5) / Math.max(chartMonths.length, 1));
 	const y = (value: number) => margin.top + plotHeight - (value / axisMax) * plotHeight;
-	const linePoints = data.map((item, index) => `${x(index)},${y(item.production)}`).join(" ");
-	const barWidth = Math.min(46, plotWidth / Math.max(data.length, 1) * 0.42);
 	const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ({ ratio, value: axisMax * ratio }));
 
 	return (
@@ -384,30 +384,39 @@ function InventoryTrend({
 				<span><i className="shipment" />Shipment</span>
 			</div>
 			<div className="sip-chart-wrap">
-				{data.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
-					<svg className="sip-chart" role="img" aria-label="Production line and shipment bar trend" viewBox={`0 0 ${width} ${height}`}>
-						{ticks.map(({ ratio, value }) => {
-							const tickY = margin.top + plotHeight - ratio * plotHeight;
-							return <g key={ratio}>
-								<line className="sip-chart-grid" x1={margin.left} x2={width - margin.right} y1={tickY} y2={tickY} />
-								<text className="sip-chart-axis" textAnchor="end" x={margin.left - 10} y={tickY + 4}>{formatNumber(value)}</text>
-							</g>;
+				{series.length === 0 || chartMonths.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
+					<div className="sip-chart-grid-layout">
+						{series.map((product) => {
+							const linePoints = product.data.map((item, index) => `${x(index)},${y(item.production)}`).join(" ");
+							const barWidth = Math.min(34, plotWidth / Math.max(product.data.length, 1) * 0.4);
+							return <article className="sip-product-chart" key={product.model}>
+								<header><strong>{product.model}</strong><span>{product.product}</span></header>
+								<svg className="sip-chart" role="img" aria-label={`${product.model} production line and shipment bar trend`} viewBox={`0 0 ${width} ${height}`}>
+									{ticks.map(({ ratio, value }) => {
+										const tickY = margin.top + plotHeight - ratio * plotHeight;
+										return <g key={ratio}>
+											<line className="sip-chart-grid" x1={margin.left} x2={width - margin.right} y1={tickY} y2={tickY} />
+											<text className="sip-chart-axis" textAnchor="end" x={margin.left - 9} y={tickY + 4}>{formatNumber(value)}</text>
+										</g>;
+									})}
+									{product.data.map((item, index) => {
+										const barY = y(item.shipment);
+										return <g key={item.month}>
+											<rect className="sip-shipment-bar" height={margin.top + plotHeight - barY} rx="4" width={barWidth} x={x(index) - barWidth / 2} y={barY}>
+												<title>{`${product.model} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nShipment: ${formatNumber(item.shipment)}\nProduction: ${formatNumber(item.production)}`}</title>
+											</rect>
+											<text className="sip-chart-month" textAnchor="middle" x={x(index)} y={height - 34}>{monthLabel(item.month)}</text>
+											{item.forecast && <text className="sip-chart-forecast" textAnchor="middle" x={x(index)} y={height - 17}>Forecast</text>}
+										</g>;
+									})}
+									<polyline className="sip-production-line" points={linePoints} />
+									{product.data.map((item, index) => <circle className="sip-production-point" cx={x(index)} cy={y(item.production)} key={item.month} r="4">
+										<title>{`${product.model} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nProduction: ${formatNumber(item.production)}\nShipment: ${formatNumber(item.shipment)}`}</title>
+									</circle>)}
+								</svg>
+							</article>;
 						})}
-						{data.map((item, index) => {
-							const barY = y(item.shipment);
-							return <g key={item.month}>
-								<rect className="sip-shipment-bar" height={margin.top + plotHeight - barY} rx="4" width={barWidth} x={x(index) - barWidth / 2} y={barY}>
-									<title>{`${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nShipment: ${formatNumber(item.shipment)}\nProduction: ${formatNumber(item.production)}`}</title>
-								</rect>
-								<text className="sip-chart-month" textAnchor="middle" x={x(index)} y={height - 39}>{monthLabel(item.month)}</text>
-								{item.forecast && <text className="sip-chart-forecast" textAnchor="middle" x={x(index)} y={height - 21}>Forecast</text>}
-							</g>;
-						})}
-						<polyline className="sip-production-line" points={linePoints} />
-						{data.map((item, index) => <circle className="sip-production-point" cx={x(index)} cy={y(item.production)} key={item.month} r="4.5">
-							<title>{`${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nProduction: ${formatNumber(item.production)}\nShipment: ${formatNumber(item.shipment)}`}</title>
-						</circle>)}
-					</svg>
+					</div>
 				)}
 			</div>
 		</section>

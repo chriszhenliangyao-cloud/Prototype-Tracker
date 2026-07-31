@@ -752,14 +752,49 @@
 
 .sip-chart-wrap {
   min-height: 320px;
-  padding: 0 10px 8px;
+  padding: 8px 14px 14px;
+}
+
+.sip-chart-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
+  gap: 12px;
+}
+
+.sip-product-chart {
+  overflow: hidden;
+  border: 1px solid var(--sip-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--sip-panel) 96%, var(--sip-panel-soft));
+}
+
+.sip-product-chart > header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 39px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--sip-border);
+}
+
+.sip-product-chart > header strong {
+  color: var(--sip-text);
+  font-size: 12px;
+}
+
+.sip-product-chart > header span {
+  overflow: hidden;
+  color: var(--sip-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sip-chart {
   display: block;
   width: 100%;
-  min-width: 720px;
-  height: 320px;
+  min-width: 0;
+  height: 270px;
 }
 
 .sip-chart-grid {
@@ -1019,5 +1054,9 @@
   .sip-filter-controls {
     justify-content: flex-start;
     width: 100%;
+  }
+
+  .sip-chart-grid-layout {
+    grid-template-columns: 1fr;
   }
 }
