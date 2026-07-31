@@ -35,7 +35,7 @@ type Workspace = {
 
 type ProductDraft = Omit<PlanningRow, "months">;
 type ProductTextField = "model" | "product" | "category" | "launchDate";
-type ProductNumberField = "inventory" | "safetyStock" | "firstForecast" | "firstMass";
+type ProductNumberField = "inventory" | "firstForecast" | "firstMass";
 
 const emptyProduct: ProductDraft = {
 	model: "",
@@ -43,7 +43,6 @@ const emptyProduct: ProductDraft = {
 	category: "",
 	launchDate: "2026-07-31",
 	inventory: 0,
-	safetyStock: 0,
 	firstForecast: 0,
 	firstMass: 0,
 };
@@ -57,10 +56,8 @@ function calculateEndings(row: PlanningRow, months: string[]) {
 	}));
 }
 
-function stockTone(ending: number, safetyStock: number) {
-	if (ending < safetyStock) return "risk";
-	if (ending <= safetyStock * 1.2) return "watch";
-	return "healthy";
+function stockTone(ending: number) {
+	return ending < 0 ? "risk" : "healthy";
 }
 
 function NumberInput({
@@ -135,7 +132,7 @@ function SummaryCards({
 }) {
 	const riskCount = rows.filter((row) => {
 		const endings = calculateEndings(row, months);
-		return months.some((month) => endings[month] < row.safetyStock);
+		return months.some((month) => endings[month] < 0);
 	}).length;
 	return (
 		<section className="sip-summary" aria-label="Planning summary">
@@ -145,7 +142,7 @@ function SummaryCards({
 				<small>{!riskOnly ? "Showing all products" : "Click to show all"}</small>
 			</button>
 			<button className={`sip-summary-card risk${riskOnly ? " active" : ""}`} onClick={() => setRiskOnly(true)}>
-				<span>STOCK RISK</span>
+				<span>PROJECTED SHORTAGE</span>
 				<strong>{riskCount}</strong>
 				<small>{riskOnly ? "Showing risk products" : "Click to filter"}</small>
 			</button>
@@ -201,7 +198,6 @@ function AddProductModal({
 					<label>Category<input value={draft.category} onChange={text("category")} /></label>
 					<label>Launch Date<input type="date" value={draft.launchDate} onChange={text("launchDate")} /></label>
 					<label>Current Inventory<NumberInput label="New product current inventory" value={draft.inventory} onChange={numeric("inventory")} /></label>
-					<label>Safety Stock<NumberInput label="New product safety stock" value={draft.safetyStock} onChange={numeric("safetyStock")} /></label>
 					<label>FCST 1st<NumberInput label="New product first forecast" value={draft.firstForecast} onChange={numeric("firstForecast")} /></label>
 					<label>Mass 1st<NumberInput label="New product first mass" value={draft.firstMass} onChange={numeric("firstMass")} /></label>
 				</div>
@@ -234,19 +230,19 @@ function ClosingModal({
 		<div className="sip-overlay">
 			<div className="sip-modal wide" role="dialog" aria-modal="true" aria-labelledby="sip-close-title">
 				<header>
-					<div><h2 id="sip-close-title">Month Closing · {monthLabel(month)}</h2><p>Confirm actual sales and supply before archiving this month.</p></div>
+					<div><h2 id="sip-close-title">Month Closing · {monthLabel(month)}</h2><p>Confirm actual shipment and supply before archiving this month.</p></div>
 					<button onClick={onClose} aria-label="Close">×</button>
 				</header>
 				<div className="sip-table-scroll">
 					<table className="sip-table compact">
-						<thead><tr><th>Model</th><th>Product</th><th>Forecast</th><th>Actual Sales</th><th>Supply Plan</th><th>Actual Supply</th><th>Beginning Inventory</th><th>Ending Inventory</th></tr></thead>
+						<thead><tr><th>Model</th><th>Product</th><th>Forecast</th><th>Actual Shipment</th><th>Supply Plan</th><th>Actual Supply</th><th>Beginning Inventory</th><th>Ending Inventory</th></tr></thead>
 						<tbody>{rows.map((row) => {
 							const entry = entries.find((item) => item.model === row.model)!;
 							const ending = row.inventory + entry.actualSupply - entry.actualSales;
 							return <tr key={row.model}>
 								<td className="model">{row.model}</td><td>{row.product}</td>
 								<td>{formatNumber(row.months[month]?.forecast || 0)}</td>
-								<td><NumberInput label={`${row.model} actual sales`} value={entry.actualSales} onChange={(value) => update(row.model, "actualSales", value)} /></td>
+								<td><NumberInput label={`${row.model} actual shipment`} value={entry.actualSales} onChange={(value) => update(row.model, "actualSales", value)} /></td>
 								<td>{formatNumber(row.months[month]?.supply || 0)}</td>
 								<td><NumberInput label={`${row.model} actual supply`} value={entry.actualSupply} onChange={(value) => update(row.model, "actualSupply", value)} /></td>
 								<td>{formatNumber(row.inventory)}</td><td>{formatNumber(ending)}</td>
@@ -286,8 +282,20 @@ export default function SalesInventory() {
 			if (stored) {
 				const parsed = JSON.parse(stored) as Partial<Workspace>;
 				if (Array.isArray(parsed.rows) && Array.isArray(parsed.months) && Array.isArray(parsed.history)) {
-					setRows(parsed.rows);
-					setMonths(parsed.months);
+					const firstMonth = parsed.months[0] || initialPlanningMonths[0];
+					const normalizedMonths = [firstMonth];
+					while (normalizedMonths.length < 4) normalizedMonths.push(nextMonth(normalizedMonths[normalizedMonths.length - 1]));
+					setRows(parsed.rows.map((row) => {
+						const mockRow = initialPlanningRows.find((item) => item.model === row.model);
+						return {
+							...row,
+							months: Object.fromEntries(normalizedMonths.map((month) => [
+								month,
+								row.months?.[month] || mockRow?.months[month] || { forecast: 0, supply: 0 },
+							])),
+						};
+					}));
+					setMonths(normalizedMonths);
 					setHistory(parsed.history);
 					setLastClosedMonth(parsed.lastClosedMonth || null);
 				}
@@ -316,7 +324,7 @@ export default function SalesInventory() {
 
 	const riskModels = useMemo(() => new Set(rows.filter((row) => {
 		const endings = calculateEndings(row, months);
-		return months.some((month) => endings[month] < row.safetyStock);
+		return months.some((month) => endings[month] < 0);
 	}).map((row) => row.model)), [months, rows]);
 
 	const tableRows = editing ? draftRows : rows;
@@ -406,7 +414,7 @@ export default function SalesInventory() {
 					<div>
 						<span>GTM OPERATIONS</span>
 						<h1>Sales &amp; Inventory Planning</h1>
-						<p>Plan the next three months and review historical performance in one workspace.</p>
+						<p>Plan the current month plus the next three months and review historical performance in one workspace.</p>
 					</div>
 					<div className="sip-state"><i />Mock data · Saved locally</div>
 				</section>
@@ -433,25 +441,48 @@ export default function SalesInventory() {
 					<div className="sip-table-scroll">
 						<table className="sip-table planning">
 							<thead>
-								<tr className="sip-month-row"><th colSpan={6} /><th colSpan={3}>FIRST BATCH</th>{months.map((month) => <th colSpan={3} key={month}>{monthLabel(month)}</th>)}</tr>
-								<tr><th>Model</th><th>Product Name</th><th>Category</th><th>Launch Date</th><th>Inventory</th><th>Safety Stock</th><th>FCST 1st</th><th>Mass 1st</th><th>Gap</th>{months.flatMap((month) => [<th key={`${month}-f`}>Forecast</th>, <th key={`${month}-s`}>Supply Plan</th>, <th key={`${month}-e`}>Expected Ending</th>])}</tr>
+								<tr className="sip-month-row">
+									<th className="sip-group-base" colSpan={5} />
+									<th className="sip-group-first" colSpan={3}>First Batch</th>
+									{months.map((month, index) => <th className={index === 0 ? "sip-group-current" : "sip-group-month"} colSpan={3} key={month}>
+										{index === 0 && <span className="sip-current-tag">Current</span>}{monthLabel(month)}
+									</th>)}
+									<th className="sip-group-total" colSpan={2}>4-Month Total</th>
+								</tr>
+								<tr>
+									{["Model", "Product Name", "Category", "Launch Date", "Current Inventory"].map((heading) => <th className="sip-group-base" key={heading}>{heading}</th>)}
+									{["FCST 1st", "Mass 1st", "Gap"].map((heading) => <th className="sip-group-first" key={heading}>{heading}</th>)}
+									{months.flatMap((month, index) => [
+										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-f`}>Forecast</th>,
+										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-s`}>Supply Plan</th>,
+										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-e`}>Projected On Hand</th>,
+									])}
+									<th className="sip-group-total">Forecast</th>
+									<th className="sip-group-total">Supply Plan</th>
+								</tr>
 							</thead>
 							<tbody>{visibleRows.map((row) => {
 								const endings = calculateEndings(row, months);
 								const gap = row.firstMass - row.firstForecast;
+								const totalForecast = months.reduce((sum, month) => sum + (row.months[month]?.forecast || 0), 0);
+								const totalSupply = months.reduce((sum, month) => sum + (row.months[month]?.supply || 0), 0);
 								return <tr key={row.model}>
-									{(["model", "product", "category", "launchDate"] as const).map((field) => <td key={field} className={field === "model" ? "model" : ""}>{editing ? <input className="sip-input" type={field === "launchDate" ? "date" : "text"} value={row[field]} onChange={(event) => updateRow(row.model, (current) => ({ ...current, [field]: event.target.value }))} /> : row[field]}</td>)}
-									{(["inventory", "safetyStock", "firstForecast", "firstMass"] as const).map((field) => <td key={field}>{editing ? <NumberInput label={`${row.model} ${field}`} value={row[field]} onChange={(value) => updateRow(row.model, (current) => ({ ...current, [field]: value }))} /> : formatNumber(row[field])}</td>)}
-									<td className={`sip-gap ${gap >= 0 ? "positive" : "negative"}`}>{gap > 0 ? "+" : ""}{formatNumber(gap)}</td>
-									{months.flatMap((month) => {
+									{(["model", "product", "category", "launchDate"] as const).map((field) => <td key={field} className={`sip-group-base${field === "model" ? " model" : ""}`}>{editing ? <input className="sip-input" type={field === "launchDate" ? "date" : "text"} value={row[field]} onChange={(event) => updateRow(row.model, (current) => ({ ...current, [field]: event.target.value }))} /> : row[field]}</td>)}
+									<td className="sip-group-base">{editing ? <NumberInput label={`${row.model} current inventory`} value={row.inventory} onChange={(value) => updateRow(row.model, (current) => ({ ...current, inventory: value }))} /> : formatNumber(row.inventory)}</td>
+									{(["firstForecast", "firstMass"] as const).map((field) => <td className="sip-group-first" key={field}>{editing ? <NumberInput label={`${row.model} ${field}`} value={row[field]} onChange={(value) => updateRow(row.model, (current) => ({ ...current, [field]: value }))} /> : formatNumber(row[field])}</td>)}
+									<td className={`sip-group-first sip-gap ${gap >= 0 ? "positive" : "negative"}`}>{gap > 0 ? "+" : ""}{formatNumber(gap)}</td>
+									{months.flatMap((month, index) => {
 										const plan = row.months[month] || { forecast: 0, supply: 0 };
 										const change = (field: "forecast" | "supply", value: number) => updateRow(row.model, (current) => ({ ...current, months: { ...current.months, [month]: { ...plan, [field]: value } } }));
+										const groupClass = index === 0 ? "sip-group-current" : "sip-group-month";
 										return [
-											<td key={`${month}-f`}>{editing ? <NumberInput label={`${row.model} ${month} forecast`} value={plan.forecast} onChange={(value) => change("forecast", value)} /> : formatNumber(plan.forecast)}</td>,
-											<td key={`${month}-s`}>{editing ? <NumberInput label={`${row.model} ${month} supply`} value={plan.supply} onChange={(value) => change("supply", value)} /> : formatNumber(plan.supply)}</td>,
-											<td className={`sip-ending ${stockTone(endings[month], row.safetyStock)}`} key={`${month}-e`}>{formatNumber(endings[month])}</td>,
+											<td className={groupClass} key={`${month}-f`}>{editing ? <NumberInput label={`${row.model} ${month} forecast`} value={plan.forecast} onChange={(value) => change("forecast", value)} /> : formatNumber(plan.forecast)}</td>,
+											<td className={groupClass} key={`${month}-s`}>{editing ? <NumberInput label={`${row.model} ${month} supply`} value={plan.supply} onChange={(value) => change("supply", value)} /> : formatNumber(plan.supply)}</td>,
+											<td className={`${groupClass} sip-projected ${stockTone(endings[month])}`} key={`${month}-e`}><span>{formatNumber(endings[month])}</span></td>,
 										];
 									})}
+									<td className="sip-group-total sip-total-value">{formatNumber(totalForecast)}</td>
+									<td className="sip-group-total sip-total-value">{formatNumber(totalSupply)}</td>
 								</tr>;
 							})}</tbody>
 						</table>
@@ -474,10 +505,10 @@ export default function SalesInventory() {
 					</div>
 					<div className="sip-table-scroll">
 						<table className="sip-table history">
-							<thead><tr><th>Month</th><th>Model</th><th>Product</th><th>Category</th><th>Forecast</th><th>Actual Sales</th><th>Supply Plan</th><th>Actual Supply</th><th>Beginning Inventory</th><th>Ending Inventory</th></tr></thead>
+							<thead><tr><th>Month</th><th>Model</th><th>Product</th><th>Category</th><th>Forecast</th><th>Actual Shipment</th><th>Supply Plan</th><th>Actual Supply</th><th>Beginning Inventory</th><th>Ending Inventory</th></tr></thead>
 							<tbody>{historyFiltered.map((row) => <tr key={`${row.month}-${row.model}`}>
 								<td>{monthLabel(row.month)}</td><td className="model">{row.model}</td><td>{row.product}</td><td>{row.category}</td><td>{formatNumber(row.forecast)}</td>
-								<td>{historyEditing ? <NumberInput label={`${row.model} ${row.month} actual sales`} value={row.actualSales} onChange={(value) => setHistoryDraft((current) => current.map((item) => item.model === row.model && item.month === row.month ? { ...item, actualSales: value } : item))} /> : formatNumber(row.actualSales)}</td>
+								<td>{historyEditing ? <NumberInput label={`${row.model} ${row.month} actual shipment`} value={row.actualSales} onChange={(value) => setHistoryDraft((current) => current.map((item) => item.model === row.model && item.month === row.month ? { ...item, actualSales: value } : item))} /> : formatNumber(row.actualSales)}</td>
 								<td>{formatNumber(row.supplyPlan)}</td>
 								<td>{historyEditing ? <NumberInput label={`${row.model} ${row.month} actual supply`} value={row.actualSupply} onChange={(value) => setHistoryDraft((current) => current.map((item) => item.model === row.model && item.month === row.month ? { ...item, actualSupply: value } : item))} /> : formatNumber(row.actualSupply)}</td>
 								<td>{formatNumber(row.beginningInventory)}</td><td>{formatNumber(row.endingInventory)}</td>

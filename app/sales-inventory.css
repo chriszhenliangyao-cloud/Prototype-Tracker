@@ -307,8 +307,8 @@
 }
 
 .sip-number {
-  min-width: 72px;
-  text-align: right;
+  min-width: 0;
+  text-align: center;
 }
 
 .sip-btn {
@@ -409,7 +409,88 @@
 }
 
 .sip-table.planning {
-  min-width: 1400px;
+  min-width: 2420px;
+  table-layout: fixed;
+}
+
+.sip-table.planning th,
+.sip-table.planning td {
+  width: 110px;
+  min-width: 110px;
+  height: 64px;
+  padding: 11px 8px;
+  border-right: 1px solid color-mix(in srgb, var(--sip-border) 72%, transparent);
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sip-table.planning .sip-month-row th {
+  height: 48px;
+  padding-block: 9px;
+  border-bottom: 1px solid #ccd8e8;
+  font-size: 12px;
+}
+
+.sip-table.planning .sip-group-base {
+  background: color-mix(in srgb, var(--sip-panel) 96%, #eef3f9);
+}
+
+.sip-table.planning thead .sip-group-base {
+  background: #eef3f9;
+}
+
+.sip-table.planning .sip-group-first {
+  background: color-mix(in srgb, var(--sip-blue-soft) 38%, var(--sip-panel));
+}
+
+.sip-table.planning thead .sip-group-first {
+  color: #315aaf;
+  background: #e7eefb;
+}
+
+.sip-table.planning .sip-group-current {
+  background: color-mix(in srgb, var(--sip-green-soft) 48%, var(--sip-panel));
+}
+
+.sip-table.planning thead .sip-group-current {
+  color: #176a50;
+  background: #ddf2e9;
+}
+
+.sip-table.planning .sip-group-month {
+  background: color-mix(in srgb, #f3f6fa 42%, var(--sip-panel));
+}
+
+.sip-table.planning thead .sip-group-month {
+  background: #f0f4f8;
+}
+
+.sip-table.planning .sip-group-total {
+  background: color-mix(in srgb, #eeeafe 52%, var(--sip-panel));
+  border-left: 1px solid #c9c1ee;
+}
+
+.sip-table.planning thead .sip-group-total {
+  color: #5a4ca3;
+  background: #e9e5fa;
+}
+
+.sip-current-tag {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: #278263;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  vertical-align: 1px;
+}
+
+.sip-total-value {
+  color: #51438e;
+  font-weight: 800;
 }
 
 .sip-table.history {
@@ -437,26 +518,21 @@
   color: var(--sip-red);
 }
 
-.sip-ending {
+.sip-projected span {
   display: inline-block;
-  min-width: 58px;
-  padding: 5px 7px;
+  min-width: 66px;
+  padding: 6px 8px;
   border-radius: 7px;
   font-weight: 800;
-  text-align: right;
+  text-align: center;
 }
 
-.sip-ending.healthy {
+.sip-projected.healthy span {
   color: #047857;
-  background: var(--sip-green-soft);
+  background: #dcf6e9;
 }
 
-.sip-ending.watch {
-  color: #9a5b00;
-  background: var(--sip-yellow-soft);
-}
-
-.sip-ending.risk {
+.sip-projected.risk span {
   color: #b91c1c;
   background: var(--sip-red-soft);
 }
