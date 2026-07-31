@@ -415,14 +415,16 @@
 
 .sip-table.planning th,
 .sip-table.planning td {
-  width: 110px;
-  min-width: 110px;
-  height: 64px;
-  padding: 11px 8px;
+  width: 100px;
+  min-width: 100px;
+  height: 54px;
+  padding: 8px 6px;
   border-right: 1px solid color-mix(in srgb, var(--sip-border) 72%, transparent);
   text-align: center;
   white-space: normal;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 
 .sip-table.planning .sip-month-row th {
@@ -442,6 +444,15 @@
 
 .sip-table.planning .sip-group-first {
   background: color-mix(in srgb, var(--sip-blue-soft) 38%, var(--sip-panel));
+}
+
+.sip-table.planning .sip-group-history {
+  background: color-mix(in srgb, #eef1f6 58%, var(--sip-panel));
+}
+
+.sip-table.planning thead .sip-group-history {
+  color: #59677c;
+  background: #e5eaf1;
 }
 
 .sip-table.planning thead .sip-group-first {
@@ -544,6 +555,59 @@
   padding: 12px 18px;
   color: var(--sip-muted);
   font-size: 12px;
+}
+
+.sip-planning-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--sip-border);
+  background: var(--sip-panel-soft);
+}
+
+.sip-planning-filters label {
+  display: grid;
+  gap: 5px;
+  color: var(--sip-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sip-planning-filters select,
+.sip-planning-filters input {
+  width: 160px;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: var(--sip-panel);
+  color: var(--sip-text);
+  font: inherit;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.sip-history-toggle {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #aebbd0;
+  border-radius: 8px;
+  background: var(--sip-panel);
+  color: #52627a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sip-history-toggle.active {
+  border-color: #77869e;
+  background: #e5eaf1;
+  color: #344054;
 }
 
 .sip-filters {

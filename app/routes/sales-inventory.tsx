@@ -263,16 +263,16 @@ export default function SalesInventory() {
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
 	const [loaded, setLoaded] = useState(false);
 	const [riskOnly, setRiskOnly] = useState(false);
-	const [query, setQuery] = useState("");
+	const [modelFilter, setModelFilter] = useState("all");
+	const [categoryFilter, setCategoryFilter] = useState("all");
+	const [showHistory, setShowHistory] = useState(false);
+	const historyRange = useMemo(() => [...new Set(history.map((row) => row.month))].sort(), [history]);
+	const [historyFrom, setHistoryFrom] = useState(() => initialHistoryRows.map((row) => row.month).sort()[0] || "");
+	const [historyTo, setHistoryTo] = useState(() => initialHistoryRows.map((row) => row.month).sort().at(-1) || "");
 	const [editing, setEditing] = useState(false);
 	const [draftRows, setDraftRows] = useState<PlanningRow[]>([]);
 	const [addOpen, setAddOpen] = useState(false);
 	const [closingOpen, setClosingOpen] = useState(false);
-	const [historyEditing, setHistoryEditing] = useState(false);
-	const [historyDraft, setHistoryDraft] = useState<HistoryRow[]>([]);
-	const [historyMonth, setHistoryMonth] = useState("all");
-	const [historyModel, setHistoryModel] = useState("");
-	const [historyCategory, setHistoryCategory] = useState("all");
 	const [theme, setTheme] = useState<string | null>(null);
 	const [error, setError] = useState("");
 
@@ -328,9 +328,15 @@ export default function SalesInventory() {
 	}).map((row) => row.model)), [months, rows]);
 
 	const tableRows = editing ? draftRows : rows;
+	const modelOptions = [...new Set(tableRows.map((row) => row.model))].sort();
+	const categoryOptions = [...new Set(tableRows.map((row) => row.category))].sort();
 	const visibleRows = tableRows.filter((row) =>
 		(!riskOnly || riskModels.has(row.model)) &&
-		(!query.trim() || `${row.model} ${row.product}`.toLowerCase().includes(query.trim().toLowerCase())));
+		(modelFilter === "all" || row.model === modelFilter) &&
+		(categoryFilter === "all" || row.category === categoryFilter));
+	const visibleHistoryMonths = showHistory
+		? historyRange.filter((month) => (!historyFrom || month >= historyFrom) && (!historyTo || month <= historyTo))
+		: [];
 
 	const beginEdit = () => {
 		setDraftRows(clone(rows));
@@ -383,29 +389,6 @@ export default function SalesInventory() {
 		setClosingOpen(false);
 	};
 
-	const historyRows = historyEditing ? historyDraft : history;
-	const categories = [...new Set(historyRows.map((row) => row.category))].sort();
-	const historyFiltered = historyRows
-		.filter((row) => historyMonth === "all" || row.month === historyMonth)
-		.filter((row) => !historyModel.trim() || row.model.toLowerCase().includes(historyModel.toLowerCase()))
-		.filter((row) => historyCategory === "all" || row.category === historyCategory)
-		.sort((a, b) => b.month.localeCompare(a.month) || a.model.localeCompare(b.model));
-	const saveHistory = () => {
-		const recalculated = clone(historyDraft);
-		for (const model of new Set(recalculated.map((row) => row.model))) {
-			const productRows = recalculated.filter((row) => row.model === model).sort((a, b) => a.month.localeCompare(b.month));
-			let ending = productRows[0]?.beginningInventory || 0;
-			for (const row of productRows) {
-				row.beginningInventory = ending;
-				row.endingInventory = ending + row.actualSupply - row.actualSales;
-				ending = row.endingInventory;
-			}
-			setRows((current) => current.map((row) => row.model === model ? { ...row, inventory: ending } : row));
-		}
-		setHistory(recalculated);
-		setHistoryEditing(false);
-	};
-
 	return (
 		<div className="sip-app">
 			<ModeHeader theme={theme} onToggleTheme={toggleTheme} />
@@ -414,7 +397,7 @@ export default function SalesInventory() {
 					<div>
 						<span>GTM OPERATIONS</span>
 						<h1>Sales &amp; Inventory Planning</h1>
-						<p>Plan the current month plus the next three months and review historical performance in one workspace.</p>
+						<p>Plan the current month plus the next three months, with historical actuals available on demand.</p>
 					</div>
 					<div className="sip-state"><i />Mock data · Saved locally</div>
 				</section>
@@ -423,9 +406,8 @@ export default function SalesInventory() {
 
 				<section className="sip-panel" id="planning">
 					<header className="sip-section-head">
-						<div><span>ROLLING 3-MONTH VIEW</span><h2>Planning</h2><p>Expected inventory and first-batch gap update automatically.</p></div>
+						<div><span>ROLLING 4-MONTH VIEW</span><h2>Planning</h2><p>Projected inventory and first-batch gap update automatically.</p></div>
 						<div className="sip-actions">
-							<input className="sip-search" placeholder="Search model or product" value={query} onChange={(event) => setQuery(event.target.value)} />
 							{editing ? <>
 								<button className="sip-btn" onClick={() => { setEditing(false); setError(""); }}>Cancel</button>
 								<button className="sip-btn primary" onClick={saveRows}>Save Table</button>
@@ -437,12 +419,24 @@ export default function SalesInventory() {
 						</div>
 					</header>
 					<div className="sip-open-row"><span><i />{monthLabel(months[0])} · Open</span><span>{lastClosedMonth ? `${monthLabel(lastClosedMonth)} · Closed` : "Mock data"}</span></div>
+					<div className="sip-planning-filters">
+						<label>Model<select value={modelFilter} onChange={(event) => setModelFilter(event.target.value)}><option value="all">All Models</option>{modelOptions.map((model) => <option value={model} key={model}>{model}</option>)}</select></label>
+						<label>Category<select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">All Categories</option>{categoryOptions.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
+						<button className={`sip-history-toggle${showHistory ? " active" : ""}`} onClick={() => setShowHistory((current) => !current)}>
+							{showHistory ? "Hide Historical Data" : "Show Historical Data"}
+						</button>
+						{showHistory && <>
+							<label>From<input min={historyRange[0]} max={historyTo || historyRange.at(-1)} type="month" value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} /></label>
+							<label>To<input min={historyFrom || historyRange[0]} max={historyRange.at(-1)} type="month" value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} /></label>
+						</>}
+					</div>
 					{error && <p className="sip-error">{error}</p>}
 					<div className="sip-table-scroll">
-						<table className="sip-table planning">
+						<table className="sip-table planning" style={{ minWidth: `${(22 + visibleHistoryMonths.length * 3) * 100}px` }}>
 							<thead>
 								<tr className="sip-month-row">
 									<th className="sip-group-base" colSpan={5} />
+									{visibleHistoryMonths.map((month) => <th className="sip-group-history" colSpan={3} key={`history-${month}`}>{monthLabel(month)}</th>)}
 									<th className="sip-group-first" colSpan={3}>First Batch</th>
 									{months.map((month, index) => <th className={index === 0 ? "sip-group-current" : "sip-group-month"} colSpan={3} key={month}>
 										{index === 0 && <span className="sip-current-tag">Current</span>}{monthLabel(month)}
@@ -451,6 +445,11 @@ export default function SalesInventory() {
 								</tr>
 								<tr>
 									{["Model", "Product Name", "Category", "Launch Date", "Current Inventory"].map((heading) => <th className="sip-group-base" key={heading}>{heading}</th>)}
+									{visibleHistoryMonths.flatMap((month) => [
+										<th className="sip-group-history" key={`${month}-actual`}>Actual Shipment</th>,
+										<th className="sip-group-history" key={`${month}-history-supply`}>Supply Plan</th>,
+										<th className="sip-group-history" key={`${month}-history-ending`}>Ending Inventory</th>,
+									])}
 									{["FCST 1st", "Mass 1st", "Gap"].map((heading) => <th className="sip-group-first" key={heading}>{heading}</th>)}
 									{months.flatMap((month, index) => [
 										<th className={index === 0 ? "sip-group-current" : "sip-group-month"} key={`${month}-f`}>Forecast</th>,
@@ -469,6 +468,14 @@ export default function SalesInventory() {
 								return <tr key={row.model}>
 									{(["model", "product", "category", "launchDate"] as const).map((field) => <td key={field} className={`sip-group-base${field === "model" ? " model" : ""}`}>{editing ? <input className="sip-input" type={field === "launchDate" ? "date" : "text"} value={row[field]} onChange={(event) => updateRow(row.model, (current) => ({ ...current, [field]: event.target.value }))} /> : row[field]}</td>)}
 									<td className="sip-group-base">{editing ? <NumberInput label={`${row.model} current inventory`} value={row.inventory} onChange={(value) => updateRow(row.model, (current) => ({ ...current, inventory: value }))} /> : formatNumber(row.inventory)}</td>
+									{visibleHistoryMonths.flatMap((month) => {
+										const record = history.find((item) => item.model === row.model && item.month === month);
+										return [
+											<td className="sip-group-history" key={`${month}-actual`}>{record ? formatNumber(record.actualSales) : "—"}</td>,
+											<td className="sip-group-history" key={`${month}-history-supply`}>{record ? formatNumber(record.supplyPlan) : "—"}</td>,
+											<td className="sip-group-history" key={`${month}-history-ending`}>{record ? formatNumber(record.endingInventory) : "—"}</td>,
+										];
+									})}
 									{(["firstForecast", "firstMass"] as const).map((field) => <td className="sip-group-first" key={field}>{editing ? <NumberInput label={`${row.model} ${field}`} value={row[field]} onChange={(value) => updateRow(row.model, (current) => ({ ...current, [field]: value }))} /> : formatNumber(row[field])}</td>)}
 									<td className={`sip-group-first sip-gap ${gap >= 0 ? "positive" : "negative"}`}>{gap > 0 ? "+" : ""}{formatNumber(gap)}</td>
 									{months.flatMap((month, index) => {
@@ -487,35 +494,7 @@ export default function SalesInventory() {
 							})}</tbody>
 						</table>
 					</div>
-					<footer className="sip-table-foot"><span>{visibleRows.length} products</span><span>Mock Data + localStorage</span></footer>
-				</section>
-
-				<section className="sip-panel" id="history">
-					<header className="sip-section-head">
-						<div><span>CLOSED MONTH ARCHIVE</span><h2>Performance History</h2><p>Correct actual results when needed; inventory recalculates through following months.</p></div>
-						<div className="sip-actions">{historyEditing ? <>
-							<button className="sip-btn" onClick={() => setHistoryEditing(false)}>Cancel</button>
-							<button className="sip-btn primary" onClick={saveHistory}>Save Table</button>
-						</> : <button className="sip-btn" onClick={() => { setHistoryDraft(clone(history)); setHistoryEditing(true); }}>Edit Table</button>}</div>
-					</header>
-					<div className="sip-filters">
-						<label>Month<select value={historyMonth} onChange={(event) => setHistoryMonth(event.target.value)}><option value="all">All Months</option>{[...new Set(historyRows.map((row) => row.month))].sort().reverse().map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
-						<label>Model<input placeholder="All Models" value={historyModel} onChange={(event) => setHistoryModel(event.target.value)} /></label>
-						<label>Category<select value={historyCategory} onChange={(event) => setHistoryCategory(event.target.value)}><option value="all">All Categories</option>{categories.map((category) => <option value={category} key={category}>{category}</option>)}</select></label>
-					</div>
-					<div className="sip-table-scroll">
-						<table className="sip-table history">
-							<thead><tr><th>Month</th><th>Model</th><th>Product</th><th>Category</th><th>Forecast</th><th>Actual Shipment</th><th>Supply Plan</th><th>Actual Supply</th><th>Beginning Inventory</th><th>Ending Inventory</th></tr></thead>
-							<tbody>{historyFiltered.map((row) => <tr key={`${row.month}-${row.model}`}>
-								<td>{monthLabel(row.month)}</td><td className="model">{row.model}</td><td>{row.product}</td><td>{row.category}</td><td>{formatNumber(row.forecast)}</td>
-								<td>{historyEditing ? <NumberInput label={`${row.model} ${row.month} actual shipment`} value={row.actualSales} onChange={(value) => setHistoryDraft((current) => current.map((item) => item.model === row.model && item.month === row.month ? { ...item, actualSales: value } : item))} /> : formatNumber(row.actualSales)}</td>
-								<td>{formatNumber(row.supplyPlan)}</td>
-								<td>{historyEditing ? <NumberInput label={`${row.model} ${row.month} actual supply`} value={row.actualSupply} onChange={(value) => setHistoryDraft((current) => current.map((item) => item.model === row.model && item.month === row.month ? { ...item, actualSupply: value } : item))} /> : formatNumber(row.actualSupply)}</td>
-								<td>{formatNumber(row.beginningInventory)}</td><td>{formatNumber(row.endingInventory)}</td>
-							</tr>)}</tbody>
-						</table>
-					</div>
-					<footer className="sip-table-foot"><span>{historyFiltered.length} records</span><span>{historyEditing ? "Editing actual values" : "History is read only"}</span></footer>
+					<footer className="sip-table-foot"><span>{visibleRows.length} products</span><span>{showHistory ? `${visibleHistoryMonths.length} historical months shown` : "Historical data hidden"} · Mock Data + localStorage</span></footer>
 				</section>
 			</main>
 			{addOpen && <AddProductModal months={months} rows={rows} onClose={() => setAddOpen(false)} onAdd={(row) => { setRows((current) => [...current, row]); setAddOpen(false); }} />}
