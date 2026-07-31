@@ -280,7 +280,7 @@ function getGtmFallbackData(): GtmWorkspaceData {
 		["DVT2", "Product Sheet", "PRODUCT", null],
 		["Trial Production Start", "Preproduction Sample", "PRODUCT", "Preproduction Sample"],
 		["Trial Production Start", "Product & Packaging Images & Manual", "MARKETING", null],
-		["Mass Production", "Mass Production Sample", "PRODUCT", "Mass Production Sample"],
+		["Mass Production", "Mass Production", "PRODUCT", "Mass Production"],
 		["Mass Production", "POSM", "MARKETING", null],
 		["Launch", "Social Copy & PR Release", "MARKETING", null],
 	] as const;
@@ -440,7 +440,7 @@ export async function createGtmProduct(env: Env, input: NewGtmProduct) {
 		{ stage: "DVT2", name: "Product Sheet", role: "PRODUCT", prototype: null },
 		{ stage: "Trial Production Start", name: "Preproduction Sample", role: "PRODUCT", prototype: "Preproduction Sample" },
 		{ stage: "Trial Production Start", name: "Product & Packaging Images & Manual", role: "MARKETING", prototype: null },
-		{ stage: "Mass Production", name: "Mass Production Sample", role: "PRODUCT", prototype: "Mass Production Sample" },
+		{ stage: "Mass Production", name: "Mass Production", role: "PRODUCT", prototype: "Mass Production" },
 		{ stage: "Mass Production", name: "POSM", role: "MARKETING", prototype: null },
 		{ stage: "Launch", name: "Social Copy & PR Release", role: "MARKETING", prototype: null },
 	];

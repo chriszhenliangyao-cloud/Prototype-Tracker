@@ -773,7 +773,7 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 							{stageTasks.map((task) => <div className="gtm-editor-task" key={task.id}>
 								<div><input type="checkbox" checked={!!task.is_completed} onChange={(e) => updateTask(task.id, { is_completed: e.target.checked ? 1 : 0 })} /><input value={task.task_name} onChange={(e) => updateTask(task.id, { task_name: e.target.value })} /></div>
 								<select value={task.owner_role} onChange={(e) => updateTask(task.id, { owner_role: e.target.value as GtmTask["owner_role"] })}><option value="PRODUCT">👤 Product</option><option value="MARKETING">📣 Marketing</option><option value="GTM">GTM</option></select>
-								<select value={task.prototype_type || ""} onChange={(e) => updateTask(task.id, { prototype_type: e.target.value || null })}><option value="">Not a Sample</option><option>Dummy</option><option>Engineering Sample</option><option>Preproduction Sample</option><option>Mass Production Sample</option></select>
+								<select value={task.prototype_type || ""} onChange={(e) => updateTask(task.id, { prototype_type: e.target.value || null })}><option value="">Not a Sample</option><option>Dummy</option><option>Engineering Sample</option><option>Preproduction Sample</option><option>Mass Production</option></select>
 								<button type="button" onClick={() => setDraftTasks((items) => items.filter((item) => item.id !== task.id))}>×</button>
 							</div>)}
 							<button className="gtm-add-task" type="button" onClick={() => addTask(stageName)}>＋ Add Task</button>
