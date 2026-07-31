@@ -20,6 +20,14 @@ const numberValue = (value: string) => Math.max(0, Number(value) || 0);
 const monthLabel = (month: string) =>
 	new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" })
 		.format(new Date(`${month}-01T00:00:00Z`));
+const monthShortLabel = (month: string) =>
+	new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" })
+		.format(new Date(`${month}-01T00:00:00Z`));
+const compactNumber = (value: number) => {
+	if (Math.abs(value) < 1000) return formatNumber(value);
+	const compact = value / 1000;
+	return `${Number.isInteger(compact) ? compact.toFixed(0) : compact.toFixed(1)}K`;
+};
 const nextMonth = (month: string) => {
 	const [year, number] = month.split("-").map(Number);
 	const date = new Date(Date.UTC(year, number, 1));
@@ -158,30 +166,36 @@ function ModeHeader({ theme, onToggleTheme }: { theme: string | null; onToggleTh
 function SummaryCards({
 	rows,
 	months,
-	riskOnly,
-	setRiskOnly,
 }: {
 	rows: PlanningRow[];
 	months: string[];
-	riskOnly: boolean;
-	setRiskOnly: (value: boolean) => void;
 }) {
-	const riskCount = rows.filter((row) => {
-		const endings = calculateEndings(row, months);
-		return months.some((month) => endings[month] < 0);
-	}).length;
+	const summaryMonths = months.slice(0, 3);
+	const totals = summaryMonths.map((month) => ({
+		month,
+		forecast: rows.reduce((sum, row) => sum + (row.months[month]?.forecast || 0), 0),
+		supply: rows.reduce((sum, row) => sum + (row.months[month]?.supply || 0), 0),
+	}));
 	return (
 		<section className="sip-summary" aria-label="Planning summary">
-			<button className={`sip-summary-card${!riskOnly ? " active" : ""}`} onClick={() => setRiskOnly(false)}>
-				<span>ACTIVE PRODUCTS</span>
-				<strong>{rows.length}</strong>
-				<small>{!riskOnly ? "Showing all products" : "Click to show all"}</small>
-			</button>
-			<button className={`sip-summary-card risk${riskOnly ? " active" : ""}`} onClick={() => setRiskOnly(true)}>
-				<span>PROJECTED SHORTAGE</span>
-				<strong>{riskCount}</strong>
-				<small>{riskOnly ? "Showing risk products" : "Click to filter"}</small>
-			</button>
+			<article className="sip-summary-card">
+				<span>FORECAST</span>
+				<div className="sip-summary-months">
+					{totals.map((item) => <div key={item.month}>
+						<time dateTime={item.month}>{monthShortLabel(item.month)}</time>
+						<strong>{compactNumber(item.forecast)}</strong>
+					</div>)}
+				</div>
+			</article>
+			<article className="sip-summary-card supply">
+				<span>SUPPLY PLAN</span>
+				<div className="sip-summary-months">
+					{totals.map((item) => <div key={item.month}>
+						<time dateTime={item.month}>{monthShortLabel(item.month)}</time>
+						<strong>{compactNumber(item.supply)}</strong>
+					</div>)}
+				</div>
+			</article>
 		</section>
 	);
 }
@@ -493,7 +507,6 @@ export default function SalesInventory() {
 	const [history, setHistory] = useState<HistoryRow[]>(() => clone(initialHistoryRows));
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
 	const [loaded, setLoaded] = useState(false);
-	const [riskOnly, setRiskOnly] = useState(false);
 	const [modelFilter, setModelFilter] = useState<string[]>([]);
 	const [categoryFilter, setCategoryFilter] = useState("all");
 	const historyRange = useMemo(() => [...new Set(history.map((row) => row.month))].sort(), [history]);
@@ -552,16 +565,10 @@ export default function SalesInventory() {
 		setTheme(next);
 	};
 
-	const riskModels = useMemo(() => new Set(rows.filter((row) => {
-		const endings = calculateEndings(row, months);
-		return months.some((month) => endings[month] < 0);
-	}).map((row) => row.model)), [months, rows]);
-
 	const tableRows = editing ? draftRows : rows;
 	const modelOptions = [...new Set(tableRows.map((row) => row.model))].sort();
 	const categoryOptions = [...new Set(tableRows.map((row) => row.category))].sort();
 	const visibleRows = tableRows.filter((row) =>
-		(!riskOnly || riskModels.has(row.model)) &&
 		(modelFilter.length === 0 || modelFilter.includes(row.model)) &&
 		(categoryFilter === "all" || row.category === categoryFilter));
 	const availableMonths = [...new Set([...historyRange, ...months])].sort();
@@ -634,7 +641,7 @@ export default function SalesInventory() {
 					<div className="sip-state"><i />Mock data · Saved locally</div>
 				</section>
 
-				<SummaryCards rows={rows} months={months} riskOnly={riskOnly} setRiskOnly={setRiskOnly} />
+				<SummaryCards rows={visibleRows} months={months} />
 
 				<section className="sip-panel" id="planning">
 					<header className="sip-section-head">
