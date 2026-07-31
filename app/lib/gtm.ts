@@ -149,7 +149,16 @@ export async function getGtmWorkspace(env: Env): Promise<GtmWorkspaceData> {
 				"SELECT * FROM gtm_material_task ORDER BY product_id, rowid",
 			).all<GtmMaterial>(),
 			env.DB.prepare(
-				`SELECT r.*, p.model, p.name AS product_name,
+				`SELECT r.id, r.product_id, r.source_task_id, r.eta,
+				        COALESCE((
+				          SELECT SUM(proto.qty)
+				            FROM prototype proto
+				           WHERE lower(TRIM(proto.model))=lower(TRIM(p.model))
+				             AND lower(TRIM(proto.sample_type))=lower(TRIM(t.prototype_type))
+				             AND proto.qty>0
+				             AND NULLIF(TRIM(proto.customer), '') IS NOT NULL
+				        ), 0) AS required_quantity,
+				        p.model, p.name AS product_name,
 			        t.stage_name, t.prototype_type, t.is_completed
 			   FROM gtm_prototype_requirement r
 			   JOIN gtm_product p ON p.id=r.product_id
@@ -879,16 +888,12 @@ export async function updateGtmMaterial(
 export async function updateGtmRequirement(
 	env: Env,
 	id: string,
-	quantity: number,
 	eta: string,
 ) {
-	if (!Number.isInteger(quantity) || quantity < 1) {
-		throw new Error("Required quantity must be a positive integer");
-	}
 	await env.DB.prepare(
-		"UPDATE gtm_prototype_requirement SET required_quantity=?, eta=? WHERE id=?",
+		"UPDATE gtm_prototype_requirement SET eta=? WHERE id=?",
 	)
-		.bind(quantity, eta || null, id)
+		.bind(eta || null, id)
 		.run();
 }
 

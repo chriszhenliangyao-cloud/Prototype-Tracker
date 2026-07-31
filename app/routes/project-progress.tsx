@@ -60,7 +60,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 			await updateGtmRequirement(
 				context.cloudflare.env,
 				String(form.get("id")),
-				Number(form.get("quantity")),
 				String(form.get("eta") || ""),
 			);
 		} else if (intent === "project-status") {
@@ -1117,19 +1116,18 @@ function RequirementRow({ requirement, tasks, highlighted, onDetail }: {
 			<td>{requirement.product_name}</td>
 			<td>{requirement.prototype_type}</td>
 			<td>{requirement.stage_name}</td>
-			<td colSpan={editing ? 4 : 1}>
-				{editing ? (
+			<td>{requirement.required_quantity}</td>
+			{editing ? (
+				<td colSpan={3}>
 					<fetcher.Form className="gtm-req-edit" method="post" onSubmit={() => setEditing(false)}>
 						<input name="intent" type="hidden" value="requirement" />
 						<input name="id" type="hidden" value={requirement.id} />
-						<label>Qty <input min="1" name="quantity" type="number" defaultValue={requirement.required_quantity} /></label>
 						<label>ETA <input name="eta" type="date" defaultValue={requirement.eta || ""} /></label>
 						<button className="gtm-btn primary" type="submit">Save</button>
 						<button className="gtm-btn" type="button" onClick={() => setEditing(false)}>Cancel</button>
 					</fetcher.Form>
-				) : requirement.required_quantity}
-			</td>
-			{!editing && <><td>{requirement.eta || "—"}</td><td><span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span></td><td><div className="gtm-requirement-actions"><button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button><button className="gtm-btn" onClick={onDetail}>Detail</button></div></td></>}
+				</td>
+			) : <><td>{requirement.eta || "—"}</td><td><span className={`gtm-badge ${status.replaceAll(" ", "-")}`}>{status}</span></td><td><div className="gtm-requirement-actions"><button className="gtm-btn" onClick={() => setEditing(true)}>Edit</button><button className="gtm-btn" onClick={onDetail}>Detail</button></div></td></>}
 		</tr>
 	);
 }

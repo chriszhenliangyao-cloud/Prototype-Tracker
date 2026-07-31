@@ -78,6 +78,10 @@
 - Requirements match Control Tower records by normalized Model and Sample Type.
 - Rows with the same Country and Channel are grouped, and their `qty` values
   are summed.
+- `Required Quantity` is read-only and is recalculated from the same Control
+  Tower allocation rows on every page load. It is the sum of all positive
+  `prototype.qty` values matching the same normalized Model and Sample Type
+  where Channel is present.
 - Control Tower's `customer` field is displayed as Channel.
 - Control Tower rows without a Channel are unallocated inventory and are
   excluded from the allocation drawer.
@@ -116,8 +120,9 @@
   to the route action; the original workbook file is not uploaded.
 - Dates must use `YYYY-MM-DD`. Stage names, owner roles, and material statuses
   are validated before the D1 batch is applied.
-- Sample tasks can include `Required Quantity` and `ETA`; imported sample tasks
-  remain visible and editable in Prototype Management.
+- Sample tasks can include `ETA`; imported sample tasks remain visible in
+  Prototype Management. `Required Quantity` is not manually editable and is
+  always derived from current Control Tower allocations.
 - When Tasks and Materials sheets contain the same marketing material, the
   task's completion state is applied last and remains the source of truth.
 
