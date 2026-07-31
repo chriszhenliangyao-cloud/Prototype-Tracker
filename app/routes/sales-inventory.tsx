@@ -256,6 +256,128 @@ function ClosingModal({
 	);
 }
 
+function InventoryTrend({
+	rows,
+	history,
+	months,
+	availableMonths,
+	tableModel,
+	tableCategory,
+	tableFrom,
+	tableTo,
+}: {
+	rows: PlanningRow[];
+	history: HistoryRow[];
+	months: string[];
+	availableMonths: string[];
+	tableModel: string;
+	tableCategory: string;
+	tableFrom: string;
+	tableTo: string;
+}) {
+	const [model, setModel] = useState(tableModel);
+	const [category, setCategory] = useState(tableCategory);
+	const [from, setFrom] = useState(tableFrom);
+	const [to, setTo] = useState(tableTo);
+
+	useEffect(() => setModel(tableModel), [tableModel]);
+	useEffect(() => setCategory(tableCategory), [tableCategory]);
+	useEffect(() => setFrom(tableFrom), [tableFrom]);
+	useEffect(() => setTo(tableTo), [tableTo]);
+
+	const categories = [...new Set(rows.map((row) => row.category))].sort();
+	const modelOptions = rows
+		.filter((row) => category === "all" || row.category === category)
+		.map((row) => row.model)
+		.sort();
+	const chartRows = rows.filter((row) =>
+		(model === "all" || row.model === model) &&
+		(category === "all" || row.category === category));
+	const chartMonths = availableMonths.filter((month) => month >= from && month <= to);
+	const data = chartMonths.map((month) => {
+		const planning = months.includes(month);
+		const production = planning
+			? chartRows.reduce((sum, row) => sum + (row.months[month]?.supply || 0), 0)
+			: history.filter((entry) => entry.month === month && chartRows.some((row) => row.model === entry.model))
+				.reduce((sum, entry) => sum + entry.actualSupply, 0);
+		const shipment = planning
+			? chartRows.reduce((sum, row) => sum + (row.months[month]?.forecast || 0), 0)
+			: history.filter((entry) => entry.month === month && chartRows.some((row) => row.model === entry.model))
+				.reduce((sum, entry) => sum + entry.actualSales, 0);
+		return { month, production, shipment, forecast: month > months[0] };
+	});
+
+	const width = 1000;
+	const height = 320;
+	const margin = { top: 34, right: 24, bottom: 70, left: 66 };
+	const plotWidth = width - margin.left - margin.right;
+	const plotHeight = height - margin.top - margin.bottom;
+	const maximum = Math.max(1, ...data.flatMap((item) => [item.production, item.shipment]));
+	const axisMax = Math.ceil(maximum / 100) * 100;
+	const x = (index: number) => margin.left + plotWidth * ((index + 0.5) / Math.max(data.length, 1));
+	const y = (value: number) => margin.top + plotHeight - (value / axisMax) * plotHeight;
+	const linePoints = data.map((item, index) => `${x(index)},${y(item.production)}`).join(" ");
+	const barWidth = Math.min(46, plotWidth / Math.max(data.length, 1) * 0.42);
+	const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => ({ ratio, value: axisMax * ratio }));
+
+	return (
+		<section className="sip-trend">
+			<header className="sip-trend-head">
+				<div>
+					<span>PLANNING TREND</span>
+					<h3>Production &amp; Shipment</h3>
+					<p>Planning filters sync down automatically. Changes here only affect this chart.</p>
+				</div>
+				<div className="sip-chart-filters">
+					<label>Model<select value={model} onChange={(event) => setModel(event.target.value)}><option value="all">All Models</option>{modelOptions.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+					<label>Category<select value={category} onChange={(event) => {
+						const value = event.target.value;
+						setCategory(value);
+						if (model !== "all" && !rows.some((row) => row.model === model && (value === "all" || row.category === value))) setModel("all");
+					}}><option value="all">All Categories</option>{categories.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+					<label>From<select value={from} onChange={(event) => {
+						const value = event.target.value;
+						setFrom(value);
+						if (value > to) setTo(value);
+					}}>{availableMonths.filter((month) => month <= to).map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>To<select value={to} onChange={(event) => setTo(event.target.value)}>{availableMonths.filter((month) => month >= from).map((month) => <option value={month} key={month}>{monthLabel(month)}</option>)}</select></label>
+				</div>
+			</header>
+			<div className="sip-chart-legend">
+				<span><i className="production" />Production</span>
+				<span><i className="shipment" />Shipment</span>
+			</div>
+			<div className="sip-chart-wrap">
+				{data.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
+					<svg className="sip-chart" role="img" aria-label="Production line and shipment bar trend" viewBox={`0 0 ${width} ${height}`}>
+						{ticks.map(({ ratio, value }) => {
+							const tickY = margin.top + plotHeight - ratio * plotHeight;
+							return <g key={ratio}>
+								<line className="sip-chart-grid" x1={margin.left} x2={width - margin.right} y1={tickY} y2={tickY} />
+								<text className="sip-chart-axis" textAnchor="end" x={margin.left - 10} y={tickY + 4}>{formatNumber(value)}</text>
+							</g>;
+						})}
+						{data.map((item, index) => {
+							const barY = y(item.shipment);
+							return <g key={item.month}>
+								<rect className="sip-shipment-bar" height={margin.top + plotHeight - barY} rx="4" width={barWidth} x={x(index) - barWidth / 2} y={barY}>
+									<title>{`${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nShipment: ${formatNumber(item.shipment)}\nProduction: ${formatNumber(item.production)}`}</title>
+								</rect>
+								<text className="sip-chart-month" textAnchor="middle" x={x(index)} y={height - 39}>{monthLabel(item.month)}</text>
+								{item.forecast && <text className="sip-chart-forecast" textAnchor="middle" x={x(index)} y={height - 21}>Forecast</text>}
+							</g>;
+						})}
+						<polyline className="sip-production-line" points={linePoints} />
+						{data.map((item, index) => <circle className="sip-production-point" cx={x(index)} cy={y(item.production)} key={item.month} r="4.5">
+							<title>{`${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nProduction: ${formatNumber(item.production)}\nShipment: ${formatNumber(item.shipment)}`}</title>
+						</circle>)}
+					</svg>
+				)}
+			</div>
+		</section>
+	);
+}
+
 export default function SalesInventory() {
 	const [rows, setRows] = useState<PlanningRow[]>(() => clone(initialPlanningRows));
 	const [months, setMonths] = useState(() => [...initialPlanningMonths]);
@@ -521,6 +643,16 @@ export default function SalesInventory() {
 						</table>
 					</div>
 					<footer className="sip-table-foot"><span>{visibleRows.length} products</span><span>{monthLabel(rangeFrom)} – {monthLabel(rangeTo)} · Mock Data + localStorage</span></footer>
+					<InventoryTrend
+						availableMonths={availableMonths}
+						history={history}
+						months={months}
+						rows={tableRows}
+						tableCategory={categoryFilter}
+						tableFrom={rangeFrom}
+						tableModel={modelFilter}
+						tableTo={rangeTo}
+					/>
 				</section>
 			</main>
 			{addOpen && <AddProductModal months={months} rows={rows} onClose={() => setAddOpen(false)} onAdd={(row) => { setRows((current) => [...current, row]); setAddOpen(false); }} />}
