@@ -383,9 +383,9 @@ function InventoryTrend({
 		<section className="sip-trend">
 			<header className="sip-trend-head">
 				<div>
-					<span>PLANNING TREND</span>
-					<h3>Production &amp; Shipment</h3>
-					<p>Planning filters sync down automatically. Changes here only affect this chart.</p>
+					<span>SALES &amp; SUPPLY TREND</span>
+					<h3>Supply &amp; Sales Trend</h3>
+					<p>Compare historical actuals with future supply plans and sales forecasts across the selected period.</p>
 				</div>
 				<div className="sip-filter-controls">
 					<ModelMultiSelect onChange={setModels} options={modelOptions} selected={models} />
@@ -403,8 +403,8 @@ function InventoryTrend({
 				</div>
 			</header>
 			<div className="sip-chart-legend">
-				<span><i className="production" />Production</span>
-				<span><i className="shipment" />Shipment</span>
+				<span><i className="production" />Supply</span>
+				<span><i className="shipment" />Sales</span>
 			</div>
 			<div className="sip-chart-wrap">
 				{series.length === 0 || chartMonths.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
@@ -474,7 +474,7 @@ function InventoryTrend({
 											x={barX}
 											y={barY}
 										>
-											<title>{`${seriesLabel(product)} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nShipment: ${formatNumber(item.shipment)}\nProduction: ${formatNumber(item.production)}`}</title>
+											<title>{`${seriesLabel(product)} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nSales: ${formatNumber(item.shipment)}\nSupply: ${formatNumber(item.production)}`}</title>
 										</rect>;
 									})}
 									<polyline
@@ -485,7 +485,7 @@ function InventoryTrend({
 									{product.data.map((item, monthIndex) => {
 										const pointX = x(monthIndex);
 										const pointY = y(item.production);
-										const title = `${seriesLabel(product)} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nProduction: ${formatNumber(item.production)}\nShipment: ${formatNumber(item.shipment)}`;
+										const title = `${seriesLabel(product)} · ${monthLabel(item.month)}${item.forecast ? " · Forecast" : ""}\nSupply: ${formatNumber(item.production)}\nSales: ${formatNumber(item.shipment)}`;
 										if (markerShapes[seriesIndex] === "square") return <rect className="sip-production-point" height="8" key={item.month} width="8" x={pointX - 4} y={pointY - 4}><title>{title}</title></rect>;
 										if (markerShapes[seriesIndex] === "diamond") return <rect className="sip-production-point" height="8" key={item.month} transform={`rotate(45 ${pointX} ${pointY})`} width="8" x={pointX - 4} y={pointY - 4}><title>{title}</title></rect>;
 										if (markerShapes[seriesIndex] === "triangle") return <polygon className="sip-production-point" key={item.month} points={`${pointX},${pointY - 5} ${pointX + 5},${pointY + 5} ${pointX - 5},${pointY + 5}`}><title>{title}</title></polygon>;
@@ -645,7 +645,7 @@ export default function SalesInventory() {
 
 				<section className="sip-panel" id="planning">
 					<header className="sip-section-head">
-						<div><span>ROLLING 4-MONTH VIEW</span><h2>Planning</h2><p>Projected inventory and first-batch gap update automatically.</p></div>
+						<div><span>SALES &amp; INVENTORY</span><h2>Sales &amp; Inventory Overview</h2><p>Review historical actuals, future sales forecasts, supply plans, and projected inventory across the selected period.</p></div>
 						<div className="sip-actions">
 							{editing ? <>
 								<button className="sip-btn" onClick={() => { setEditing(false); setError(""); }}>Cancel</button>

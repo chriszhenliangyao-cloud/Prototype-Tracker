@@ -1,5 +1,13 @@
 # Project Progress Management Requirements
 
+## Sales and inventory section titles
+
+- The planning table section is titled `Sales & Inventory Overview`.
+- Its description explains that the selected period combines historical actuals, future sales forecasts, supply plans, and projected inventory.
+- The trend section is titled `Supply & Sales Trend` with the eyebrow `SALES & SUPPLY TREND`.
+- Its description explains that the chart compares historical actuals with future supply plans and sales forecasts.
+- The trend legend uses the neutral labels `Supply` and `Sales` because the chart can include both historical and future months.
+
 ## Task completion
 
 - The circle before a task toggles that task between completed and unfinished.
