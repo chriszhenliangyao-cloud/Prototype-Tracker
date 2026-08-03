@@ -495,8 +495,8 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 							const last = entries.at(-1)!;
 							const change = last.shipmentForecast - first.shipmentForecast;
 							const gap = last.supplyPlan - last.shipmentForecast;
-							return <tr key={model}>
-								<td><button onClick={() => setSelectedModel(model)}><strong>{index + 1}. {model}</strong><small>{first.product}</small></button></td>
+							return <tr key={model} className="clickable" role="button" tabIndex={0} onClick={() => setSelectedModel(model)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedModel(model); } }}>
+								<td><span className="model-link"><strong>{index + 1}. {model}</strong><small>{first.product}</small></span></td>
 								<td>{formatNumber(first.shipmentForecast)} → {formatNumber(last.shipmentForecast)}<small>{monthShortLabel(first.archiveMonth)} → {last.isCurrent ? "Current" : monthShortLabel(last.archiveMonth)}</small></td>
 								<td className={change > 0 ? "up" : change < 0 ? "down" : ""}>{signed(change)}</td>
 								<td>{formatNumber(last.supplyPlan)}</td>
@@ -504,18 +504,7 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 							</tr>;
 						})}</tbody>
 					</table></div>
-				</section><div className="sip-archive-list">{rankedGroups.map(({ model, entries }) => {
-					const first = entries[0];
-					const last = entries.at(-1)!;
-					const shipmentChange = last.shipmentForecast - first.shipmentForecast;
-					const supplyChange = last.supplyPlan - first.supplyPlan;
-					const latestGap = last.supplyPlan - last.shipmentForecast;
-					return <button className="sip-archive-row" key={model} onClick={() => setSelectedModel(model)}>
-						<span className="identity"><strong>{model}</strong><small>{first.product}</small></span>
-						<SnapshotTrend entries={entries} />
-						<span className="changes compact"><small>{monthShortLabel(first.archiveMonth)} → {last.isCurrent ? "Current" : monthShortLabel(last.archiveMonth)}</small><span><em>Forecast change</em><b className={shipmentChange > 0 ? "up" : shipmentChange < 0 ? "down" : ""}>{signed(shipmentChange)}</b></span><span><em>Supply change</em><b>{signed(supplyChange)}</b></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Current gap</em><b>{signed(latestGap)}</b></span></span>
-					</button>;
-				})}</div></>}
+				</section></>}
 			</>}
 			<footer><span className="sip-read-only">Read-only monthly snapshots</span><button className="sip-btn" onClick={onClose}>Close</button></footer>
 		</div>

@@ -14,20 +14,15 @@
   is for comparison only and does not create or overwrite an archive snapshot.
 - This seed does not change the current planning month, Planning data, History,
   Month Closing state, or any module outside Sales & Inventory.
-- In `All Models`, every visible model combines a mini trend with exact first
-  and latest Shipment Forecast and Supply Plan values, their absolute changes,
-  and the latest supply gap.
 - `All Models` begins with a compact Forecast Changes table containing every
   changed model and sorting by absolute Shipment Forecast change from largest
   to smallest. It uses five columns: Model / Product, the first-to-latest
   Shipment Forecast pair, Change, Current Supply, and Supply Gap. The latest
   value uses current live Planning data when available. Selecting a Model opens
-  its details.
-- Each mini trend keeps the chart and reduces its right-hand summary to three
-  decision fields: Forecast change, Supply change, and Current Gap. The summary
-  explicitly labels its comparison period, such as `May → Current`, and avoids
-  the ambiguous delta symbol. Exact first and latest forecast values remain
-  available in the table above.
+  its details. The entire table row is selectable by mouse or keyboard.
+- The repeated mini trend list is not shown in `All Models`. Selecting any row
+  in Forecast Changes opens that model's single detailed trend and read-only
+  archive table, avoiding duplicate charts on the overview.
 - Selecting one model opens a detailed trend followed by a read-only archive
   table containing Archive Month, Shipment Forecast, Shipment Change, Supply
   Plan, Supply Change, and Gap.
