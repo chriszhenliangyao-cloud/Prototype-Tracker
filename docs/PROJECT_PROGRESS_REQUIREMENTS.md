@@ -26,6 +26,15 @@
 - Selecting a model opens a larger read-only trend with exact values at every saved archive point and a return control for `All Models`.
 - If no snapshots exist, the modal explains that Month Closing is required to create the first archive.
 
+## Reverting Month Closing
+
+- After Month Closing, the Sales & Inventory Overview toolbar displays `Undo Closing` for the most recently completed closing.
+- Only the latest closing can be reverted. A new closing replaces the previous undo checkpoint.
+- Undo requires confirmation and restores the complete state from immediately before that closing: Planning rows, the four-month planning window, beginning inventory, History, previous closed-month status, and Forecast Archive snapshots.
+- Changes made after the closing are discarded when the closing is undone; the confirmation message states this explicitly.
+- After a successful undo, the checkpoint is cleared so the same closing cannot be undone twice.
+- The undo checkpoint is stored in localStorage so the testing control remains available after refreshing the browser.
+
 ## Task completion
 
 - The circle before a task toggles that task between completed and unfinished.

@@ -337,6 +337,17 @@
   color: white;
 }
 
+.sip-btn.warning {
+  border-color: #f0b429;
+  background: var(--sip-yellow-soft);
+  color: var(--sip-yellow);
+}
+
+.sip-btn.warning:hover {
+  border-color: var(--sip-yellow);
+  background: #ffedb5;
+}
+
 .sip-open-row {
   display: flex;
   align-items: center;
