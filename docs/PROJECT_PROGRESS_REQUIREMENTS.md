@@ -29,6 +29,15 @@
 - Selecting a model opens a larger read-only trend with exact values at every saved archive point and a return control for `All Models`.
 - If no snapshots exist, the modal explains that Month Closing is required to create the first archive.
 
+## Rolling forecast window
+
+- Planning always maintains the current open month plus the following three months.
+- Month Closing rolls both the underlying planning data and the visible From/To range forward by one month.
+- For example, closing July changes the default Planning view from July–October to August–November.
+- The newly added fourth month is created for every product with Shipment Forecast and Supply Plan set to `0`, ready for entry through Edit Table.
+- Earlier closed months remain available by changing the From filter; automatic rolling changes only the default visible window.
+- Undo Closing restores the previous four-month window and its previous From/To range.
+
 ## Reverting Month Closing
 
 - After Month Closing, the Sales & Inventory Overview toolbar displays `Undo Closing` for the most recently completed closing.

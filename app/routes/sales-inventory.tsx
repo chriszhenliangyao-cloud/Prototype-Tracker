@@ -61,6 +61,8 @@ type ClosingBackup = {
 	history: HistoryRow[];
 	lastClosedMonth: string | null;
 	forecastSnapshots: ForecastSnapshot[];
+	rangeFrom: string;
+	rangeTo: string;
 };
 
 type ProductDraft = Omit<PlanningRow, "months">;
@@ -725,7 +727,7 @@ export default function SalesInventory() {
 
 	const closeMonth = (entries: Array<{ model: string; actualSales: number; actualSupply: number }>) => {
 		const closed = months[0];
-		setLastClosingBackup(clone({ rows, months, history, lastClosedMonth, forecastSnapshots }));
+		setLastClosingBackup(clone({ rows, months, history, lastClosedMonth, forecastSnapshots, rangeFrom, rangeTo }));
 		const savedAt = new Date().toISOString();
 		const futureMonths = months.slice(1, 4);
 		const snapshots = rows.flatMap((row) => {
@@ -758,6 +760,7 @@ export default function SalesInventory() {
 			};
 		});
 		const added = nextMonth(months[months.length - 1]);
+		const nextPlanningMonths = [...months.slice(1), added];
 		setRows((current) => current.map((row) => {
 			const result = newHistory.find((item) => item.model === row.model)!;
 			const monthPlans = { ...row.months };
@@ -766,7 +769,9 @@ export default function SalesInventory() {
 		}));
 		setHistory((current) => [...current, ...newHistory]);
 		setForecastSnapshots((current) => [...current.filter((item) => item.archiveMonth !== closed), ...snapshots]);
-		setMonths((current) => [...current.slice(1), added]);
+		setMonths(nextPlanningMonths);
+		setRangeFrom(nextPlanningMonths[0]);
+		setRangeTo(nextPlanningMonths.at(-1) || nextPlanningMonths[0]);
 		setLastClosedMonth(closed);
 		setClosingOpen(false);
 	};
@@ -782,8 +787,8 @@ export default function SalesInventory() {
 		setLastClosingBackup(null);
 		setModelFilter([]);
 		setCategoryFilter("all");
-		setRangeFrom(lastClosingBackup.months[0]);
-		setRangeTo(lastClosingBackup.months.at(-1) || lastClosingBackup.months[0]);
+		setRangeFrom(lastClosingBackup.rangeFrom || lastClosingBackup.months[0]);
+		setRangeTo(lastClosingBackup.rangeTo || lastClosingBackup.months.at(-1) || lastClosingBackup.months[0]);
 	};
 
 	return (
