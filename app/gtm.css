@@ -29,3 +29,4 @@
 @media(max-width:900px){.gtm-shell{grid-template-columns:180px minmax(0,1fr)}.gtm-side{width:180px}.gtm-mode-sub{display:none}.gtm-mode-btn{padding:6px 10px}}
 @media(max-width:900px){.gtm-product-form-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.gtm-shell{grid-template-columns:1fr}.gtm-side{display:none}.gtm-main{padding:24px 16px}.gtm-page-head{display:block}.gtm-excel-import{justify-content:flex-start;margin:-12px 0 22px}.gtm-product-form-grid{grid-template-columns:1fr}.gtm-import-message{position:static;flex-basis:100%;max-width:100%}.gtm-cards{grid-template-columns:1fr}.gtm-toolbar{flex-wrap:wrap}.gtm-input{width:100%}.gtm-mode-brand{display:none}.gtm-mode-bar{justify-content:center}.gtm-mode-right{display:none}}
+.gtm-material-table th:last-child,.gtm-material-table td:last-child{text-align:center}

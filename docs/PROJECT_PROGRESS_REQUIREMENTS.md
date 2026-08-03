@@ -261,6 +261,8 @@
 - Launch sets the product's `launch_status` to `LAUNCHED`; React Router
   revalidation then removes it from Project Progress.
 - Product Material Management always shows both upcoming and launched products.
+- The Product Materials table centers the `Action` header and every value in
+  that column, including the placeholder dash.
 - Launched product rows provide a professional `Return to Upcoming` action,
   which restores `launch_status` to `UNLAUNCHED` and returns the project to
   Project Progress.
