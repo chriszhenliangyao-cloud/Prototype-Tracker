@@ -14,9 +14,7 @@ export function meta() {
 	return [{ title: "Sales & Inventory Planning · ProtoTrack" }];
 }
 
-const STORAGE_KEY = "prototrack-sales-inventory-v2";
-const BASELINE_KEY = "prototrack-sales-inventory-baseline";
-const BASELINE_ID = "jul-2026-open-with-archive-2026-08-03";
+const STORAGE_KEY = "prototrack-sales-inventory-v1";
 const clone = <T,>(value: T): T => structuredClone(value);
 const numberValue = (value: string) => Math.max(0, Number(value) || 0);
 const monthLabel = (month: string) =>
@@ -56,46 +54,6 @@ type ForecastSnapshot = {
 	supplyPlan: number;
 	projectedOnHand: number;
 };
-
-const archiveAdjustments: Record<string, { shipment: number; supply: number }> = {
-	"P61L-P2": { shipment: 300, supply: 100 },
-	"P51L-P2": { shipment: 0, supply: 250 },
-	"PM61-Black": { shipment: 200, supply: 100 },
-	PX51: { shipment: 400, supply: 150 },
-	WM321: { shipment: 0, supply: 0 },
-	WAL101: { shipment: 100, supply: 50 },
-};
-
-const initialForecastSnapshots: ForecastSnapshot[] = initialPlanningRows.flatMap((row) =>
-	["2026-07", "2026-08"].flatMap((forecastMonth) => {
-		const plan = row.months[forecastMonth] || { forecast: 0, supply: 0 };
-		const adjustment = archiveAdjustments[row.model] || { shipment: 0, supply: 0 };
-		return [
-			{
-				archiveMonth: "2026-05",
-				savedAt: "2026-05-31T12:00:00.000Z",
-				model: row.model,
-				product: row.product,
-				category: row.category,
-				forecastMonth,
-				shipmentForecast: Math.max(0, plan.forecast - adjustment.shipment),
-				supplyPlan: Math.max(0, plan.supply - adjustment.supply),
-				projectedOnHand: row.inventory,
-			},
-			{
-				archiveMonth: "2026-06",
-				savedAt: "2026-06-30T12:00:00.000Z",
-				model: row.model,
-				product: row.product,
-				category: row.category,
-				forecastMonth,
-				shipmentForecast: plan.forecast,
-				supplyPlan: plan.supply,
-				projectedOnHand: row.inventory,
-			},
-		];
-	}),
-);
 
 type ClosingBackup = {
 	rows: PlanningRow[];
@@ -678,7 +636,7 @@ export default function SalesInventory() {
 	const [months, setMonths] = useState(() => [...initialPlanningMonths]);
 	const [history, setHistory] = useState<HistoryRow[]>(() => clone(initialHistoryRows));
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
-	const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>(() => clone(initialForecastSnapshots));
+	const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>([]);
 	const [lastClosingBackup, setLastClosingBackup] = useState<ClosingBackup | null>(null);
 	const [loaded, setLoaded] = useState(false);
 	const [modelFilter, setModelFilter] = useState<string[]>([]);
@@ -696,20 +654,6 @@ export default function SalesInventory() {
 
 	useEffect(() => {
 		try {
-			if (window.localStorage.getItem(BASELINE_KEY) !== BASELINE_ID) {
-				window.localStorage.removeItem("prototrack-sales-inventory-v1");
-				window.localStorage.removeItem(STORAGE_KEY);
-				window.localStorage.setItem(BASELINE_KEY, BASELINE_ID);
-				setRows(clone(initialPlanningRows));
-				setMonths([...initialPlanningMonths]);
-				setRangeFrom(initialPlanningMonths[0]);
-				setRangeTo(initialPlanningMonths.at(-1) || initialPlanningMonths[0]);
-				setHistory(clone(initialHistoryRows));
-				setLastClosedMonth(null);
-				setForecastSnapshots(clone(initialForecastSnapshots));
-				setLastClosingBackup(null);
-				return;
-			}
 			const stored = window.localStorage.getItem(STORAGE_KEY);
 			if (stored) {
 				const parsed = JSON.parse(stored) as Partial<Workspace>;
