@@ -437,6 +437,7 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 		.filter(({ entries }) => entries.length > 1 && new Set(entries.map((item) => item.shipmentForecast)).size > 1);
 	const models = groups.map((group) => group.model);
 	const detail = groups.find((group) => group.model === selectedModel);
+	const signed = (value: number) => `${value > 0 ? "+" : ""}${formatNumber(value)}`;
 	return <div className="sip-overlay">
 		<div className="sip-modal archive" role="dialog" aria-modal="true" aria-labelledby="sip-archive-title">
 			<header>
@@ -455,16 +456,31 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 					<button className="sip-back-link" onClick={() => setSelectedModel("all")}>← All Models</button>
 					<div className="sip-archive-detail-title"><div><strong>{detail.model}</strong><span>{detail.entries[0]?.product}</span></div><span>Forecast for {monthLabel(forecastMonth)}</span></div>
 					<SnapshotTrend entries={detail.entries} detailed />
+					<div className="sip-archive-table-scroll"><table className="sip-archive-table">
+						<thead><tr><th>Archive Month</th><th>Shipment Forecast</th><th>Change</th><th>Supply Plan</th><th>Change</th><th>Gap</th></tr></thead>
+						<tbody>{detail.entries.map((entry, index) => {
+							const previous = detail.entries[index - 1];
+							const gap = entry.supplyPlan - entry.shipmentForecast;
+							return <tr key={entry.archiveMonth}>
+								<td>{monthLabel(entry.archiveMonth)}</td>
+								<td>{formatNumber(entry.shipmentForecast)}</td>
+								<td className={previous && entry.shipmentForecast > previous.shipmentForecast ? "up" : ""}>{previous ? signed(entry.shipmentForecast - previous.shipmentForecast) : "—"}</td>
+								<td>{formatNumber(entry.supplyPlan)}</td>
+								<td>{previous ? signed(entry.supplyPlan - previous.supplyPlan) : "—"}</td>
+								<td className={gap < 0 ? "risk" : "safe"}>{signed(gap)}</td>
+							</tr>;
+						})}</tbody>
+					</table></div>
 				</div> : <div className="sip-archive-list">{groups.map(({ model, entries }) => {
 					const first = entries[0];
 					const last = entries.at(-1)!;
 					const shipmentChange = last.shipmentForecast - first.shipmentForecast;
 					const supplyChange = last.supplyPlan - first.supplyPlan;
-					const signed = (value: number) => `${value > 0 ? "+" : ""}${formatNumber(value)}`;
+					const latestGap = last.supplyPlan - last.shipmentForecast;
 					return <button className="sip-archive-row" key={model} onClick={() => setSelectedModel(model)}>
 						<span className="identity"><strong>{model}</strong><small>{first.product}</small></span>
 						<SnapshotTrend entries={entries} />
-						<span className="changes"><small>First → latest</small><b className={shipmentChange > 0 ? "up" : ""}>Shipment {signed(shipmentChange)}</b><b>Supply {signed(supplyChange)}</b></span>
+						<span className="changes"><small>First → latest</small><span><em>Shipment</em><b className={shipmentChange > 0 ? "up" : ""}>{formatNumber(first.shipmentForecast)} → {formatNumber(last.shipmentForecast)}</b><i>{signed(shipmentChange)}</i></span><span><em>Supply</em><b>{formatNumber(first.supplyPlan)} → {formatNumber(last.supplyPlan)}</b><i>{signed(supplyChange)}</i></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Latest Gap</em><b>{signed(latestGap)}</b></span></span>
 					</button>;
 				})}</div>}
 			</>}

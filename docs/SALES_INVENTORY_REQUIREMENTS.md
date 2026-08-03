@@ -11,6 +11,14 @@
   snapshots are used only when the saved archive is missing or empty.
 - This seed does not change the current planning month, Planning data, History,
   Month Closing state, or any module outside Sales & Inventory.
+- In `All Models`, every visible model combines a mini trend with exact first
+  and latest Shipment Forecast and Supply Plan values, their absolute changes,
+  and the latest supply gap.
+- Selecting one model opens a detailed trend followed by a read-only archive
+  table containing Archive Month, Shipment Forecast, Shipment Change, Supply
+  Plan, Supply Change, and Gap.
+- `Gap = Supply Plan - Shipment Forecast`; negative gaps are red and
+  non-negative gaps are green. Percentages are not used.
 
 ## Month Closing test rollback
 
