@@ -662,9 +662,11 @@ export default function SalesInventory() {
 								row.months?.[month] || mockRow?.months[month] || { forecast: 0, supply: 0 },
 							])),
 						};
-					}));
-					setMonths(normalizedMonths);
-					setHistory(parsed.history);
+						}));
+						setMonths(normalizedMonths);
+						setRangeFrom(normalizedMonths[0]);
+						setRangeTo(normalizedMonths.at(-1) || normalizedMonths[0]);
+						setHistory(parsed.history);
 					setLastClosedMonth(parsed.lastClosedMonth || null);
 					setForecastSnapshots(Array.isArray(parsed.forecastSnapshots) ? parsed.forecastSnapshots : []);
 					setLastClosingBackup(parsed.lastClosingBackup || null);

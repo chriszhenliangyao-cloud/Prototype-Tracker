@@ -32,6 +32,7 @@
 ## Rolling forecast window
 
 - Planning always maintains the current open month plus the following three months.
+- On initial load and after refreshing the browser, the default From/To filters select the current open month through the third future planning month.
 - Month Closing rolls both the underlying planning data and the visible From/To range forward by one month.
 - For example, closing July changes the default Planning view from July–October to August–November.
 - The newly added fourth month is created for every product with Shipment Forecast and Supply Plan set to `0`, ready for entry through Edit Table.
