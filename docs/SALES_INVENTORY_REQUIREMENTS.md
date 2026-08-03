@@ -14,6 +14,10 @@
 - In `All Models`, every visible model combines a mini trend with exact first
   and latest Shipment Forecast and Supply Plan values, their absolute changes,
   and the latest supply gap.
+- `All Models` begins with a Forecast Change Ranking table containing every
+  changed model and sorting by absolute Shipment Forecast change from largest
+  to smallest. It shows previous and latest Forecast, Forecast Change, latest
+  Supply Plan, and latest Gap; selecting a Model opens its details.
 - Selecting one model opens a detailed trend followed by a read-only archive
   table containing Archive Month, Shipment Forecast, Shipment Change, Supply
   Plan, Supply Change, and Gap.

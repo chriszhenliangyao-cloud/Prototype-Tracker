@@ -437,6 +437,11 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 		.filter(({ entries }) => entries.length > 1 && new Set(entries.map((item) => item.shipmentForecast)).size > 1);
 	const models = groups.map((group) => group.model);
 	const detail = groups.find((group) => group.model === selectedModel);
+	const rankedGroups = [...groups].sort((a, b) => {
+		const aChange = (a.entries.at(-1)?.shipmentForecast || 0) - (a.entries[0]?.shipmentForecast || 0);
+		const bChange = (b.entries.at(-1)?.shipmentForecast || 0) - (b.entries[0]?.shipmentForecast || 0);
+		return Math.abs(bChange) - Math.abs(aChange) || bChange - aChange || a.model.localeCompare(b.model);
+	});
 	const signed = (value: number) => `${value > 0 ? "+" : ""}${formatNumber(value)}`;
 	return <div className="sip-overlay">
 		<div className="sip-modal archive" role="dialog" aria-modal="true" aria-labelledby="sip-archive-title">
@@ -471,7 +476,27 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 							</tr>;
 						})}</tbody>
 					</table></div>
-				</div> : <div className="sip-archive-list">{groups.map(({ model, entries }) => {
+				</div> : <><section className="sip-archive-ranking" aria-labelledby="sip-archive-ranking-title">
+					<div className="sip-archive-ranking-title"><div><strong id="sip-archive-ranking-title">Forecast Change Ranking</strong><span>Sorted by absolute Shipment Forecast change · largest first</span></div><small>{rankedGroups.length} changed models</small></div>
+					<div className="sip-archive-ranking-scroll"><table>
+						<thead><tr><th>Rank</th><th>Model / Product</th><th>Previous Forecast</th><th>Latest Forecast</th><th>Forecast Change</th><th>Latest Supply</th><th>Latest Gap</th></tr></thead>
+						<tbody>{rankedGroups.map(({ model, entries }, index) => {
+							const first = entries[0];
+							const last = entries.at(-1)!;
+							const change = last.shipmentForecast - first.shipmentForecast;
+							const gap = last.supplyPlan - last.shipmentForecast;
+							return <tr key={model}>
+								<td>{index + 1}</td>
+								<td><button onClick={() => setSelectedModel(model)}><strong>{model}</strong><small>{first.product}</small></button></td>
+								<td>{formatNumber(first.shipmentForecast)}<small>{monthShortLabel(first.archiveMonth)} archive</small></td>
+								<td>{formatNumber(last.shipmentForecast)}<small>{monthShortLabel(last.archiveMonth)} archive</small></td>
+								<td className={change > 0 ? "up" : change < 0 ? "down" : ""}>{signed(change)}</td>
+								<td>{formatNumber(last.supplyPlan)}</td>
+								<td className={gap < 0 ? "risk" : "safe"}>{signed(gap)}</td>
+							</tr>;
+						})}</tbody>
+					</table></div>
+				</section><div className="sip-archive-list">{rankedGroups.map(({ model, entries }) => {
 					const first = entries[0];
 					const last = entries.at(-1)!;
 					const shipmentChange = last.shipmentForecast - first.shipmentForecast;
@@ -482,7 +507,7 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 						<SnapshotTrend entries={entries} />
 						<span className="changes"><small>First → latest</small><span><em>Shipment</em><b className={shipmentChange > 0 ? "up" : ""}>{formatNumber(first.shipmentForecast)} → {formatNumber(last.shipmentForecast)}</b><i>{signed(shipmentChange)}</i></span><span><em>Supply</em><b>{formatNumber(first.supplyPlan)} → {formatNumber(last.supplyPlan)}</b><i>{signed(supplyChange)}</i></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Latest Gap</em><b>{signed(latestGap)}</b></span></span>
 					</button>;
-				})}</div>}
+				})}</div></>}
 			</>}
 			<footer><span className="sip-read-only">Read-only monthly snapshots</span><button className="sip-btn" onClick={onClose}>Close</button></footer>
 		</div>
