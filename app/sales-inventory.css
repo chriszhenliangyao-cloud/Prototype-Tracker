@@ -1087,6 +1087,7 @@
 .sip-archive-empty { display: grid; justify-items: center; gap: 8px; padding: 64px 24px; color: var(--sip-muted); text-align: center; }
 .sip-archive-empty strong { color: var(--sip-text); font-size: 16px; }
 .sip-archive-empty span { max-width: 480px; font-size: 12px; line-height: 1.6; }
+.sip-archive-empty.compact { padding: 42px 24px 54px; }
 .sip-read-only { margin-right: auto; color: var(--sip-muted); font-size: 11px; }
 
 .sip-modal header {

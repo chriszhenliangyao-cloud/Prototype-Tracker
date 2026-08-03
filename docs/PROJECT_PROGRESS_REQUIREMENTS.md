@@ -21,6 +21,9 @@
 - Archived values never change when the live planning table is edited later.
 - The archive modal filters by Forecast Month, Model, From Archive, and To Archive.
 - `All Models` displays every available archive version in the selected range, rather than limiting comparison to adjacent months.
+- The archive visualization lists only Models whose Shipment Forecast changed within the selected archive range. Models with identical forecast values throughout the range are hidden.
+- Complete snapshots are still retained internally as comparison baselines, including unchanged values, so future changes can be compared against the correct earlier version and its corresponding Supply Plan.
+- When the selected range contains no Shipment Forecast changes, the modal shows a concise empty-state message instead of unchanged model rows.
 - Each model uses a compact two-line trend: blue for Shipment Forecast and green for Supply Plan. A red gap indicator marks archive versions where Shipment Forecast is greater than Supply Plan.
 - The right side of each model row shows the absolute Shipment Forecast and Supply Plan changes from the first visible archive to the latest visible archive. Percentages are not used.
 - Selecting a model opens a larger read-only trend with exact values at every saved archive point and a return control for `All Models`.

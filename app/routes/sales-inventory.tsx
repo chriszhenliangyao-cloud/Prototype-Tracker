@@ -381,24 +381,26 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 		setSelectedModel("all");
 	};
 	const inRange = snapshots.filter((item) => item.forecastMonth === forecastMonth && item.archiveMonth >= fromArchive && item.archiveMonth <= toArchive);
-	const models = [...new Set(inRange.map((item) => item.model))].sort();
-	const groups = models.map((model) => ({ model, entries: inRange.filter((item) => item.model === model).sort((a, b) => a.archiveMonth.localeCompare(b.archiveMonth)) }));
+	const groups = [...new Set(inRange.map((item) => item.model))].sort()
+		.map((model) => ({ model, entries: inRange.filter((item) => item.model === model).sort((a, b) => a.archiveMonth.localeCompare(b.archiveMonth)) }))
+		.filter(({ entries }) => entries.length > 1 && new Set(entries.map((item) => item.shipmentForecast)).size > 1);
+	const models = groups.map((group) => group.model);
 	const detail = groups.find((group) => group.model === selectedModel);
 	return <div className="sip-overlay">
 		<div className="sip-modal archive" role="dialog" aria-modal="true" aria-labelledby="sip-archive-title">
 			<header>
-				<div><h2 id="sip-archive-title">Forecast Archive</h2><p>Review every saved monthly version of shipment forecasts and supply plans for a future month.</p></div>
+				<div><h2 id="sip-archive-title">Forecast Archive</h2><p>Review models whose shipment forecast changed across the selected monthly archives.</p></div>
 				<button onClick={onClose} aria-label="Close">×</button>
 			</header>
 			{snapshots.length === 0 ? <div className="sip-archive-empty"><strong>No forecast snapshots yet</strong><span>Complete Month Closing to archive the next three planning months. Archived versions will appear here and remain read only.</span></div> : <>
 				<div className="sip-archive-filters">
 					<label>Forecast Month<select value={forecastMonth} onChange={(event) => chooseForecastMonth(event.target.value)}>{forecastMonths.map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
 					<label>Model<select value={selectedModel} onChange={(event) => setSelectedModel(event.target.value)}><option value="all">All Models</option>{models.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
-					<label>From Archive<select value={fromArchive} onChange={(event) => { const value = event.target.value; setFromArchive(value); if (value > toArchive) setToArchive(value); }}>{availableArchives.filter((month) => month <= toArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
-					<label>To Archive<select value={toArchive} onChange={(event) => setToArchive(event.target.value)}>{availableArchives.filter((month) => month >= fromArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>From Archive<select value={fromArchive} onChange={(event) => { const value = event.target.value; setFromArchive(value); if (value > toArchive) setToArchive(value); setSelectedModel("all"); }}>{availableArchives.filter((month) => month <= toArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>To Archive<select value={toArchive} onChange={(event) => { setToArchive(event.target.value); setSelectedModel("all"); }}>{availableArchives.filter((month) => month >= fromArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
 				</div>
 				<div className="sip-archive-legend"><span><i className="shipment" />Shipment Forecast</span><span><i className="supply" />Supply Plan</span><span><i className="risk" />Forecast above supply</span></div>
-				{detail ? <div className="sip-archive-detail">
+				{groups.length === 0 ? <div className="sip-archive-empty compact"><strong>No forecast changes in this range</strong><span>Models with an unchanged Shipment Forecast are hidden. Select a wider archive range after another Month Closing to review changes.</span></div> : detail ? <div className="sip-archive-detail">
 					<button className="sip-back-link" onClick={() => setSelectedModel("all")}>← All Models</button>
 					<div className="sip-archive-detail-title"><div><strong>{detail.model}</strong><span>{detail.entries[0]?.product}</span></div><span>Forecast for {monthLabel(forecastMonth)}</span></div>
 					<SnapshotTrend entries={detail.entries} detailed />
