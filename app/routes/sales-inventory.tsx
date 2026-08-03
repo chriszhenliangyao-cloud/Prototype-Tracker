@@ -55,6 +55,46 @@ type ForecastSnapshot = {
 	projectedOnHand: number;
 };
 
+const archiveAdjustments: Record<string, { shipment: number; supply: number }> = {
+	"P61L-P2": { shipment: 300, supply: 100 },
+	"P51L-P2": { shipment: 0, supply: 250 },
+	"PM61-Black": { shipment: 200, supply: 100 },
+	PX51: { shipment: 400, supply: 150 },
+	WM321: { shipment: 0, supply: 0 },
+	WAL101: { shipment: 100, supply: 50 },
+};
+
+const initialForecastSnapshots: ForecastSnapshot[] = initialPlanningRows.flatMap((row) =>
+	["2026-07", "2026-08"].flatMap((forecastMonth) => {
+		const plan = row.months[forecastMonth] || { forecast: 0, supply: 0 };
+		const adjustment = archiveAdjustments[row.model] || { shipment: 0, supply: 0 };
+		return [
+			{
+				archiveMonth: "2026-05",
+				savedAt: "2026-05-31T12:00:00.000Z",
+				model: row.model,
+				product: row.product,
+				category: row.category,
+				forecastMonth,
+				shipmentForecast: Math.max(0, plan.forecast - adjustment.shipment),
+				supplyPlan: Math.max(0, plan.supply - adjustment.supply),
+				projectedOnHand: row.inventory,
+			},
+			{
+				archiveMonth: "2026-06",
+				savedAt: "2026-06-30T12:00:00.000Z",
+				model: row.model,
+				product: row.product,
+				category: row.category,
+				forecastMonth,
+				shipmentForecast: plan.forecast,
+				supplyPlan: plan.supply,
+				projectedOnHand: row.inventory,
+			},
+		];
+	}),
+);
+
 type ClosingBackup = {
 	rows: PlanningRow[];
 	months: string[];
@@ -636,7 +676,7 @@ export default function SalesInventory() {
 	const [months, setMonths] = useState(() => [...initialPlanningMonths]);
 	const [history, setHistory] = useState<HistoryRow[]>(() => clone(initialHistoryRows));
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
-	const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>([]);
+	const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>(() => clone(initialForecastSnapshots));
 	const [lastClosingBackup, setLastClosingBackup] = useState<ClosingBackup | null>(null);
 	const [loaded, setLoaded] = useState(false);
 	const [modelFilter, setModelFilter] = useState<string[]>([]);
@@ -676,7 +716,8 @@ export default function SalesInventory() {
 						setRangeTo(normalizedMonths.at(-1) || normalizedMonths[0]);
 						setHistory(parsed.history);
 					setLastClosedMonth(parsed.lastClosedMonth || null);
-					setForecastSnapshots(Array.isArray(parsed.forecastSnapshots) ? parsed.forecastSnapshots : []);
+					const storedSnapshots = Array.isArray(parsed.forecastSnapshots) ? parsed.forecastSnapshots : [];
+					setForecastSnapshots(storedSnapshots.length ? storedSnapshots : clone(initialForecastSnapshots));
 					setLastClosingBackup(parsed.lastClosingBackup || null);
 				}
 			}
