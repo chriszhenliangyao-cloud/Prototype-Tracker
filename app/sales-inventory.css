@@ -1165,6 +1165,10 @@
 .sip-archive-row .changes .latest-gap { grid-template-columns: 58px 1fr; margin-top: 2px; padding-top: 5px; border-top: 1px solid var(--sip-border); }
 .sip-archive-row .latest-gap.risk b { color: #dc2626; }
 .sip-archive-row .latest-gap.safe b { color: #047857; }
+.sip-archive-row .changes.compact { align-content: center; gap: 8px; }
+.sip-archive-row .changes.compact > span { grid-template-columns: 72px 1fr; }
+.sip-archive-row .changes.compact b { justify-self: end; font-size: 13px; }
+.sip-archive-row .changes.compact b.down { color: #047857; }
 
 .sip-archive-chart { display: block; width: 100%; overflow: visible; }
 .sip-archive-chart polyline { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -1175,6 +1179,7 @@
 .sip-archive-chart .risk-zone { fill: #ef4444; opacity: 0.07; }
 .sip-archive-chart .risk-gap { stroke: #dc2626; stroke-width: 2; stroke-dasharray: 3 3; }
 .sip-archive-chart .month, .sip-archive-chart .axis { fill: var(--sip-muted); font-size: 9px; }
+.sip-archive-chart .month.current { fill: #2563eb; font-weight: 800; }
 .sip-archive-chart .grid { stroke: var(--sip-border); stroke-width: 1; }
 .sip-archive-chart .value { font-size: 10px; font-weight: 800; }
 .sip-archive-chart .value.shipment { fill: #2563eb; }

@@ -9,6 +9,9 @@
   origin before the first local Month Closing.
 - Existing non-empty browser-local archive data is preserved. The initial
   snapshots are used only when the saved archive is missing or empty.
+- The selected forecast month also appends the current live Planning values as
+  a clearly labelled `Current` point after the archived months. This live point
+  is for comparison only and does not create or overwrite an archive snapshot.
 - This seed does not change the current planning month, Planning data, History,
   Month Closing state, or any module outside Sales & Inventory.
 - In `All Models`, every visible model combines a mini trend with exact first
@@ -17,7 +20,11 @@
 - `All Models` begins with a Forecast Change Ranking table containing every
   changed model and sorting by absolute Shipment Forecast change from largest
   to smallest. It shows previous and latest Forecast, Forecast Change, latest
-  Supply Plan, and latest Gap; selecting a Model opens its details.
+  Supply Plan, and latest Gap; the latest value uses current live Planning data
+  when available. Selecting a Model opens its details.
+- Each mini trend keeps the chart and reduces its right-hand summary to three
+  decision fields: Forecast change, Supply change, and Latest Gap. Exact first
+  and latest values remain available in the ranking table above.
 - Selecting one model opens a detailed trend followed by a read-only archive
   table containing Archive Month, Shipment Forecast, Shipment Change, Supply
   Plan, Supply Change, and Gap.

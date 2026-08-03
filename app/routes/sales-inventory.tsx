@@ -54,6 +54,7 @@ type ForecastSnapshot = {
 	shipmentForecast: number;
 	supplyPlan: number;
 	projectedOnHand: number;
+	isCurrent?: boolean;
 };
 
 const archiveAdjustments: Record<string, { shipment: number; supply: number }> = {
@@ -403,17 +404,17 @@ function SnapshotTrend({ entries, detailed = false }: { entries: ForecastSnapsho
 		</g>)}
 		<polyline className="supply-line" points={supplyPoints} />
 		<polyline className="shipment-line" points={shipmentPoints} />
-		{sorted.map((item, index) => <g key={item.archiveMonth}>
+		{sorted.map((item, index) => <g key={`${item.archiveMonth}-${item.isCurrent ? "current" : "archive"}`}>
 			<circle className="supply-point" cx={x(index)} cy={y(item.supplyPlan)} r={detailed ? 5 : 3.5}><title>{`${monthLabel(item.archiveMonth)} archive\nSupply Plan: ${formatNumber(item.supplyPlan)}`}</title></circle>
 			<circle className="shipment-point" cx={x(index)} cy={y(item.shipmentForecast)} r={detailed ? 5 : 3.5}><title>{`${monthLabel(item.archiveMonth)} archive\nShipment Forecast: ${formatNumber(item.shipmentForecast)}`}</title></circle>
-			<text className="month" textAnchor="middle" x={x(index)} y={height - 8}>{monthShortLabel(item.archiveMonth)}</text>
+			<text className={`month${item.isCurrent ? " current" : ""}`} textAnchor="middle" x={x(index)} y={height - 8}>{item.isCurrent ? `${monthShortLabel(item.archiveMonth)} · Current` : monthShortLabel(item.archiveMonth)}</text>
 			{detailed && <><text className="value shipment" textAnchor="middle" x={x(index)} y={Math.max(12, y(item.shipmentForecast) - 10)}>{formatNumber(item.shipmentForecast)}</text><text className="value supply" textAnchor="middle" x={x(index)} y={Math.min(height - margin.bottom - 5, y(item.supplyPlan) + 17)}>{formatNumber(item.supplyPlan)}</text></>}
 		</g>)}
 	</svg>;
 }
 
-function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnapshot[]; onClose: () => void }) {
-	const forecastMonths = [...new Set(snapshots.map((item) => item.forecastMonth))].sort();
+function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snapshots: ForecastSnapshot[]; rows: PlanningRow[]; currentMonth: string; onClose: () => void }) {
+	const forecastMonths = [...new Set([...snapshots.map((item) => item.forecastMonth), ...rows.flatMap((row) => Object.keys(row.months).filter((month) => month > currentMonth))])].sort();
 	const defaultForecastMonth = [...forecastMonths].sort((a, b) => {
 		const aCount = new Set(snapshots.filter((item) => item.forecastMonth === a).map((item) => item.archiveMonth)).size;
 		const bCount = new Set(snapshots.filter((item) => item.forecastMonth === b).map((item) => item.archiveMonth)).size;
@@ -431,7 +432,16 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 		setToArchive(archives.at(-1) || "");
 		setSelectedModel("all");
 	};
-	const inRange = snapshots.filter((item) => item.forecastMonth === forecastMonth && item.archiveMonth >= fromArchive && item.archiveMonth <= toArchive);
+	const currentEntries: ForecastSnapshot[] = rows.flatMap((row) => {
+		const plan = row.months[forecastMonth];
+		if (!plan) return [];
+		const planningMonths = Object.keys(row.months).filter((month) => month >= currentMonth).sort();
+		return [{ archiveMonth: currentMonth, savedAt: new Date().toISOString(), model: row.model, product: row.product, category: row.category, forecastMonth, shipmentForecast: plan.forecast, supplyPlan: plan.supply, projectedOnHand: calculateEndings(row, planningMonths)[forecastMonth] || 0, isCurrent: true }];
+	});
+	const inRange = [
+		...snapshots.filter((item) => item.forecastMonth === forecastMonth && item.archiveMonth >= fromArchive && item.archiveMonth <= toArchive && item.archiveMonth !== currentMonth),
+		...currentEntries,
+	];
 	const groups = [...new Set(inRange.map((item) => item.model))].sort()
 		.map((model) => ({ model, entries: inRange.filter((item) => item.model === model).sort((a, b) => a.archiveMonth.localeCompare(b.archiveMonth)) }))
 		.filter(({ entries }) => entries.length > 1 && new Set(entries.map((item) => item.shipmentForecast)).size > 1);
@@ -488,8 +498,8 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 							return <tr key={model}>
 								<td>{index + 1}</td>
 								<td><button onClick={() => setSelectedModel(model)}><strong>{model}</strong><small>{first.product}</small></button></td>
-								<td>{formatNumber(first.shipmentForecast)}<small>{monthShortLabel(first.archiveMonth)} archive</small></td>
-								<td>{formatNumber(last.shipmentForecast)}<small>{monthShortLabel(last.archiveMonth)} archive</small></td>
+								<td>{formatNumber(first.shipmentForecast)}<small>{first.isCurrent ? `${monthShortLabel(first.archiveMonth)} current` : `${monthShortLabel(first.archiveMonth)} archive`}</small></td>
+								<td>{formatNumber(last.shipmentForecast)}<small>{last.isCurrent ? `${monthShortLabel(last.archiveMonth)} current` : `${monthShortLabel(last.archiveMonth)} archive`}</small></td>
 								<td className={change > 0 ? "up" : change < 0 ? "down" : ""}>{signed(change)}</td>
 								<td>{formatNumber(last.supplyPlan)}</td>
 								<td className={gap < 0 ? "risk" : "safe"}>{signed(gap)}</td>
@@ -505,7 +515,7 @@ function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnaps
 					return <button className="sip-archive-row" key={model} onClick={() => setSelectedModel(model)}>
 						<span className="identity"><strong>{model}</strong><small>{first.product}</small></span>
 						<SnapshotTrend entries={entries} />
-						<span className="changes"><small>First → latest</small><span><em>Shipment</em><b className={shipmentChange > 0 ? "up" : ""}>{formatNumber(first.shipmentForecast)} → {formatNumber(last.shipmentForecast)}</b><i>{signed(shipmentChange)}</i></span><span><em>Supply</em><b>{formatNumber(first.supplyPlan)} → {formatNumber(last.supplyPlan)}</b><i>{signed(supplyChange)}</i></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Latest Gap</em><b>{signed(latestGap)}</b></span></span>
+						<span className="changes compact"><span><em>Forecast Δ</em><b className={shipmentChange > 0 ? "up" : shipmentChange < 0 ? "down" : ""}>{signed(shipmentChange)}</b></span><span><em>Supply Δ</em><b>{signed(supplyChange)}</b></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Latest Gap</em><b>{signed(latestGap)}</b></span></span>
 					</button>;
 				})}</div></>}
 			</>}
@@ -1080,7 +1090,7 @@ export default function SalesInventory() {
 			</main>
 			{addOpen && <AddProductModal months={months} rows={rows} onClose={() => setAddOpen(false)} onAdd={(row) => { setRows((current) => [...current, row]); setAddOpen(false); }} />}
 			{closingOpen && <ClosingModal rows={rows} month={months[0]} onClose={() => setClosingOpen(false)} onConfirm={closeMonth} />}
-			{archiveOpen && <ForecastArchiveModal snapshots={forecastSnapshots} onClose={() => setArchiveOpen(false)} />}
+			{archiveOpen && <ForecastArchiveModal snapshots={forecastSnapshots} rows={rows} currentMonth={months[0]} onClose={() => setArchiveOpen(false)} />}
 		</div>
 	);
 }
