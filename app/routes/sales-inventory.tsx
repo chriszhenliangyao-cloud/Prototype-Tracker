@@ -14,7 +14,9 @@ export function meta() {
 	return [{ title: "Sales & Inventory Planning · ProtoTrack" }];
 }
 
-const STORAGE_KEY = "prototrack-sales-inventory-v1";
+const STORAGE_KEY = "prototrack-sales-inventory-v2";
+const BASELINE_KEY = "prototrack-sales-inventory-baseline";
+const BASELINE_ID = "jul-2026-open-2026-08-03";
 const clone = <T,>(value: T): T => structuredClone(value);
 const numberValue = (value: string) => Math.max(0, Number(value) || 0);
 const monthLabel = (month: string) =>
@@ -654,6 +656,20 @@ export default function SalesInventory() {
 
 	useEffect(() => {
 		try {
+			if (window.localStorage.getItem(BASELINE_KEY) !== BASELINE_ID) {
+				window.localStorage.removeItem("prototrack-sales-inventory-v1");
+				window.localStorage.removeItem(STORAGE_KEY);
+				window.localStorage.setItem(BASELINE_KEY, BASELINE_ID);
+				setRows(clone(initialPlanningRows));
+				setMonths([...initialPlanningMonths]);
+				setRangeFrom(initialPlanningMonths[0]);
+				setRangeTo(initialPlanningMonths.at(-1) || initialPlanningMonths[0]);
+				setHistory(clone(initialHistoryRows));
+				setLastClosedMonth(null);
+				setForecastSnapshots([]);
+				setLastClosingBackup(null);
+				return;
+			}
 			const stored = window.localStorage.getItem(STORAGE_KEY);
 			if (stored) {
 				const parsed = JSON.parse(stored) as Partial<Workspace>;
