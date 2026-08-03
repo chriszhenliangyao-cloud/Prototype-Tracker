@@ -13,6 +13,11 @@
 - The trend Model filter accepts at most four explicitly selected Models.
 - After four Models are selected, all remaining unchecked Models are disabled and visually muted. Removing one selected Model immediately makes the remaining options available again.
 - The four-Model limit applies only to the trend visualization and does not restrict the Planning table Model filter.
+- Every Sales & Inventory Model multi-select places a `Search Model` input at the top of its menu.
+- Model search is case-insensitive and supports partial Model matches so large product lists remain usable.
+- Searching narrows only the visible options and does not clear Models that are already selected.
+- A concise `No matching Models` message is displayed when the search has no results.
+- Long Model lists scroll inside the menu while the search input remains visible at the top.
 - Each product uses one consistent, accessible color across its Supply line and Sales bars.
 - Supply and Sales remain distinguishable by geometry: Supply is a line and Sales is a bar.
 - Marker shapes, line dashes, and bar textures remain as secondary identifiers, while legend hover/focus highlights one product and dims the others.

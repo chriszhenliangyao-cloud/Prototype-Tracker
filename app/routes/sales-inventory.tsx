@@ -137,17 +137,20 @@ function ModelMultiSelect({
 	onChange: (models: string[]) => void;
 	maxSelected?: number;
 }) {
+	const [query, setQuery] = useState("");
 	const label = selected.length === 0 ? "All Models" : selected.length === 1 ? selected[0] : `${selected.length} Models`;
+	const filteredOptions = options.filter((model) => model.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
 	return (
 		<div className="sip-filter-field">
 			<span>Model</span>
 			<details className="sip-multi-select">
 				<summary>{label}</summary>
 				<div className="sip-multi-menu">
+					<div className="sip-model-search"><span aria-hidden="true">⌕</span><input aria-label="Search models" onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => event.stopPropagation()} placeholder="Search Model" type="search" value={query} /></div>
 					<button className={selected.length === 0 ? "active" : ""} onClick={() => onChange([])} type="button">
 						<span>{selected.length === 0 ? "✓" : ""}</span>All Models
 					</button>
-				{options.map((model) => {
+				{filteredOptions.map((model) => {
 					const checked = selected.includes(model);
 					const disabled = !checked && maxSelected !== undefined && selected.length >= maxSelected;
 					return <label className={disabled ? "disabled" : ""} key={model} title={disabled ? `Select up to ${maxSelected} models` : undefined}>
@@ -160,6 +163,7 @@ function ModelMultiSelect({
 							{model}
 						</label>;
 					})}
+					{filteredOptions.length === 0 && <div className="sip-model-empty">No matching Models</div>}
 				</div>
 			</details>
 		</div>
