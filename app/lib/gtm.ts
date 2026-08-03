@@ -586,7 +586,7 @@ export async function updateGtmDelayRecord(
 	const stageName = GTM_STAGES.find((stage) => stage === record.stage_name);
 	const normalizedDeadline = delayedUntil || "";
 	const deadlineChanged = normalizedDeadline !== (record.delayed_until || "");
-	const sourceUpdatedStages = stageName && stageName !== "Launch" && deadlineChanged
+	const sourceUpdatedStages = stageName && deadlineChanged
 		? stages.results.map((stage) => stage.stage_name === stageName ? { ...stage, deadline: normalizedDeadline || null } : stage)
 		: stages.results;
 	const normalizedStages = stageName && normalizedDeadline && deadlineChanged && shiftDownstream
@@ -670,11 +670,9 @@ export async function updateGtmProject(
 	const namedStages = stages.map((stage) => ({
 		...stage,
 		stage_name: existingStages.results.find((item) => item.id === stage.id)?.stage_name as GtmStageName,
-		deadline: existingStages.results.find((item) => item.id === stage.id)?.stage_name === "Launch"
-			? existingStages.results.find((item) => item.id === stage.id)?.deadline || null
-			: stage.deadline || null,
+		deadline: stage.deadline || null,
 	}));
-	const sourceStage = ddlChangeSourceStage && ddlChangeSourceStage !== "Launch" && GTM_STAGES.includes(ddlChangeSourceStage) ? ddlChangeSourceStage : undefined;
+	const sourceStage = ddlChangeSourceStage && GTM_STAGES.includes(ddlChangeSourceStage) ? ddlChangeSourceStage : undefined;
 	const sourceDeadline = namedStages.find((stage) => stage.stage_name === sourceStage)?.deadline || "";
 	const sourceOnlyStages = sourceStage ? namedStages.map((stage) => {
 		if (stage.stage_name === sourceStage) return stage;

@@ -151,9 +151,9 @@
 - Selecting `Shift downstream dates` recalculates every later Stage using the
   seven-day interval through Mass Production. Earlier stages are not changed,
   and the Launch Stage remains fixed to the product Launch Date.
-- The Launch Stage DDL is disabled in the Project editor and is also protected
-  by the server. Neither downstream shifting nor a submitted project payload
-  can change the product's Launch Date.
+- The Launch Stage DDL remains directly editable. A user can deliberately
+  change it and save a corresponding Delay Record, but changing or shifting
+  any earlier Stage never changes the Launch Stage automatically.
 - The server enforces the selected behavior when the project is saved. In the
   default keep mode, a client payload cannot move unrelated Stage DDLs; in
   shift mode, the server applies the downstream calculation itself.
