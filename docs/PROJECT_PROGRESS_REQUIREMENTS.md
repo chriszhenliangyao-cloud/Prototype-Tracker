@@ -12,6 +12,20 @@
 - Supply and Sales remain distinguishable by geometry: Supply is a line and Sales is a bar.
 - Marker shapes, line dashes, and bar textures remain as secondary identifiers, while legend hover/focus highlights one product and dims the others.
 
+## Monthly forecast archive
+
+- `Forecast Archive` is available from the Sales & Inventory Overview toolbar.
+- Confirming Month Closing creates a read-only snapshot before the planning window rolls forward.
+- Each snapshot stores the three future planning months that follow the closed month. For example, closing July archives the August, September, and October Shipment Forecast and Supply Plan values.
+- Snapshots also retain Model, Product, Category, and Projected On Hand context and persist in browser localStorage with the rest of the mock workspace.
+- Archived values never change when the live planning table is edited later.
+- The archive modal filters by Forecast Month, Model, From Archive, and To Archive.
+- `All Models` displays every available archive version in the selected range, rather than limiting comparison to adjacent months.
+- Each model uses a compact two-line trend: blue for Shipment Forecast and green for Supply Plan. A red gap indicator marks archive versions where Shipment Forecast is greater than Supply Plan.
+- The right side of each model row shows the absolute Shipment Forecast and Supply Plan changes from the first visible archive to the latest visible archive. Percentages are not used.
+- Selecting a model opens a larger read-only trend with exact values at every saved archive point and a return control for `All Models`.
+- If no snapshots exist, the modal explains that Month Closing is required to create the first archive.
+
 ## Task completion
 
 - The circle before a task toggles that task between completed and unfinished.

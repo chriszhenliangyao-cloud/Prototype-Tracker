@@ -39,6 +39,19 @@ type Workspace = {
 	months: string[];
 	history: HistoryRow[];
 	lastClosedMonth: string | null;
+	forecastSnapshots: ForecastSnapshot[];
+};
+
+type ForecastSnapshot = {
+	archiveMonth: string;
+	savedAt: string;
+	model: string;
+	product: string;
+	category: string;
+	forecastMonth: string;
+	shipmentForecast: number;
+	supplyPlan: number;
+	projectedOnHand: number;
 };
 
 type ProductDraft = Omit<PlanningRow, "months">;
@@ -306,6 +319,98 @@ function ClosingModal({
 	);
 }
 
+function SnapshotTrend({ entries, detailed = false }: { entries: ForecastSnapshot[]; detailed?: boolean }) {
+	const sorted = [...entries].sort((a, b) => a.archiveMonth.localeCompare(b.archiveMonth));
+	const width = detailed ? 920 : 430;
+	const height = detailed ? 270 : 112;
+	const margin = detailed ? { top: 28, right: 26, bottom: 48, left: 58 } : { top: 14, right: 14, bottom: 28, left: 14 };
+	const plotWidth = width - margin.left - margin.right;
+	const plotHeight = height - margin.top - margin.bottom;
+	const maximum = Math.max(1, ...sorted.flatMap((item) => [item.shipmentForecast, item.supplyPlan]));
+	const x = (index: number) => sorted.length === 1 ? margin.left + plotWidth / 2 : margin.left + (plotWidth * index) / (sorted.length - 1);
+	const y = (value: number) => margin.top + plotHeight - (value / maximum) * plotHeight;
+	const shipmentPoints = sorted.map((item, index) => `${x(index)},${y(item.shipmentForecast)}`).join(" ");
+	const supplyPoints = sorted.map((item, index) => `${x(index)},${y(item.supplyPlan)}`).join(" ");
+	return <svg className={`sip-archive-chart${detailed ? " detailed" : ""}`} role="img" aria-label="Shipment forecast and supply plan across monthly archives" viewBox={`0 0 ${width} ${height}`}>
+		{detailed && [0, 0.5, 1].map((ratio) => {
+			const value = maximum * ratio;
+			const tickY = margin.top + plotHeight - plotHeight * ratio;
+			return <g key={ratio}><line className="grid" x1={margin.left} x2={width - margin.right} y1={tickY} y2={tickY} /><text className="axis" textAnchor="end" x={margin.left - 9} y={tickY + 4}>{formatNumber(value)}</text></g>;
+		})}
+		{sorted.map((item, index) => item.shipmentForecast > item.supplyPlan && <g key={`risk-${item.archiveMonth}`}>
+			<rect className="risk-zone" height={plotHeight} width={Math.max(24, plotWidth / Math.max(sorted.length, 1) * 0.45)} x={x(index) - Math.max(24, plotWidth / Math.max(sorted.length, 1) * 0.45) / 2} y={margin.top} />
+			<line className="risk-gap" x1={x(index)} x2={x(index)} y1={y(item.supplyPlan)} y2={y(item.shipmentForecast)} />
+		</g>)}
+		<polyline className="supply-line" points={supplyPoints} />
+		<polyline className="shipment-line" points={shipmentPoints} />
+		{sorted.map((item, index) => <g key={item.archiveMonth}>
+			<circle className="supply-point" cx={x(index)} cy={y(item.supplyPlan)} r={detailed ? 5 : 3.5}><title>{`${monthLabel(item.archiveMonth)} archive\nSupply Plan: ${formatNumber(item.supplyPlan)}`}</title></circle>
+			<circle className="shipment-point" cx={x(index)} cy={y(item.shipmentForecast)} r={detailed ? 5 : 3.5}><title>{`${monthLabel(item.archiveMonth)} archive\nShipment Forecast: ${formatNumber(item.shipmentForecast)}`}</title></circle>
+			<text className="month" textAnchor="middle" x={x(index)} y={height - 8}>{monthShortLabel(item.archiveMonth)}</text>
+			{detailed && <><text className="value shipment" textAnchor="middle" x={x(index)} y={Math.max(12, y(item.shipmentForecast) - 10)}>{formatNumber(item.shipmentForecast)}</text><text className="value supply" textAnchor="middle" x={x(index)} y={Math.min(height - margin.bottom - 5, y(item.supplyPlan) + 17)}>{formatNumber(item.supplyPlan)}</text></>}
+		</g>)}
+	</svg>;
+}
+
+function ForecastArchiveModal({ snapshots, onClose }: { snapshots: ForecastSnapshot[]; onClose: () => void }) {
+	const forecastMonths = [...new Set(snapshots.map((item) => item.forecastMonth))].sort();
+	const defaultForecastMonth = [...forecastMonths].sort((a, b) => {
+		const aCount = new Set(snapshots.filter((item) => item.forecastMonth === a).map((item) => item.archiveMonth)).size;
+		const bCount = new Set(snapshots.filter((item) => item.forecastMonth === b).map((item) => item.archiveMonth)).size;
+		return bCount - aCount || b.localeCompare(a);
+	})[0] || "";
+	const [forecastMonth, setForecastMonth] = useState(defaultForecastMonth);
+	const availableArchives = [...new Set(snapshots.filter((item) => item.forecastMonth === forecastMonth).map((item) => item.archiveMonth))].sort();
+	const [fromArchive, setFromArchive] = useState(availableArchives[0] || "");
+	const [toArchive, setToArchive] = useState(availableArchives.at(-1) || "");
+	const [selectedModel, setSelectedModel] = useState("all");
+	const chooseForecastMonth = (value: string) => {
+		const archives = [...new Set(snapshots.filter((item) => item.forecastMonth === value).map((item) => item.archiveMonth))].sort();
+		setForecastMonth(value);
+		setFromArchive(archives[0] || "");
+		setToArchive(archives.at(-1) || "");
+		setSelectedModel("all");
+	};
+	const inRange = snapshots.filter((item) => item.forecastMonth === forecastMonth && item.archiveMonth >= fromArchive && item.archiveMonth <= toArchive);
+	const models = [...new Set(inRange.map((item) => item.model))].sort();
+	const groups = models.map((model) => ({ model, entries: inRange.filter((item) => item.model === model).sort((a, b) => a.archiveMonth.localeCompare(b.archiveMonth)) }));
+	const detail = groups.find((group) => group.model === selectedModel);
+	return <div className="sip-overlay">
+		<div className="sip-modal archive" role="dialog" aria-modal="true" aria-labelledby="sip-archive-title">
+			<header>
+				<div><h2 id="sip-archive-title">Forecast Archive</h2><p>Review every saved monthly version of shipment forecasts and supply plans for a future month.</p></div>
+				<button onClick={onClose} aria-label="Close">×</button>
+			</header>
+			{snapshots.length === 0 ? <div className="sip-archive-empty"><strong>No forecast snapshots yet</strong><span>Complete Month Closing to archive the next three planning months. Archived versions will appear here and remain read only.</span></div> : <>
+				<div className="sip-archive-filters">
+					<label>Forecast Month<select value={forecastMonth} onChange={(event) => chooseForecastMonth(event.target.value)}>{forecastMonths.map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>Model<select value={selectedModel} onChange={(event) => setSelectedModel(event.target.value)}><option value="all">All Models</option>{models.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
+					<label>From Archive<select value={fromArchive} onChange={(event) => { const value = event.target.value; setFromArchive(value); if (value > toArchive) setToArchive(value); }}>{availableArchives.filter((month) => month <= toArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>To Archive<select value={toArchive} onChange={(event) => setToArchive(event.target.value)}>{availableArchives.filter((month) => month >= fromArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+				</div>
+				<div className="sip-archive-legend"><span><i className="shipment" />Shipment Forecast</span><span><i className="supply" />Supply Plan</span><span><i className="risk" />Forecast above supply</span></div>
+				{detail ? <div className="sip-archive-detail">
+					<button className="sip-back-link" onClick={() => setSelectedModel("all")}>← All Models</button>
+					<div className="sip-archive-detail-title"><div><strong>{detail.model}</strong><span>{detail.entries[0]?.product}</span></div><span>Forecast for {monthLabel(forecastMonth)}</span></div>
+					<SnapshotTrend entries={detail.entries} detailed />
+				</div> : <div className="sip-archive-list">{groups.map(({ model, entries }) => {
+					const first = entries[0];
+					const last = entries.at(-1)!;
+					const shipmentChange = last.shipmentForecast - first.shipmentForecast;
+					const supplyChange = last.supplyPlan - first.supplyPlan;
+					const signed = (value: number) => `${value > 0 ? "+" : ""}${formatNumber(value)}`;
+					return <button className="sip-archive-row" key={model} onClick={() => setSelectedModel(model)}>
+						<span className="identity"><strong>{model}</strong><small>{first.product}</small></span>
+						<SnapshotTrend entries={entries} />
+						<span className="changes"><small>First → latest</small><b className={shipmentChange > 0 ? "up" : ""}>Shipment {signed(shipmentChange)}</b><b>Supply {signed(supplyChange)}</b></span>
+					</button>;
+				})}</div>}
+			</>}
+			<footer><span className="sip-read-only">Read-only monthly snapshots</span><button className="sip-btn" onClick={onClose}>Close</button></footer>
+		</div>
+	</div>;
+}
+
 function InventoryTrend({
 	rows,
 	history,
@@ -510,6 +615,7 @@ export default function SalesInventory() {
 	const [months, setMonths] = useState(() => [...initialPlanningMonths]);
 	const [history, setHistory] = useState<HistoryRow[]>(() => clone(initialHistoryRows));
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
+	const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>([]);
 	const [loaded, setLoaded] = useState(false);
 	const [modelFilter, setModelFilter] = useState<string[]>([]);
 	const [categoryFilter, setCategoryFilter] = useState("all");
@@ -520,6 +626,7 @@ export default function SalesInventory() {
 	const [draftRows, setDraftRows] = useState<PlanningRow[]>([]);
 	const [addOpen, setAddOpen] = useState(false);
 	const [closingOpen, setClosingOpen] = useState(false);
+	const [archiveOpen, setArchiveOpen] = useState(false);
 	const [theme, setTheme] = useState<string | null>(null);
 	const [error, setError] = useState("");
 
@@ -545,6 +652,7 @@ export default function SalesInventory() {
 					setMonths(normalizedMonths);
 					setHistory(parsed.history);
 					setLastClosedMonth(parsed.lastClosedMonth || null);
+					setForecastSnapshots(Array.isArray(parsed.forecastSnapshots) ? parsed.forecastSnapshots : []);
 				}
 			}
 		} catch {
@@ -558,9 +666,9 @@ export default function SalesInventory() {
 
 	useEffect(() => {
 		if (!loaded) return;
-		const workspace: Workspace = { rows, months, history, lastClosedMonth };
+		const workspace: Workspace = { rows, months, history, lastClosedMonth, forecastSnapshots };
 		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
-	}, [history, lastClosedMonth, loaded, months, rows]);
+	}, [forecastSnapshots, history, lastClosedMonth, loaded, months, rows]);
 
 	const toggleTheme = () => {
 		const next = theme === "dark" ? "light" : "dark";
@@ -604,6 +712,22 @@ export default function SalesInventory() {
 
 	const closeMonth = (entries: Array<{ model: string; actualSales: number; actualSupply: number }>) => {
 		const closed = months[0];
+		const savedAt = new Date().toISOString();
+		const futureMonths = months.slice(1, 4);
+		const snapshots = rows.flatMap((row) => {
+			const endings = calculateEndings(row, months);
+			return futureMonths.map((forecastMonth) => ({
+				archiveMonth: closed,
+				savedAt,
+				model: row.model,
+				product: row.product,
+				category: row.category,
+				forecastMonth,
+				shipmentForecast: row.months[forecastMonth]?.forecast || 0,
+				supplyPlan: row.months[forecastMonth]?.supply || 0,
+				projectedOnHand: endings[forecastMonth] || 0,
+			}));
+		});
 		const newHistory = rows.map((row) => {
 			const entry = entries.find((item) => item.model === row.model)!;
 			return {
@@ -627,6 +751,7 @@ export default function SalesInventory() {
 			return { ...row, inventory: result.endingInventory, months: { ...monthPlans, [added]: { forecast: 0, supply: 0 } } };
 		}));
 		setHistory((current) => [...current, ...newHistory]);
+		setForecastSnapshots((current) => [...current.filter((item) => item.archiveMonth !== closed), ...snapshots]);
 		setMonths((current) => [...current.slice(1), added]);
 		setLastClosedMonth(closed);
 		setClosingOpen(false);
@@ -657,6 +782,7 @@ export default function SalesInventory() {
 							</> : <>
 								<button className="sip-btn" onClick={beginEdit}>Edit Table</button>
 								<button className="sip-btn" onClick={() => setAddOpen(true)}>＋ Add Product</button>
+								<button className="sip-btn" onClick={() => setArchiveOpen(true)}>Forecast Archive</button>
 								<button className="sip-btn primary" onClick={() => setClosingOpen(true)}>Month Closing</button>
 							</>}
 						</div>
@@ -777,6 +903,7 @@ export default function SalesInventory() {
 			</main>
 			{addOpen && <AddProductModal months={months} rows={rows} onClose={() => setAddOpen(false)} onAdd={(row) => { setRows((current) => [...current, row]); setAddOpen(false); }} />}
 			{closingOpen && <ClosingModal rows={rows} month={months[0]} onClose={() => setClosingOpen(false)} onConfirm={closeMonth} />}
+			{archiveOpen && <ForecastArchiveModal snapshots={forecastSnapshots} onClose={() => setArchiveOpen(false)} />}
 		</div>
 	);
 }
