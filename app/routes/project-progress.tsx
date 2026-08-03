@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEv
 import type { Route } from "./+types/project-progress";
 import {
 	GTM_STAGES,
+	GTM_STAGE_GAP_DAYS,
+	cascadeGtmStageDeadlines,
 	createGtmProduct,
 	currentStage,
 	deleteGtmDelayRecord,
@@ -91,7 +93,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 			);
 		} else if (intent === "project-edit") {
 			const payload = JSON.parse(String(form.get("payload") || "{}"));
-			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks);
+			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks, payload.ddlChangeSourceStage);
 		} else if (intent === "excel-import") {
 			const payload = JSON.parse(String(form.get("payload") || "{}")) as GtmExcelImport;
 			const imported = await importGtmWorkbook(context.cloudflare.env, payload);
@@ -101,7 +103,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 				context.cloudflare.env,
 				String(form.get("id") || ""),
 				String(form.get("delayed_until") || ""),
-				String(form.get("schedule_impact") || ""),
 				String(form.get("notes") || ""),
 			);
 		} else if (intent === "delay-delete") {
@@ -612,7 +613,7 @@ function DelayDrawer({ product, records, onClose }: { product: GtmProduct; recor
 							<th>Delay</th>
 							<th>Delay Item</th>
 							<th>DDL Change</th>
-							<th>Schedule Impact</th>
+							<th>Mass Production</th>
 							<th>Notes</th>
 							<th>Action</th>
 						</tr>
@@ -645,9 +646,7 @@ function DelayRecordRow({ record, delayNumber }: { record: GtmDelayRecord; delay
 					<input aria-label="Delayed Until" name="delayed_until" type="date" defaultValue={record.delayed_until || ""} />
 				</fetcher.Form>
 			</td>
-			<td>
-				<textarea aria-label="Schedule Impact" form={editFormId} name="schedule_impact" defaultValue={record.schedule_impact || ""} rows={2} />
-			</td>
+			<td><span className="gtm-delay-mass-impact">{record.schedule_impact || "No change"}</span></td>
 			<td>
 				<textarea aria-label="Notes" form={editFormId} name="notes" defaultValue={record.notes || ""} rows={2} />
 				{fetcher.data?.error && <span className="gtm-form-error">{fetcher.data.error}</span>}
@@ -732,11 +731,17 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 	const [editing, setEditing] = useState(false);
 	const [draftStages, setDraftStages] = useState(stages.map((stage) => ({ ...stage })));
 	const [draftTasks, setDraftTasks] = useState(tasks.map((task) => ({ ...task })));
+	const [ddlChangeSourceStage, setDdlChangeSourceStage] = useState<GtmStageName | null>(null);
 	const fetcher = useFetcher();
 
 	function resetDraft() {
 		setDraftStages(stages.map((stage) => ({ ...stage })));
 		setDraftTasks(tasks.map((task) => ({ ...task })));
+		setDdlChangeSourceStage(null);
+	}
+	function updateStageDeadline(stageName: GtmStageName, deadline: string) {
+		setDdlChangeSourceStage(stageName);
+		setDraftStages((items) => cascadeGtmStageDeadlines(items, stageName, deadline));
 	}
 	function updateTask(id: string, patch: Partial<GtmTask>) {
 		setDraftTasks((items) => items.map((task) => task.id === id ? { ...task, ...patch } : task));
@@ -757,6 +762,7 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 		const payload = JSON.stringify({
 			productId: product.id,
 			stages: draftStages.map((stage) => ({ id: stage.id, deadline: stage.deadline || "" })),
+			ddlChangeSourceStage,
 			tasks: draftTasks.map(({ id, stage_name, task_name, owner_role, prototype_type, is_completed, sort_order }) =>
 				({ id, stage_name, task_name, owner_role, prototype_type, is_completed, sort_order })),
 		});
@@ -764,13 +770,14 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 			<fetcher.Form method="post" className="gtm-project-editor" onSubmit={() => setEditing(false)}>
 				<input name="intent" type="hidden" value="project-edit" />
 				<input name="payload" type="hidden" value={payload} />
+				<p className="gtm-ddl-rule">Temporary DDL rule: stages are spaced {GTM_STAGE_GAP_DAYS} days apart. Changing one Stage DDL automatically recalculates every later Stage.</p>
 				<div className="gtm-editor-grid">
 					{GTM_STAGES.map((stageName) => {
 						const stage = draftStages.find((item) => item.stage_name === stageName);
 						const stageTasks = draftTasks.filter((task) => task.stage_name === stageName);
 						return <div className="gtm-editor-stage" key={stageName}>
 							<b>{stageName}</b>
-							<label>DDL<input type="date" value={stage?.deadline || ""} onChange={(e) => setDraftStages((items) => items.map((item) => item.stage_name === stageName ? { ...item, deadline: e.target.value } : item))} /></label>
+							<label>DDL<input type="date" value={stage?.deadline || ""} onChange={(e) => updateStageDeadline(stageName, e.target.value)} /></label>
 							{stageTasks.map((task) => <div className="gtm-editor-task" key={task.id}>
 								<div><input type="checkbox" checked={!!task.is_completed} onChange={(e) => updateTask(task.id, { is_completed: e.target.checked ? 1 : 0 })} /><input value={task.task_name} onChange={(e) => updateTask(task.id, { task_name: e.target.value })} /></div>
 								<select value={task.owner_role} onChange={(e) => updateTask(task.id, { owner_role: e.target.value as GtmTask["owner_role"] })}><option value="PRODUCT">👤 Product</option><option value="MARKETING">📣 Marketing</option><option value="GTM">GTM</option></select>

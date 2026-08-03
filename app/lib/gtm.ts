@@ -9,6 +9,32 @@ export const GTM_STAGES = [
 
 export type GtmStageName = (typeof GTM_STAGES)[number];
 
+export const GTM_STAGE_GAP_DAYS = 7;
+
+function shiftDate(date: string, days: number) {
+	const value = new Date(`${date}T00:00:00Z`);
+	value.setUTCDate(value.getUTCDate() + days);
+	return value.toISOString().slice(0, 10);
+}
+
+export function stageDeadlineFromLaunch(launchDate: string, stage: GtmStageName) {
+	const index = GTM_STAGES.indexOf(stage);
+	return shiftDate(launchDate, -(GTM_STAGES.length - 1 - index) * GTM_STAGE_GAP_DAYS);
+}
+
+export function cascadeGtmStageDeadlines<T extends { stage_name: GtmStageName; deadline: string | null }>(
+	stages: T[],
+	changedStage: GtmStageName,
+	deadline: string,
+) {
+	const changedIndex = GTM_STAGES.indexOf(changedStage);
+	return stages.map((stage) => {
+		const stageIndex = GTM_STAGES.indexOf(stage.stage_name);
+		if (stageIndex < changedIndex || !deadline) return stage.stage_name === changedStage ? { ...stage, deadline: deadline || null } : stage;
+		return { ...stage, deadline: shiftDate(deadline, (stageIndex - changedIndex) * GTM_STAGE_GAP_DAYS) };
+	});
+}
+
 export interface GtmProduct {
 	id: string;
 	model: string;
@@ -463,8 +489,8 @@ export async function createGtmProduct(env: Env, input: NewGtmProduct) {
 			env.DB.prepare(
 				`INSERT INTO gtm_project_stage
 				   (id,product_id,stage_name,deadline,estimated_shipping_date)
-				 VALUES (?,?,?,NULL,NULL)`,
-			).bind(`stage-${productId}-${index + 1}`, productId, stage)),
+				 VALUES (?,?,?,?,NULL)`,
+			).bind(`stage-${productId}-${index + 1}`, productId, stage, stageDeadlineFromLaunch(launchDate, stage))),
 	];
 	for (const [index, task] of taskTemplates.entries()) {
 		const taskId = `task-${productId}-${index + 1}`;
@@ -532,23 +558,53 @@ export async function updateGtmDelayRecord(
 	env: Env,
 	id: string,
 	delayedUntil: string,
-	scheduleImpact: string,
 	notes: string,
 ) {
 	if (!id.trim()) throw new Error("Delay record id is required");
-	await env.DB.prepare(
-		`UPDATE gtm_delay_record
-		    SET delayed_until=?, schedule_impact=?, notes=?,
-		        updated_at=CURRENT_TIMESTAMP
+	const record = await env.DB.prepare(
+		`SELECT product_id, stage_name, delayed_until, schedule_impact
+		   FROM gtm_delay_record
 		  WHERE id=? AND deleted_at IS NULL`,
-	)
-		.bind(
-			delayedUntil || null,
-			scheduleImpact.trim() || null,
+	).bind(id).first<{
+		product_id: string;
+		stage_name: string;
+		delayed_until: string | null;
+		schedule_impact: string | null;
+	}>();
+	if (!record) throw new Error("Delay record was not found");
+	const stages = await env.DB.prepare(
+		"SELECT id, stage_name, deadline FROM gtm_project_stage WHERE product_id=?",
+	).bind(record.product_id).all<GtmStage>();
+	const stageName = GTM_STAGES.find((stage) => stage === record.stage_name);
+	const normalizedDeadline = delayedUntil || "";
+	const deadlineChanged = normalizedDeadline !== (record.delayed_until || "");
+	const normalizedStages = stageName && normalizedDeadline && deadlineChanged
+		? cascadeGtmStageDeadlines(stages.results, stageName, normalizedDeadline)
+		: stages.results;
+	const previousMassDeadline = stages.results.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
+	const nextMassDeadline = normalizedStages.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
+	const massProductionImpact = deadlineChanged
+		? previousMassDeadline === nextMassDeadline
+			? "No change"
+			: `${previousMassDeadline || "Not set"} → ${nextMassDeadline || "Not set"}`
+		: record.schedule_impact;
+	const statements = [
+		env.DB.prepare(
+			`UPDATE gtm_delay_record
+			    SET delayed_until=?, schedule_impact=?, notes=?,
+			        updated_at=CURRENT_TIMESTAMP
+			  WHERE id=? AND deleted_at IS NULL`,
+		).bind(
+			normalizedDeadline || null,
+			massProductionImpact || null,
 			notes.trim() || null,
 			id,
-		)
-		.run();
+		),
+		...(stageName && normalizedDeadline && deadlineChanged ? normalizedStages.map((stage) =>
+			env.DB.prepare("UPDATE gtm_project_stage SET deadline=? WHERE id=? AND product_id=?")
+				.bind(stage.deadline || null, stage.id, record.product_id)) : []),
+	];
+	await env.DB.batch(statements);
 }
 
 export async function deleteGtmDelayRecord(env: Env, id: string) {
@@ -576,6 +632,7 @@ export async function updateGtmProject(
 		is_completed: number;
 		sort_order: number;
 	}>,
+	ddlChangeSourceStage?: GtmStageName,
 ) {
 	const existing = await env.DB.prepare(
 		"SELECT id, task_name, owner_role, is_completed FROM gtm_project_task WHERE product_id=?",
@@ -600,28 +657,43 @@ export async function updateGtmProject(
 	const incomingMarketingNames = new Set(
 		tasks.filter((task) => task.owner_role === "MARKETING").map((task) => task.task_name.trim()),
 	);
-	const ddlChangeRecords = stages.flatMap((stage, index) => {
+	const namedStages = stages.map((stage) => ({
+		...stage,
+		stage_name: existingStages.results.find((item) => item.id === stage.id)?.stage_name as GtmStageName,
+		deadline: stage.deadline || null,
+	}));
+	const sourceStage = ddlChangeSourceStage && GTM_STAGES.includes(ddlChangeSourceStage) ? ddlChangeSourceStage : undefined;
+	const sourceDeadline = namedStages.find((stage) => stage.stage_name === sourceStage)?.deadline || "";
+	const normalizedStages = sourceStage ? cascadeGtmStageDeadlines(namedStages, sourceStage, sourceDeadline) : namedStages;
+	const previousMassDeadline = existingStages.results.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
+	const nextMassDeadline = normalizedStages.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
+	const massProductionImpact = previousMassDeadline === nextMassDeadline
+		? "No change"
+		: `${previousMassDeadline || "Not set"} → ${nextMassDeadline || "Not set"}`;
+	const recordStages = sourceStage ? normalizedStages.filter((stage) => stage.stage_name === sourceStage) : normalizedStages;
+	const ddlChangeRecords = recordStages.flatMap((stage, index) => {
 		const previous = existingStages.results.find((item) => item.id === stage.id);
 		const nextDeadline = stage.deadline || null;
 		if (!previous?.deadline || previous.deadline === nextDeadline) return [];
 		return [
-			env.DB.prepare(
-				`INSERT INTO gtm_delay_record
-				   (id, product_id, stage_name, task_name,
-				    original_deadline, delayed_until)
-				 VALUES (?, ?, ?, 'Stage DDL Change', ?, ?)`,
-			).bind(
+				env.DB.prepare(
+					`INSERT INTO gtm_delay_record
+					   (id, product_id, stage_name, task_name,
+					    original_deadline, delayed_until, schedule_impact)
+					 VALUES (?, ?, ?, 'Stage DDL Change', ?, ?, ?)`,
+				).bind(
 				`delay-ddl-${stage.id}-${Date.now()}-${index}`,
 				productId,
-				previous.stage_name,
-				previous.deadline,
-				nextDeadline,
-			),
+					previous.stage_name,
+					previous.deadline,
+					nextDeadline,
+					massProductionImpact,
+				),
 		];
 	});
 	const statements = [
 		...ddlChangeRecords,
-		...stages.map((stage) =>
+		...normalizedStages.map((stage) =>
 			env.DB.prepare("UPDATE gtm_project_stage SET deadline=? WHERE id=? AND product_id=?")
 				.bind(stage.deadline || null, stage.id, productId)),
 		env.DB.prepare(

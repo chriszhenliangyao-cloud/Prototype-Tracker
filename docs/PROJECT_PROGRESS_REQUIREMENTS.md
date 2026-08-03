@@ -108,8 +108,10 @@
   Record containing the old and new DDL. Initial entry of a blank DDL does not
   create a Delay Record.
 - The table combines Stage and Task Name as `Delay Item`, combines the old and
-  new dates as `DDL Change`, and includes a manually editable `Schedule Impact`
-  column.
+  new dates as `DDL Change`, and includes a read-only `Mass Production` column.
+- `Mass Production` shows the Mass Production DDL impact caused by the Stage
+  DDL change in the form `previous date → recalculated date`; it shows
+  `No change` when the edited Stage does not move Mass Production.
 - A Delay Record is created only when a task is incomplete and its stage DDL
   has been reached or passed.
 - Once created, a Delay Record remains in history even if the task is later
@@ -119,11 +121,42 @@
 - Confirmed deletion removes the record from the UI and prevents the automatic
   delay synchronizer from recreating it.
 - Edit mode allows changes only to `Delayed Until` and `Notes`.
-- `Save` persists those fields; `Cancel` discards unsaved changes.
-- Stage, Task Name, and Original DDL remain read-only and are not submitted as
-  editable values.
-- Editing a Delay Record does not change project tasks, stage deadlines,
-  materials, prototype requirements, or ProtoTrack sample data.
+- Changing `Delayed Until` applies the same temporary seven-day cascade from
+  that Delay Record's Stage through every later Stage and recalculates the
+  read-only Mass Production impact.
+- Saving Notes without changing `Delayed Until` preserves the previously
+  calculated Mass Production impact.
+- `Save` persists the changes; `Cancel` discards unsaved changes.
+- Stage, Task Name, Original DDL, and Mass Production impact remain read-only
+  and are not submitted as editable values.
+- Editing only Notes does not change project tasks, stage deadlines, materials,
+  prototype requirements, or ProtoTrack sample data. Editing `Delayed Until`
+  changes only this product's Project Progress Stage DDLs under the cascade
+  rule; other modules and source data remain untouched.
+
+## Temporary Stage DDL back-planning rule
+
+- The temporary testing rule uses the product Launch Date as the planning
+  anchor and spaces every Project Progress stage seven calendar days apart.
+- The initial offsets are: Project Confirm to Start `Launch - 35 days`, DVT1
+  `Launch - 28 days`, DVT2 `Launch - 21 days`, Trial Production Start
+  `Launch - 14 days`, Mass Production `Launch - 7 days`, and Launch `0 days`.
+- Newly created Project Progress products receive these calculated Stage DDLs
+  automatically from their Launch Date.
+- In the Project editor, changing one Stage DDL recalculates every later Stage
+  immediately using the seven-day interval. Earlier stages are not changed.
+- The same cascade is enforced by the server when the project is saved so a
+  client payload cannot bypass the downstream calculation.
+- A yellow helper message in edit mode identifies this as a temporary rule.
+- Only the manually edited source Stage creates a `Stage DDL Change` Delay
+  Record; automatically shifted downstream stages do not create duplicate
+  records.
+- The Delay Record stores the resulting Mass Production DDL change for future
+  review.
+- This temporary interval is isolated to Project Progress and can later be
+  replaced by the final product-specific back-planning configuration without
+  changing Sales & Inventory, Product Material, Prototype Management, or
+  Control Tower behavior.
 
 ## Sample task navigation and status
 
