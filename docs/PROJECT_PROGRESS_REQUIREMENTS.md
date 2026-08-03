@@ -8,8 +8,11 @@
 - The trend section is titled `Supply & Shipment Trend` with the eyebrow `SUPPLY & SHIPMENT TREND`.
 - Its description explains that the chart compares historical actual shipments and supply with future shipment forecasts and supply plans.
 - The trend legend uses `Supply` and `Shipment`; `Sales` is not used.
-- The Supply legend key is visibly rendered as a horizontal line with a circular point and is labeled `Line`.
-- The Shipment legend key is visibly rendered as a vertical column and is labeled `Bar`.
+- The Supply legend key is visibly rendered as a horizontal line with a circular point; no redundant `Line` text is shown.
+- The Shipment legend key is visibly rendered as a vertical column; no redundant `Bar` text is shown.
+- The trend Model filter accepts at most four explicitly selected Models.
+- After four Models are selected, all remaining unchecked Models are disabled and visually muted. Removing one selected Model immediately makes the remaining options available again.
+- The four-Model limit applies only to the trend visualization and does not restrict the Planning table Model filter.
 - Each product uses one consistent, accessible color across its Supply line and Sales bars.
 - Supply and Sales remain distinguishable by geometry: Supply is a line and Sales is a bar.
 - Marker shapes, line dashes, and bar textures remain as secondary identifiers, while legend hover/focus highlights one product and dims the others.

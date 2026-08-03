@@ -730,6 +730,14 @@
   accent-color: var(--sip-blue);
 }
 
+.sip-multi-menu label.disabled,
+.sip-multi-menu label.disabled:hover {
+  background: transparent;
+  color: var(--sip-muted);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .sip-chart-legend {
   display: flex;
   justify-content: flex-end;
@@ -777,16 +785,6 @@
 	height: 20px;
 	border-radius: 3px;
 	background: var(--sip-text);
-}
-
-.sip-chart-legend small {
-	padding: 2px 5px;
-	border-radius: 4px;
-	background: var(--sip-panel-soft);
-	color: var(--sip-muted);
-	font-size: 8px;
-	font-weight: 800;
-	text-transform: uppercase;
 }
 
 .sip-chart-wrap {

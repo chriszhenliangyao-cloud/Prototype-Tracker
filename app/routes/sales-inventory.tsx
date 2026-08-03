@@ -130,10 +130,12 @@ function ModelMultiSelect({
 	options,
 	selected,
 	onChange,
+	maxSelected,
 }: {
 	options: string[];
 	selected: string[];
 	onChange: (models: string[]) => void;
+	maxSelected?: number;
 }) {
 	const label = selected.length === 0 ? "All Models" : selected.length === 1 ? selected[0] : `${selected.length} Models`;
 	return (
@@ -145,12 +147,14 @@ function ModelMultiSelect({
 					<button className={selected.length === 0 ? "active" : ""} onClick={() => onChange([])} type="button">
 						<span>{selected.length === 0 ? "✓" : ""}</span>All Models
 					</button>
-					{options.map((model) => {
-						const checked = selected.includes(model);
-						return <label key={model}>
-							<input
-								checked={checked}
-								onChange={() => onChange(checked ? selected.filter((item) => item !== model) : [...selected, model])}
+				{options.map((model) => {
+					const checked = selected.includes(model);
+					const disabled = !checked && maxSelected !== undefined && selected.length >= maxSelected;
+					return <label className={disabled ? "disabled" : ""} key={model} title={disabled ? `Select up to ${maxSelected} models` : undefined}>
+						<input
+							checked={checked}
+							disabled={disabled}
+							onChange={() => onChange(checked ? selected.filter((item) => item !== model) : [...selected, model])}
 								type="checkbox"
 							/>
 							{model}
@@ -443,13 +447,13 @@ function InventoryTrend({
 	tableFrom: string;
 	tableTo: string;
 }) {
-	const [models, setModels] = useState<string[]>(tableModels);
+	const [models, setModels] = useState<string[]>(tableModels.slice(0, 4));
 	const [category, setCategory] = useState(tableCategory);
 	const [from, setFrom] = useState(tableFrom);
 	const [to, setTo] = useState(tableTo);
 	const [focusedSeries, setFocusedSeries] = useState<number | null>(null);
 
-	useEffect(() => setModels([...tableModels]), [tableModels]);
+	useEffect(() => setModels(tableModels.slice(0, 4)), [tableModels]);
 	useEffect(() => setCategory(tableCategory), [tableCategory]);
 	useEffect(() => setFrom(tableFrom), [tableFrom]);
 	useEffect(() => setTo(tableTo), [tableTo]);
@@ -507,7 +511,7 @@ function InventoryTrend({
 					<p>Compare historical actual shipments and supply with future shipment forecasts and supply plans.</p>
 				</div>
 				<div className="sip-filter-controls">
-					<ModelMultiSelect onChange={setModels} options={modelOptions} selected={models} />
+					<ModelMultiSelect maxSelected={4} onChange={setModels} options={modelOptions} selected={models} />
 					<label>Category<select value={category} onChange={(event) => {
 						const value = event.target.value;
 						setCategory(value);
@@ -522,8 +526,8 @@ function InventoryTrend({
 				</div>
 			</header>
 			<div className="sip-chart-legend">
-				<span><i className="production" />Supply <small>Line</small></span>
-				<span><i className="shipment" />Shipment <small>Bar</small></span>
+				<span><i className="production" />Supply</span>
+				<span><i className="shipment" />Shipment</span>
 			</div>
 			<div className="sip-chart-wrap">
 				{series.length === 0 || chartMonths.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
