@@ -206,16 +206,24 @@
   text-transform: uppercase;
 }
 
+.sip-summary-card > span small {
+	display: block;
+	margin-top: 2px;
+	font-size: 9px;
+	font-weight: 650;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
 .sip-summary-months {
-	display: flex;
-	overflow-x: auto;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 15px;
 }
 
 .sip-summary-months > div {
   display: flex;
   align-items: baseline;
-	flex: 1 0 112px;
   gap: 8px;
   min-width: 0;
   padding: 0 16px;
@@ -231,19 +239,6 @@
   color: var(--sip-muted);
   font-size: 12px;
   font-weight: 700;
-}
-
-.sip-summary-label {
-	display: grid;
-	gap: 1px;
-}
-
-.sip-summary-label small {
-	color: var(--sip-muted);
-	font-size: 8px;
-	font-weight: 800;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
 }
 
 .sip-summary-months strong {
@@ -1293,7 +1288,7 @@
   }
 
   .sip-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .sip-archive-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }

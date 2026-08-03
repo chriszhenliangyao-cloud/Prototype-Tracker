@@ -18,18 +18,19 @@
 - Searching narrows only the visible options and does not clear Models that are already selected.
 - A concise `No matching Models` message is displayed when the search has no results.
 - Long Model lists scroll inside the menu while the search input remains visible at the top.
-- Each product uses one consistent, accessible color across its Supply line and Sales bars.
-- Supply and Sales remain distinguishable by geometry: Supply is a line and Sales is a bar.
+- Each product uses one consistent, accessible color across its Supply line and Shipment bars.
+- Supply and Shipment remain distinguishable by geometry: Supply is a line and Shipment is a bar.
 - Marker shapes, line dashes, and bar textures remain as secondary identifiers, while legend hover/focus highlights one product and dims the others.
 
-## Selected-period summary cards
+## Fixed rolling summary cards
 
-- The two summary cards represent the complete period selected by the Planning From/To filters; they are not fixed to the rolling forecast window.
-- Both cards respond consistently to Model, Category, From, and To filters.
-- The first card is titled `Shipment · Selected Period`; the second is titled `Supply · Selected Period`.
-- Closed historical months use Actual Shipment and Actual Supply and display an `Actual` label.
-- The current open month and future months use Shipment Forecast and Supply Plan and display `Forecast` or `Plan` labels.
-- Every month in the selected range is included. When the range is too wide for the card, its monthly values scroll horizontally instead of being omitted.
+- The summary cards are fixed planning indicators, not selected-period summaries.
+- They always show all-product totals for the current open month plus the following three planning months.
+- The first card is titled `Rolling 4-Month Shipment Forecast`; the second is titled `Rolling 4-Month Supply Plan`.
+- Each card states `All Products` and its exact four-month range directly below the title.
+- The cards do not respond to Model, Category, From, or To filters, eliminating mixed filter scope and historical-period ambiguity.
+- Exactly four months are displayed without horizontal scrolling.
+- Month Closing rolls the cards forward by one month together with the Planning window.
 
 ## Monthly forecast archive
 
