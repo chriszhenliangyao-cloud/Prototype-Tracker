@@ -197,33 +197,46 @@ function ModeHeader({ theme, onToggleTheme }: { theme: string | null; onToggleTh
 
 function SummaryCards({
 	rows,
-	months,
+	history,
+	planningMonths,
+	selectedMonths,
 }: {
 	rows: PlanningRow[];
-	months: string[];
+	history: HistoryRow[];
+	planningMonths: string[];
+	selectedMonths: string[];
 }) {
-	const summaryMonths = months.slice(0, 3);
-	const totals = summaryMonths.map((month) => ({
-		month,
-		forecast: rows.reduce((sum, row) => sum + (row.months[month]?.forecast || 0), 0),
-		supply: rows.reduce((sum, row) => sum + (row.months[month]?.supply || 0), 0),
-	}));
+	const totals = selectedMonths.map((month) => {
+		const planning = planningMonths.includes(month);
+		return {
+			month,
+			planning,
+			shipment: rows.reduce((sum, row) => {
+				if (planning) return sum + (row.months[month]?.forecast || 0);
+				return sum + (history.find((item) => item.month === month && item.model === row.model)?.actualSales || 0);
+			}, 0),
+			supply: rows.reduce((sum, row) => {
+				if (planning) return sum + (row.months[month]?.supply || 0);
+				return sum + (history.find((item) => item.month === month && item.model === row.model)?.actualSupply || 0);
+			}, 0),
+		};
+	});
 	return (
-		<section className="sip-summary" aria-label="Planning summary">
+		<section className="sip-summary" aria-label="Selected period summary">
 			<article className="sip-summary-card">
-				<span>FORECAST</span>
+				<span>SHIPMENT · SELECTED PERIOD</span>
 				<div className="sip-summary-months">
 					{totals.map((item) => <div key={item.month}>
-						<time dateTime={item.month}>{monthShortLabel(item.month)}</time>
-						<strong>{compactNumber(item.forecast)}</strong>
+						<span className="sip-summary-label"><time dateTime={item.month}>{monthShortLabel(item.month)}</time><small>{item.planning ? "Forecast" : "Actual"}</small></span>
+						<strong>{compactNumber(item.shipment)}</strong>
 					</div>)}
 				</div>
 			</article>
 			<article className="sip-summary-card supply">
-				<span>SUPPLY PLAN</span>
+				<span>SUPPLY · SELECTED PERIOD</span>
 				<div className="sip-summary-months">
 					{totals.map((item) => <div key={item.month}>
-						<time dateTime={item.month}>{monthShortLabel(item.month)}</time>
+						<span className="sip-summary-label"><time dateTime={item.month}>{monthShortLabel(item.month)}</time><small>{item.planning ? "Plan" : "Actual"}</small></span>
 						<strong>{compactNumber(item.supply)}</strong>
 					</div>)}
 				</div>
@@ -814,7 +827,7 @@ export default function SalesInventory() {
 					<div className="sip-state"><i />Mock data · Saved locally</div>
 				</section>
 
-				<SummaryCards rows={visibleRows} months={months} />
+				<SummaryCards history={history} planningMonths={months} rows={visibleRows} selectedMonths={availableMonths.filter((month) => month >= rangeFrom && month <= rangeTo)} />
 
 				<section className="sip-panel" id="planning">
 					<header className="sip-section-head">

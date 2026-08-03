@@ -22,6 +22,15 @@
 - Supply and Sales remain distinguishable by geometry: Supply is a line and Sales is a bar.
 - Marker shapes, line dashes, and bar textures remain as secondary identifiers, while legend hover/focus highlights one product and dims the others.
 
+## Selected-period summary cards
+
+- The two summary cards represent the complete period selected by the Planning From/To filters; they are not fixed to the rolling forecast window.
+- Both cards respond consistently to Model, Category, From, and To filters.
+- The first card is titled `Shipment · Selected Period`; the second is titled `Supply · Selected Period`.
+- Closed historical months use Actual Shipment and Actual Supply and display an `Actual` label.
+- The current open month and future months use Shipment Forecast and Supply Plan and display `Forecast` or `Plan` labels.
+- Every month in the selected range is included. When the range is too wide for the card, its monthly values scroll horizontally instead of being omitted.
+
 ## Monthly forecast archive
 
 - `Forecast Archive` is available from the Sales & Inventory Overview toolbar.

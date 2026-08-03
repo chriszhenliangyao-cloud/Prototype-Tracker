@@ -207,14 +207,15 @@
 }
 
 .sip-summary-months {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+	display: flex;
+	overflow-x: auto;
   margin-top: 15px;
 }
 
 .sip-summary-months > div {
   display: flex;
   align-items: baseline;
+	flex: 1 0 112px;
   gap: 8px;
   min-width: 0;
   padding: 0 16px;
@@ -230,6 +231,19 @@
   color: var(--sip-muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.sip-summary-label {
+	display: grid;
+	gap: 1px;
+}
+
+.sip-summary-label small {
+	color: var(--sip-muted);
+	font-size: 8px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
 }
 
 .sip-summary-months strong {
