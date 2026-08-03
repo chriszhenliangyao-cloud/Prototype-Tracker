@@ -40,7 +40,8 @@ type Workspace = {
 	history: HistoryRow[];
 	lastClosedMonth: string | null;
 	forecastSnapshots: ForecastSnapshot[];
-	lastClosingBackup: ClosingBackup | null;
+	closingBackups: ClosingBackup[];
+	lastClosingBackup?: ClosingBackup | null;
 };
 
 type ForecastSnapshot = {
@@ -677,7 +678,7 @@ export default function SalesInventory() {
 	const [history, setHistory] = useState<HistoryRow[]>(() => clone(initialHistoryRows));
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>(null);
 	const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>(() => clone(initialForecastSnapshots));
-	const [lastClosingBackup, setLastClosingBackup] = useState<ClosingBackup | null>(null);
+	const [closingBackups, setClosingBackups] = useState<ClosingBackup[]>([]);
 	const [loaded, setLoaded] = useState(false);
 	const [modelFilter, setModelFilter] = useState<string[]>([]);
 	const [categoryFilter, setCategoryFilter] = useState("all");
@@ -718,7 +719,9 @@ export default function SalesInventory() {
 					setLastClosedMonth(parsed.lastClosedMonth || null);
 					const storedSnapshots = Array.isArray(parsed.forecastSnapshots) ? parsed.forecastSnapshots : [];
 					setForecastSnapshots(storedSnapshots.length ? storedSnapshots : clone(initialForecastSnapshots));
-					setLastClosingBackup(parsed.lastClosingBackup || null);
+					setClosingBackups(Array.isArray(parsed.closingBackups)
+						? parsed.closingBackups
+						: parsed.lastClosingBackup ? [parsed.lastClosingBackup] : []);
 				}
 			}
 		} catch {
@@ -732,9 +735,9 @@ export default function SalesInventory() {
 
 	useEffect(() => {
 		if (!loaded) return;
-		const workspace: Workspace = { rows, months, history, lastClosedMonth, forecastSnapshots, lastClosingBackup };
+		const workspace: Workspace = { rows, months, history, lastClosedMonth, forecastSnapshots, closingBackups };
 		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace));
-	}, [forecastSnapshots, history, lastClosedMonth, lastClosingBackup, loaded, months, rows]);
+	}, [closingBackups, forecastSnapshots, history, lastClosedMonth, loaded, months, rows]);
 
 	const toggleTheme = () => {
 		const next = theme === "dark" ? "light" : "dark";
@@ -778,7 +781,7 @@ export default function SalesInventory() {
 
 	const closeMonth = (entries: Array<{ model: string; actualSales: number; actualSupply: number }>) => {
 		const closed = months[0];
-		setLastClosingBackup(clone({ rows, months, history, lastClosedMonth, forecastSnapshots, rangeFrom, rangeTo }));
+		setClosingBackups((current) => [...current, clone({ rows, months, history, lastClosedMonth, forecastSnapshots, rangeFrom, rangeTo })]);
 		const savedAt = new Date().toISOString();
 		const futureMonths = months.slice(1, 4);
 		const snapshots = rows.flatMap((row) => {
@@ -828,18 +831,19 @@ export default function SalesInventory() {
 	};
 
 	const undoMonthClosing = () => {
-		if (!lastClosingBackup) return;
-		if (!window.confirm(`Undo the most recent Month Closing and return to ${monthLabel(lastClosingBackup.months[0])}? Changes made after closing will be discarded.`)) return;
-		setRows(clone(lastClosingBackup.rows));
-		setMonths([...lastClosingBackup.months]);
-		setHistory(clone(lastClosingBackup.history));
-		setLastClosedMonth(lastClosingBackup.lastClosedMonth);
-		setForecastSnapshots(clone(lastClosingBackup.forecastSnapshots));
-		setLastClosingBackup(null);
+		const backup = closingBackups.at(-1);
+		if (!backup) return;
+		if (!window.confirm(`Undo the most recent Month Closing and return to ${monthLabel(backup.months[0])}? Changes made after closing will be discarded.`)) return;
+		setRows(clone(backup.rows));
+		setMonths([...backup.months]);
+		setHistory(clone(backup.history));
+		setLastClosedMonth(backup.lastClosedMonth);
+		setForecastSnapshots(clone(backup.forecastSnapshots));
+		setClosingBackups((current) => current.slice(0, -1));
 		setModelFilter([]);
 		setCategoryFilter("all");
-		setRangeFrom(lastClosingBackup.rangeFrom || lastClosingBackup.months[0]);
-		setRangeTo(lastClosingBackup.rangeTo || lastClosingBackup.months.at(-1) || lastClosingBackup.months[0]);
+		setRangeFrom(backup.rangeFrom || backup.months[0]);
+		setRangeTo(backup.rangeTo || backup.months.at(-1) || backup.months[0]);
 	};
 
 	return (
@@ -868,7 +872,7 @@ export default function SalesInventory() {
 								<button className="sip-btn" onClick={beginEdit}>Edit Table</button>
 								<button className="sip-btn" onClick={() => setAddOpen(true)}>＋ Add Product</button>
 								<button className="sip-btn" onClick={() => setArchiveOpen(true)}>Forecast Archive</button>
-								{lastClosingBackup && <button className="sip-btn warning" onClick={undoMonthClosing}>Undo Closing</button>}
+								<button className="sip-btn warning" disabled={closingBackups.length === 0} onClick={undoMonthClosing}>Undo Closing</button>
 								<button className="sip-btn primary" onClick={() => setClosingOpen(true)}>Month Closing</button>
 							</>}
 						</div>
