@@ -748,19 +748,45 @@
 
 .sip-chart-legend i {
   display: inline-block;
-  width: 22px;
-  height: 4px;
-  border-radius: 999px;
+  flex: 0 0 auto;
 }
 
 .sip-chart-legend i.production {
+	position: relative;
+	width: 34px;
+	height: 3px;
+	border-radius: 999px;
 	background: var(--sip-text);
 }
 
+.sip-chart-legend i.production::after {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 8px;
+	height: 8px;
+	border: 2px solid var(--sip-text);
+	border-radius: 50%;
+	background: var(--sip-panel);
+	content: "";
+	transform: translate(-50%, -50%);
+}
+
 .sip-chart-legend i.shipment {
-	height: 10px;
+	width: 13px;
+	height: 20px;
 	border-radius: 3px;
 	background: var(--sip-text);
+}
+
+.sip-chart-legend small {
+	padding: 2px 5px;
+	border-radius: 4px;
+	background: var(--sip-panel-soft);
+	color: var(--sip-muted);
+	font-size: 8px;
+	font-weight: 800;
+	text-transform: uppercase;
 }
 
 .sip-chart-wrap {

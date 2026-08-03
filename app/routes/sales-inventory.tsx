@@ -502,9 +502,9 @@ function InventoryTrend({
 		<section className="sip-trend">
 			<header className="sip-trend-head">
 				<div>
-					<span>SALES &amp; SUPPLY TREND</span>
-					<h3>Supply &amp; Sales Trend</h3>
-					<p>Compare historical actuals with future supply plans and sales forecasts across the selected period.</p>
+					<span>SUPPLY &amp; SHIPMENT TREND</span>
+					<h3>Supply &amp; Shipment Trend</h3>
+					<p>Compare historical actual shipments and supply with future shipment forecasts and supply plans.</p>
 				</div>
 				<div className="sip-filter-controls">
 					<ModelMultiSelect onChange={setModels} options={modelOptions} selected={models} />
@@ -522,8 +522,8 @@ function InventoryTrend({
 				</div>
 			</header>
 			<div className="sip-chart-legend">
-				<span><i className="production" />Supply</span>
-				<span><i className="shipment" />Sales</span>
+				<span><i className="production" />Supply <small>Line</small></span>
+				<span><i className="shipment" />Shipment <small>Bar</small></span>
 			</div>
 			<div className="sip-chart-wrap">
 				{series.length === 0 || chartMonths.length === 0 ? <div className="sip-chart-empty">No data in the selected range.</div> : (
