@@ -19,6 +19,14 @@
   the previous recovery point.
 - Each Undo restores one month, including Planning rows, History, Forecast
   Archive, filters' date range, and the previous closed-month label.
+- Undo applies immediately without a browser confirmation dialog so it remains
+  reliable in local and hosted preview environments.
 - Undo can be repeated to return through multiple locally closed months.
+- For months closed before the multi-level recovery stack was introduced, the
+  previous Planning state is reconstructed from the closed month's History so
+  legacy test data can still be undone one month at a time.
+- `Aug Open / Jul Closed` can always return to the explicit July Mock Data
+  baseline even when an older browser workspace does not contain a complete
+  July History recovery record.
 - When no earlier recovery point exists, the button remains visible but is
   disabled.

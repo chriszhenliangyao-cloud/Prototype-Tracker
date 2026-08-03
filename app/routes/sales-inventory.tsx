@@ -692,6 +692,53 @@ export default function SalesInventory() {
 	const [archiveOpen, setArchiveOpen] = useState(false);
 	const [theme, setTheme] = useState<string | null>(null);
 	const [error, setError] = useState("");
+	const availableClosingBackups = Array.isArray(closingBackups)
+		? closingBackups
+		: closingBackups ? [closingBackups as unknown as ClosingBackup] : [];
+	const inferredClosingBackup = (() => {
+		if (!lastClosedMonth || nextMonth(lastClosedMonth) !== months[0]) return null;
+		if (lastClosedMonth === initialPlanningMonths[0]) {
+			return {
+				rows: clone(initialPlanningRows),
+				months: [...initialPlanningMonths],
+				history: clone(initialHistoryRows),
+				lastClosedMonth: null,
+				forecastSnapshots: clone(initialForecastSnapshots),
+				rangeFrom: initialPlanningMonths[0],
+				rangeTo: initialPlanningMonths.at(-1) || initialPlanningMonths[0],
+			} satisfies ClosingBackup;
+		}
+		const closedHistory = history.filter((item) => item.month === lastClosedMonth);
+		if (!closedHistory.length) return null;
+		const previousMonths = [lastClosedMonth, ...months.slice(0, 3)];
+		const previousHistory = history.filter((item) => item.month !== lastClosedMonth);
+		const previousClosedMonth = lastClosedMonth === initialPlanningMonths[0]
+			? null
+			: [...new Set(previousHistory.map((item) => item.month))].filter((month) => month < lastClosedMonth).sort().at(-1) || null;
+		const previousRows = rows.map((row) => {
+			const result = closedHistory.find((item) => item.model === row.model);
+			if (!result) return row;
+			const restoredMonths = {
+				...row.months,
+				[lastClosedMonth]: { forecast: result.forecast, supply: result.supplyPlan },
+			};
+			return {
+				...row,
+				inventory: result.beginningInventory,
+				months: Object.fromEntries(previousMonths.map((month) => [month, restoredMonths[month] || { forecast: 0, supply: 0 }])),
+			};
+		});
+		return {
+			rows: previousRows,
+			months: previousMonths,
+			history: previousHistory,
+			lastClosedMonth: previousClosedMonth,
+			forecastSnapshots: forecastSnapshots.filter((item) => item.archiveMonth !== lastClosedMonth),
+			rangeFrom: previousMonths[0],
+			rangeTo: previousMonths.at(-1) || previousMonths[0],
+		} satisfies ClosingBackup;
+	})();
+	const undoBackup = availableClosingBackups.at(-1) || inferredClosingBackup;
 
 	useEffect(() => {
 		try {
@@ -781,7 +828,7 @@ export default function SalesInventory() {
 
 	const closeMonth = (entries: Array<{ model: string; actualSales: number; actualSupply: number }>) => {
 		const closed = months[0];
-		setClosingBackups((current) => [...current, clone({ rows, months, history, lastClosedMonth, forecastSnapshots, rangeFrom, rangeTo })]);
+		setClosingBackups([...availableClosingBackups, clone({ rows, months, history, lastClosedMonth, forecastSnapshots, rangeFrom, rangeTo })]);
 		const savedAt = new Date().toISOString();
 		const futureMonths = months.slice(1, 4);
 		const snapshots = rows.flatMap((row) => {
@@ -831,15 +878,14 @@ export default function SalesInventory() {
 	};
 
 	const undoMonthClosing = () => {
-		const backup = closingBackups.at(-1);
+		const backup = undoBackup;
 		if (!backup) return;
-		if (!window.confirm(`Undo the most recent Month Closing and return to ${monthLabel(backup.months[0])}? Changes made after closing will be discarded.`)) return;
 		setRows(clone(backup.rows));
 		setMonths([...backup.months]);
 		setHistory(clone(backup.history));
 		setLastClosedMonth(backup.lastClosedMonth);
 		setForecastSnapshots(clone(backup.forecastSnapshots));
-		setClosingBackups((current) => current.slice(0, -1));
+		if (availableClosingBackups.length) setClosingBackups(availableClosingBackups.slice(0, -1));
 		setModelFilter([]);
 		setCategoryFilter("all");
 		setRangeFrom(backup.rangeFrom || backup.months[0]);
@@ -872,7 +918,7 @@ export default function SalesInventory() {
 								<button className="sip-btn" onClick={beginEdit}>Edit Table</button>
 								<button className="sip-btn" onClick={() => setAddOpen(true)}>＋ Add Product</button>
 								<button className="sip-btn" onClick={() => setArchiveOpen(true)}>Forecast Archive</button>
-								<button className="sip-btn warning" disabled={closingBackups.length === 0} onClick={undoMonthClosing}>Undo Closing</button>
+								<button className="sip-btn warning" disabled={!undoBackup} onClick={undoMonthClosing}>Undo Closing</button>
 								<button className="sip-btn primary" onClick={() => setClosingOpen(true)}>Month Closing</button>
 							</>}
 						</div>
