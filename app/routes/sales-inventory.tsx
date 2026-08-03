@@ -421,15 +421,20 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 		return bCount - aCount || b.localeCompare(a);
 	})[0] || "";
 	const [forecastMonth, setForecastMonth] = useState(defaultForecastMonth);
-	const availableArchives = [...new Set(snapshots.filter((item) => item.forecastMonth === forecastMonth).map((item) => item.archiveMonth))].sort();
+	const availableArchives = [...new Set([...snapshots.filter((item) => item.forecastMonth === forecastMonth).map((item) => item.archiveMonth), currentMonth])].sort();
+	const toOptionsFor = (from: string, archives = availableArchives) => {
+		const secondFollowingMonth = nextMonth(nextMonth(from));
+		return archives.filter((month) => month > from && month <= secondFollowingMonth);
+	};
 	const [fromArchive, setFromArchive] = useState(availableArchives[0] || "");
-	const [toArchive, setToArchive] = useState(availableArchives.at(-1) || "");
+	const [toArchive, setToArchive] = useState(toOptionsFor(availableArchives[0] || "").at(-1) || "");
 	const [selectedModel, setSelectedModel] = useState("all");
 	const chooseForecastMonth = (value: string) => {
-		const archives = [...new Set(snapshots.filter((item) => item.forecastMonth === value).map((item) => item.archiveMonth))].sort();
+		const archives = [...new Set([...snapshots.filter((item) => item.forecastMonth === value).map((item) => item.archiveMonth), currentMonth])].sort();
+		const from = archives[0] || "";
 		setForecastMonth(value);
-		setFromArchive(archives[0] || "");
-		setToArchive(archives.at(-1) || "");
+		setFromArchive(from);
+		setToArchive(toOptionsFor(from, archives).at(-1) || "");
 		setSelectedModel("all");
 	};
 	const currentEntries: ForecastSnapshot[] = rows.flatMap((row) => {
@@ -440,7 +445,7 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 	});
 	const inRange = [
 		...snapshots.filter((item) => item.forecastMonth === forecastMonth && item.archiveMonth >= fromArchive && item.archiveMonth <= toArchive && item.archiveMonth !== currentMonth),
-		...currentEntries,
+		...(currentMonth > fromArchive && currentMonth <= toArchive ? currentEntries : []),
 	];
 	const groups = [...new Set(inRange.map((item) => item.model))].sort()
 		.map((model) => ({ model, entries: inRange.filter((item) => item.model === model).sort((a, b) => a.archiveMonth.localeCompare(b.archiveMonth)) }))
@@ -463,8 +468,8 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 				<div className="sip-archive-filters">
 					<label>Forecast Month<select value={forecastMonth} onChange={(event) => chooseForecastMonth(event.target.value)}>{forecastMonths.map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
 					<label>Model<select value={selectedModel} onChange={(event) => setSelectedModel(event.target.value)}><option value="all">All Models</option>{models.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
-					<label>From Archive<select value={fromArchive} onChange={(event) => { const value = event.target.value; setFromArchive(value); if (value > toArchive) setToArchive(value); setSelectedModel("all"); }}>{availableArchives.filter((month) => month <= toArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
-					<label>To Archive<select value={toArchive} onChange={(event) => { setToArchive(event.target.value); setSelectedModel("all"); }}>{availableArchives.filter((month) => month >= fromArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>From Archive<select value={fromArchive} onChange={(event) => { const value = event.target.value; const options = toOptionsFor(value); setFromArchive(value); setToArchive(options.at(-1) || ""); setSelectedModel("all"); }}>{availableArchives.filter((month) => toOptionsFor(month).length > 0).map((month) => <option key={month} value={month}>{monthLabel(month)}</option>)}</select></label>
+					<label>To Archive<select value={toArchive} onChange={(event) => { setToArchive(event.target.value); setSelectedModel("all"); }}>{toOptionsFor(fromArchive).map((month) => <option key={month} value={month}>{monthLabel(month)}{month === currentMonth ? " · Current" : ""}</option>)}</select></label>
 				</div>
 				<div className="sip-archive-legend"><span><i className="shipment" />Shipment Forecast</span><span><i className="supply" />Supply Plan</span><span><i className="risk" />Forecast above supply</span></div>
 				{groups.length === 0 ? <div className="sip-archive-empty compact"><strong>No forecast changes in this range</strong><span>Models with an unchanged Shipment Forecast are hidden. Select a wider archive range after another Month Closing to review changes.</span></div> : detail ? <div className="sip-archive-detail">

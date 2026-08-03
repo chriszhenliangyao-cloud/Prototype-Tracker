@@ -12,6 +12,9 @@
 - The selected forecast month also appends the current live Planning values as
   a clearly labelled `Current` point after the archived months. This live point
   is for comparison only and does not create or overwrite an archive snapshot.
+- `To Archive` only offers the first and second month following the selected
+  `From Archive`. For example, selecting July offers August and September; the
+  current live month is included as an option and labelled `Current`.
 - This seed does not change the current planning month, Planning data, History,
   Month Closing state, or any module outside Sales & Inventory.
 - `All Models` begins with a compact Forecast Changes table containing every
