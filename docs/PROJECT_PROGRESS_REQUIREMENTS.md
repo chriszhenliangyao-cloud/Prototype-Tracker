@@ -4,10 +4,13 @@
 
 - The planning table section is titled `Sales & Inventory Overview`.
 - Its description explains that the selected period combines historical actuals, future sales forecasts, supply plans, and projected inventory.
-- Planning-month and planning-total table headers use `Forecast Demand` instead of `Forecast`.
+- Planning-month and planning-total table headers use `Shipment Forecast` instead of `Forecast`.
 - The trend section is titled `Supply & Sales Trend` with the eyebrow `SALES & SUPPLY TREND`.
 - Its description explains that the chart compares historical actuals with future supply plans and sales forecasts.
 - The trend legend uses the neutral labels `Supply` and `Sales` because the chart can include both historical and future months.
+- Each product uses one consistent, accessible color across its Supply line and Sales bars.
+- Supply and Sales remain distinguishable by geometry: Supply is a line and Sales is a bar.
+- Marker shapes, line dashes, and bar textures remain as secondary identifiers, while legend hover/focus highlights one product and dims the others.
 
 ## Task completion
 

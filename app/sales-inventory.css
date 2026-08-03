@@ -743,13 +743,13 @@
 }
 
 .sip-chart-legend i.production {
-  background: #079669;
+	background: var(--sip-text);
 }
 
 .sip-chart-legend i.shipment {
-  height: 10px;
-  border-radius: 3px;
-  background: #2563eb;
+	height: 10px;
+	border-radius: 3px;
+	background: var(--sip-text);
 }
 
 .sip-chart-wrap {
@@ -815,14 +815,19 @@
 }
 
 .sip-product-key-line {
-  stroke: #079669;
-  stroke-width: 2.5;
+	stroke: currentColor;
+	stroke-width: 2.5;
 }
 
 .sip-product-key-point {
-  fill: var(--sip-panel);
-  stroke: #079669;
-  stroke-width: 2;
+	fill: var(--sip-panel);
+	stroke: currentColor;
+	stroke-width: 2;
+}
+
+.sip-product-key-bar {
+	fill: currentColor;
+	opacity: 0.72;
 }
 
 .sip-chart-limit {
