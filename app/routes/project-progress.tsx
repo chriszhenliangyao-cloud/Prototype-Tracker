@@ -93,7 +93,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 			);
 		} else if (intent === "project-edit") {
 			const payload = JSON.parse(String(form.get("payload") || "{}"));
-			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks, payload.ddlChangeSourceStage);
+			await updateGtmProject(context.cloudflare.env, payload.productId, payload.stages, payload.tasks, payload.ddlChangeSourceStage, !!payload.shiftDownstream);
 		} else if (intent === "excel-import") {
 			const payload = JSON.parse(String(form.get("payload") || "{}")) as GtmExcelImport;
 			const imported = await importGtmWorkbook(context.cloudflare.env, payload);
@@ -103,6 +103,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 				context.cloudflare.env,
 				String(form.get("id") || ""),
 				String(form.get("delayed_until") || ""),
+				String(form.get("shift_downstream") || "") === "true",
 				String(form.get("notes") || ""),
 			);
 		} else if (intent === "delay-delete") {
@@ -644,6 +645,7 @@ function DelayRecordRow({ record, delayNumber }: { record: GtmDelayRecord; delay
 					<input name="id" type="hidden" value={record.id} />
 					<span>{record.original_deadline || "Not set"} →</span>
 					<input aria-label="Delayed Until" name="delayed_until" type="date" defaultValue={record.delayed_until || ""} />
+					<label className="gtm-delay-shift"><input name="shift_downstream" type="checkbox" value="true" />Shift downstream dates</label>
 				</fetcher.Form>
 			</td>
 			<td><span className="gtm-delay-mass-impact">{record.schedule_impact || "No change"}</span></td>
@@ -732,16 +734,35 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 	const [draftStages, setDraftStages] = useState(stages.map((stage) => ({ ...stage })));
 	const [draftTasks, setDraftTasks] = useState(tasks.map((task) => ({ ...task })));
 	const [ddlChangeSourceStage, setDdlChangeSourceStage] = useState<GtmStageName | null>(null);
+	const [shiftDownstream, setShiftDownstream] = useState(false);
 	const fetcher = useFetcher();
 
 	function resetDraft() {
 		setDraftStages(stages.map((stage) => ({ ...stage })));
 		setDraftTasks(tasks.map((task) => ({ ...task })));
 		setDdlChangeSourceStage(null);
+		setShiftDownstream(false);
 	}
 	function updateStageDeadline(stageName: GtmStageName, deadline: string) {
 		setDdlChangeSourceStage(stageName);
-		setDraftStages((items) => cascadeGtmStageDeadlines(items, stageName, deadline));
+		setShiftDownstream(false);
+		setDraftStages((items) => items.map((item) => {
+			if (item.stage_name === stageName) return { ...item, deadline: deadline || null };
+			return { ...item, deadline: stages.find((stage) => stage.stage_name === item.stage_name)?.deadline || null };
+		}));
+	}
+	function setDownstreamMode(shift: boolean) {
+		setShiftDownstream(shift);
+		if (!ddlChangeSourceStage) return;
+		const sourceDeadline = draftStages.find((stage) => stage.stage_name === ddlChangeSourceStage)?.deadline || "";
+		if (shift) {
+			setDraftStages((items) => cascadeGtmStageDeadlines(items, ddlChangeSourceStage, sourceDeadline));
+			return;
+		}
+		const sourceIndex = GTM_STAGES.indexOf(ddlChangeSourceStage);
+		setDraftStages((items) => items.map((item) => GTM_STAGES.indexOf(item.stage_name) > sourceIndex
+			? { ...item, deadline: stages.find((stage) => stage.stage_name === item.stage_name)?.deadline || null }
+			: item));
 	}
 	function updateTask(id: string, patch: Partial<GtmTask>) {
 		setDraftTasks((items) => items.map((task) => task.id === id ? { ...task, ...patch } : task));
@@ -763,6 +784,7 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 			productId: product.id,
 			stages: draftStages.map((stage) => ({ id: stage.id, deadline: stage.deadline || "" })),
 			ddlChangeSourceStage,
+			shiftDownstream,
 			tasks: draftTasks.map(({ id, stage_name, task_name, owner_role, prototype_type, is_completed, sort_order }) =>
 				({ id, stage_name, task_name, owner_role, prototype_type, is_completed, sort_order })),
 		});
@@ -770,7 +792,8 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 			<fetcher.Form method="post" className="gtm-project-editor" onSubmit={() => setEditing(false)}>
 				<input name="intent" type="hidden" value="project-edit" />
 				<input name="payload" type="hidden" value={payload} />
-				<p className="gtm-ddl-rule">Temporary DDL rule: stages are spaced {GTM_STAGE_GAP_DAYS} days apart. Changing one Stage DDL automatically recalculates every later Stage.</p>
+				<p className="gtm-ddl-rule">Temporary DDL rule: stages are spaced {GTM_STAGE_GAP_DAYS} days apart. Downstream dates stay fixed unless you explicitly choose to shift them.</p>
+				{ddlChangeSourceStage && <fieldset className="gtm-ddl-impact"><legend>Downstream impact</legend><label><input checked={!shiftDownstream} name={`impact-${product.id}`} onChange={() => setDownstreamMode(false)} type="radio" />Keep downstream dates <small>Default · absorb this delay</small></label><label><input checked={shiftDownstream} name={`impact-${product.id}`} onChange={() => setDownstreamMode(true)} type="radio" />Shift downstream dates <small>Apply the 7-day stage rule</small></label></fieldset>}
 				<div className="gtm-editor-grid">
 					{GTM_STAGES.map((stageName) => {
 						const stage = draftStages.find((item) => item.stage_name === stageName);

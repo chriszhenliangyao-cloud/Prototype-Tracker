@@ -35,6 +35,12 @@ export function cascadeGtmStageDeadlines<T extends { stage_name: GtmStageName; d
 	});
 }
 
+function massProductionImpactLabel(previous: string | null, next: string | null) {
+	return previous === next
+		? `No impact · Remains ${next || "Not set"}`
+		: `${previous || "Not set"} → ${next || "Not set"}`;
+}
+
 export interface GtmProduct {
 	id: string;
 	model: string;
@@ -558,6 +564,7 @@ export async function updateGtmDelayRecord(
 	env: Env,
 	id: string,
 	delayedUntil: string,
+	shiftDownstream: boolean,
 	notes: string,
 ) {
 	if (!id.trim()) throw new Error("Delay record id is required");
@@ -578,15 +585,16 @@ export async function updateGtmDelayRecord(
 	const stageName = GTM_STAGES.find((stage) => stage === record.stage_name);
 	const normalizedDeadline = delayedUntil || "";
 	const deadlineChanged = normalizedDeadline !== (record.delayed_until || "");
-	const normalizedStages = stageName && normalizedDeadline && deadlineChanged
-		? cascadeGtmStageDeadlines(stages.results, stageName, normalizedDeadline)
+	const sourceUpdatedStages = stageName && deadlineChanged
+		? stages.results.map((stage) => stage.stage_name === stageName ? { ...stage, deadline: normalizedDeadline || null } : stage)
 		: stages.results;
+	const normalizedStages = stageName && normalizedDeadline && deadlineChanged && shiftDownstream
+		? cascadeGtmStageDeadlines(sourceUpdatedStages, stageName, normalizedDeadline)
+		: sourceUpdatedStages;
 	const previousMassDeadline = stages.results.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
 	const nextMassDeadline = normalizedStages.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
 	const massProductionImpact = deadlineChanged
-		? previousMassDeadline === nextMassDeadline
-			? "No change"
-			: `${previousMassDeadline || "Not set"} → ${nextMassDeadline || "Not set"}`
+		? massProductionImpactLabel(previousMassDeadline, nextMassDeadline)
 		: record.schedule_impact;
 	const statements = [
 		env.DB.prepare(
@@ -633,6 +641,7 @@ export async function updateGtmProject(
 		sort_order: number;
 	}>,
 	ddlChangeSourceStage?: GtmStageName,
+	shiftDownstream = false,
 ) {
 	const existing = await env.DB.prepare(
 		"SELECT id, task_name, owner_role, is_completed FROM gtm_project_task WHERE product_id=?",
@@ -664,12 +673,17 @@ export async function updateGtmProject(
 	}));
 	const sourceStage = ddlChangeSourceStage && GTM_STAGES.includes(ddlChangeSourceStage) ? ddlChangeSourceStage : undefined;
 	const sourceDeadline = namedStages.find((stage) => stage.stage_name === sourceStage)?.deadline || "";
-	const normalizedStages = sourceStage ? cascadeGtmStageDeadlines(namedStages, sourceStage, sourceDeadline) : namedStages;
+	const sourceOnlyStages = sourceStage ? namedStages.map((stage) => {
+		if (stage.stage_name === sourceStage) return stage;
+		const previous = existingStages.results.find((item) => item.id === stage.id);
+		return { ...stage, deadline: previous?.deadline || null };
+	}) : namedStages;
+	const normalizedStages = sourceStage && shiftDownstream
+		? cascadeGtmStageDeadlines(sourceOnlyStages, sourceStage, sourceDeadline)
+		: sourceOnlyStages;
 	const previousMassDeadline = existingStages.results.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
 	const nextMassDeadline = normalizedStages.find((stage) => stage.stage_name === "Mass Production")?.deadline || null;
-	const massProductionImpact = previousMassDeadline === nextMassDeadline
-		? "No change"
-		: `${previousMassDeadline || "Not set"} → ${nextMassDeadline || "Not set"}`;
+	const massProductionImpact = massProductionImpactLabel(previousMassDeadline, nextMassDeadline);
 	const recordStages = sourceStage ? normalizedStages.filter((stage) => stage.stage_name === sourceStage) : normalizedStages;
 	const ddlChangeRecords = recordStages.flatMap((stage, index) => {
 		const previous = existingStages.results.find((item) => item.id === stage.id);

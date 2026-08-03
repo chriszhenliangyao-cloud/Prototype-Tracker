@@ -110,8 +110,9 @@
 - The table combines Stage and Task Name as `Delay Item`, combines the old and
   new dates as `DDL Change`, and includes a read-only `Mass Production` column.
 - `Mass Production` shows the Mass Production DDL impact caused by the Stage
-  DDL change in the form `previous date → recalculated date`; it shows
-  `No change` when the edited Stage does not move Mass Production.
+  DDL change in the form `previous date → recalculated date`. When the delay is
+  absorbed without moving downstream dates, it shows
+  `No impact · Remains YYYY-MM-DD`.
 - A Delay Record is created only when a task is incomplete and its stage DDL
   has been reached or passed.
 - Once created, a Delay Record remains in history even if the task is later
@@ -121,9 +122,9 @@
 - Confirmed deletion removes the record from the UI and prevents the automatic
   delay synchronizer from recreating it.
 - Edit mode allows changes only to `Delayed Until` and `Notes`.
-- Changing `Delayed Until` applies the same temporary seven-day cascade from
-  that Delay Record's Stage through every later Stage and recalculates the
-  read-only Mass Production impact.
+- Changing `Delayed Until` keeps downstream Stage DDLs fixed by default. An
+  explicit `Shift downstream dates` checkbox applies the temporary seven-day
+  cascade and recalculates the read-only Mass Production impact.
 - Saving Notes without changing `Delayed Until` preserves the previously
   calculated Mass Production impact.
 - `Save` persists the changes; `Cancel` discards unsaved changes.
@@ -131,8 +132,9 @@
   and are not submitted as editable values.
 - Editing only Notes does not change project tasks, stage deadlines, materials,
   prototype requirements, or ProtoTrack sample data. Editing `Delayed Until`
-  changes only this product's Project Progress Stage DDLs under the cascade
-  rule; other modules and source data remain untouched.
+  changes only this product's Project Progress Stage DDLs, following the
+  selected downstream-impact option; other modules and source data remain
+  untouched.
 
 ## Temporary Stage DDL back-planning rule
 
@@ -143,14 +145,20 @@
   `Launch - 14 days`, Mass Production `Launch - 7 days`, and Launch `0 days`.
 - Newly created Project Progress products receive these calculated Stage DDLs
   automatically from their Launch Date.
-- In the Project editor, changing one Stage DDL recalculates every later Stage
-  immediately using the seven-day interval. Earlier stages are not changed.
-- The same cascade is enforced by the server when the project is saved so a
-  client payload cannot bypass the downstream calculation.
+- In the Project editor, changing one Stage DDL displays two downstream-impact
+  choices. `Keep downstream dates` is selected by default so available buffer
+  absorbs the delay and every other Stage retains its saved DDL.
+- Selecting `Shift downstream dates` recalculates every later Stage using the
+  seven-day interval. Earlier stages are not changed.
+- The server enforces the selected behavior when the project is saved. In the
+  default keep mode, a client payload cannot move unrelated Stage DDLs; in
+  shift mode, the server applies the downstream calculation itself.
 - A yellow helper message in edit mode identifies this as a temporary rule.
 - Only the manually edited source Stage creates a `Stage DDL Change` Delay
   Record; automatically shifted downstream stages do not create duplicate
   records.
+- Restoring a downstream date is unnecessary in keep mode and therefore does
+  not create a compensating Delay Record.
 - The Delay Record stores the resulting Mass Production DDL change for future
   review.
 - This temporary interval is isolated to Project Progress and can later be
