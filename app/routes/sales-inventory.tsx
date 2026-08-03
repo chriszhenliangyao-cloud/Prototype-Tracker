@@ -487,19 +487,17 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 						})}</tbody>
 					</table></div>
 				</div> : <><section className="sip-archive-ranking" aria-labelledby="sip-archive-ranking-title">
-					<div className="sip-archive-ranking-title"><div><strong id="sip-archive-ranking-title">Forecast Change Ranking</strong><span>Sorted by absolute Shipment Forecast change · largest first</span></div><small>{rankedGroups.length} changed models</small></div>
+					<div className="sip-archive-ranking-title"><div><strong id="sip-archive-ranking-title">Forecast Changes</strong><span>Largest forecast changes first</span></div><small>{rankedGroups.length} changed models</small></div>
 					<div className="sip-archive-ranking-scroll"><table>
-						<thead><tr><th>Rank</th><th>Model / Product</th><th>Previous Forecast</th><th>Latest Forecast</th><th>Forecast Change</th><th>Latest Supply</th><th>Latest Gap</th></tr></thead>
+						<thead><tr><th>Model / Product</th><th>Shipment Forecast</th><th>Change</th><th>Current Supply</th><th>Supply Gap</th></tr></thead>
 						<tbody>{rankedGroups.map(({ model, entries }, index) => {
 							const first = entries[0];
 							const last = entries.at(-1)!;
 							const change = last.shipmentForecast - first.shipmentForecast;
 							const gap = last.supplyPlan - last.shipmentForecast;
 							return <tr key={model}>
-								<td>{index + 1}</td>
-								<td><button onClick={() => setSelectedModel(model)}><strong>{model}</strong><small>{first.product}</small></button></td>
-								<td>{formatNumber(first.shipmentForecast)}<small>{first.isCurrent ? `${monthShortLabel(first.archiveMonth)} current` : `${monthShortLabel(first.archiveMonth)} archive`}</small></td>
-								<td>{formatNumber(last.shipmentForecast)}<small>{last.isCurrent ? `${monthShortLabel(last.archiveMonth)} current` : `${monthShortLabel(last.archiveMonth)} archive`}</small></td>
+								<td><button onClick={() => setSelectedModel(model)}><strong>{index + 1}. {model}</strong><small>{first.product}</small></button></td>
+								<td>{formatNumber(first.shipmentForecast)} → {formatNumber(last.shipmentForecast)}<small>{monthShortLabel(first.archiveMonth)} → {last.isCurrent ? "Current" : monthShortLabel(last.archiveMonth)}</small></td>
 								<td className={change > 0 ? "up" : change < 0 ? "down" : ""}>{signed(change)}</td>
 								<td>{formatNumber(last.supplyPlan)}</td>
 								<td className={gap < 0 ? "risk" : "safe"}>{signed(gap)}</td>
@@ -515,7 +513,7 @@ function ForecastArchiveModal({ snapshots, rows, currentMonth, onClose }: { snap
 					return <button className="sip-archive-row" key={model} onClick={() => setSelectedModel(model)}>
 						<span className="identity"><strong>{model}</strong><small>{first.product}</small></span>
 						<SnapshotTrend entries={entries} />
-						<span className="changes compact"><span><em>Forecast Δ</em><b className={shipmentChange > 0 ? "up" : shipmentChange < 0 ? "down" : ""}>{signed(shipmentChange)}</b></span><span><em>Supply Δ</em><b>{signed(supplyChange)}</b></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Latest Gap</em><b>{signed(latestGap)}</b></span></span>
+						<span className="changes compact"><small>{monthShortLabel(first.archiveMonth)} → {last.isCurrent ? "Current" : monthShortLabel(last.archiveMonth)}</small><span><em>Forecast change</em><b className={shipmentChange > 0 ? "up" : shipmentChange < 0 ? "down" : ""}>{signed(shipmentChange)}</b></span><span><em>Supply change</em><b>{signed(supplyChange)}</b></span><span className={latestGap < 0 ? "latest-gap risk" : "latest-gap safe"}><em>Current gap</em><b>{signed(latestGap)}</b></span></span>
 					</button>;
 				})}</div></>}
 			</>}

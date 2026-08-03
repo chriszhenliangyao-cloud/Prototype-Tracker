@@ -17,14 +17,17 @@
 - In `All Models`, every visible model combines a mini trend with exact first
   and latest Shipment Forecast and Supply Plan values, their absolute changes,
   and the latest supply gap.
-- `All Models` begins with a Forecast Change Ranking table containing every
+- `All Models` begins with a compact Forecast Changes table containing every
   changed model and sorting by absolute Shipment Forecast change from largest
-  to smallest. It shows previous and latest Forecast, Forecast Change, latest
-  Supply Plan, and latest Gap; the latest value uses current live Planning data
-  when available. Selecting a Model opens its details.
+  to smallest. It uses five columns: Model / Product, the first-to-latest
+  Shipment Forecast pair, Change, Current Supply, and Supply Gap. The latest
+  value uses current live Planning data when available. Selecting a Model opens
+  its details.
 - Each mini trend keeps the chart and reduces its right-hand summary to three
-  decision fields: Forecast change, Supply change, and Latest Gap. Exact first
-  and latest values remain available in the ranking table above.
+  decision fields: Forecast change, Supply change, and Current Gap. The summary
+  explicitly labels its comparison period, such as `May → Current`, and avoids
+  the ambiguous delta symbol. Exact first and latest forecast values remain
+  available in the table above.
 - Selecting one model opens a detailed trend followed by a read-only archive
   table containing Archive Month, Shipment Forecast, Shipment Change, Supply
   Plan, Supply Change, and Gap.

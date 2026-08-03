@@ -1118,12 +1118,11 @@
 .sip-archive-ranking-title strong { font-size: 13px; }
 .sip-archive-ranking-title span,.sip-archive-ranking-title small { color: var(--sip-muted); font-size: 9px; }
 .sip-archive-ranking-scroll { overflow-x: auto; }
-.sip-archive-ranking table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 10px; }
+.sip-archive-ranking table { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 10px; }
 .sip-archive-ranking th { padding: 9px 10px; background: var(--sip-panel-soft); color: var(--sip-muted); text-align: right; text-transform: uppercase; letter-spacing: .025em; font-size: 8.5px; }
-.sip-archive-ranking th:nth-child(1),.sip-archive-ranking th:nth-child(2) { text-align: left; }
+.sip-archive-ranking th:first-child { text-align: left; }
 .sip-archive-ranking td { padding: 10px; border-top: 1px solid var(--sip-border); text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
-.sip-archive-ranking td:first-child { width: 42px; color: var(--sip-muted); text-align: left; }
-.sip-archive-ranking td:nth-child(2) { min-width: 180px; text-align: left; }
+.sip-archive-ranking td:first-child { min-width: 180px; text-align: left; }
 .sip-archive-ranking td small { display: block; margin-top: 2px; color: var(--sip-muted); font-size: 8.5px; font-weight: 500; }
 .sip-archive-ranking td button { display: grid; gap: 2px; border: 0; background: none; padding: 0; color: #047857; text-align: left; font: inherit; cursor: pointer; }
 .sip-archive-ranking td button:hover strong { text-decoration: underline; }
@@ -1166,7 +1165,8 @@
 .sip-archive-row .latest-gap.risk b { color: #dc2626; }
 .sip-archive-row .latest-gap.safe b { color: #047857; }
 .sip-archive-row .changes.compact { align-content: center; gap: 8px; }
-.sip-archive-row .changes.compact > span { grid-template-columns: 72px 1fr; }
+.sip-archive-row .changes.compact > small { justify-self: end; font-size: 9px; font-weight: 800; }
+.sip-archive-row .changes.compact > span { grid-template-columns: 92px 1fr; }
 .sip-archive-row .changes.compact b { justify-self: end; font-size: 13px; }
 .sip-archive-row .changes.compact b.down { color: #047857; }
 
