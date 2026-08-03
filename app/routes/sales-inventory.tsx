@@ -712,12 +712,12 @@ export default function SalesInventory() {
 									])}
 									{["FCST 1st", "Mass 1st", "Gap"].map((heading) => <th className="sip-group-first" key={heading}>{heading}</th>)}
 									{visiblePlanningMonths.flatMap((month) => [
-										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-f`}>Forecast</th>,
+										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-f`}>Forecast Demand</th>,
 										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-s`}>Supply Plan</th>,
 										<th className={month === months[0] ? "sip-group-current" : "sip-group-month"} key={`${month}-e`}>Projected On Hand</th>,
 									])}
 									{visiblePlanningMonths.length > 0 && <>
-										<th className="sip-group-total">Forecast</th>
+									<th className="sip-group-total">Forecast Demand</th>
 										<th className="sip-group-total">Supply Plan</th>
 									</>}
 								</tr>
