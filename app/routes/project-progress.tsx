@@ -800,7 +800,7 @@ function Pipeline({ product, stages, tasks, onTaskToggle, onOpenSample, onOpenMa
 						const stageTasks = draftTasks.filter((task) => task.stage_name === stageName);
 						return <div className="gtm-editor-stage" key={stageName}>
 							<b>{stageName}</b>
-							<label>DDL<input type="date" value={stage?.deadline || ""} onChange={(e) => updateStageDeadline(stageName, e.target.value)} /></label>
+							<label>DDL<input disabled={stageName === "Launch"} title={stageName === "Launch" ? "Launch Date is fixed" : undefined} type="date" value={stage?.deadline || ""} onChange={(e) => updateStageDeadline(stageName, e.target.value)} /></label>
 							{stageTasks.map((task) => <div className="gtm-editor-task" key={task.id}>
 								<div><input type="checkbox" checked={!!task.is_completed} onChange={(e) => updateTask(task.id, { is_completed: e.target.checked ? 1 : 0 })} /><input value={task.task_name} onChange={(e) => updateTask(task.id, { task_name: e.target.value })} /></div>
 								<select value={task.owner_role} onChange={(e) => updateTask(task.id, { owner_role: e.target.value as GtmTask["owner_role"] })}><option value="PRODUCT">👤 Product</option><option value="MARKETING">📣 Marketing</option><option value="GTM">GTM</option></select>

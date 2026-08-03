@@ -30,6 +30,7 @@ export function cascadeGtmStageDeadlines<T extends { stage_name: GtmStageName; d
 	const changedIndex = GTM_STAGES.indexOf(changedStage);
 	return stages.map((stage) => {
 		const stageIndex = GTM_STAGES.indexOf(stage.stage_name);
+		if (stage.stage_name === "Launch") return stage;
 		if (stageIndex < changedIndex || !deadline) return stage.stage_name === changedStage ? { ...stage, deadline: deadline || null } : stage;
 		return { ...stage, deadline: shiftDate(deadline, (stageIndex - changedIndex) * GTM_STAGE_GAP_DAYS) };
 	});
@@ -585,7 +586,7 @@ export async function updateGtmDelayRecord(
 	const stageName = GTM_STAGES.find((stage) => stage === record.stage_name);
 	const normalizedDeadline = delayedUntil || "";
 	const deadlineChanged = normalizedDeadline !== (record.delayed_until || "");
-	const sourceUpdatedStages = stageName && deadlineChanged
+	const sourceUpdatedStages = stageName && stageName !== "Launch" && deadlineChanged
 		? stages.results.map((stage) => stage.stage_name === stageName ? { ...stage, deadline: normalizedDeadline || null } : stage)
 		: stages.results;
 	const normalizedStages = stageName && normalizedDeadline && deadlineChanged && shiftDownstream
@@ -669,9 +670,11 @@ export async function updateGtmProject(
 	const namedStages = stages.map((stage) => ({
 		...stage,
 		stage_name: existingStages.results.find((item) => item.id === stage.id)?.stage_name as GtmStageName,
-		deadline: stage.deadline || null,
+		deadline: existingStages.results.find((item) => item.id === stage.id)?.stage_name === "Launch"
+			? existingStages.results.find((item) => item.id === stage.id)?.deadline || null
+			: stage.deadline || null,
 	}));
-	const sourceStage = ddlChangeSourceStage && GTM_STAGES.includes(ddlChangeSourceStage) ? ddlChangeSourceStage : undefined;
+	const sourceStage = ddlChangeSourceStage && ddlChangeSourceStage !== "Launch" && GTM_STAGES.includes(ddlChangeSourceStage) ? ddlChangeSourceStage : undefined;
 	const sourceDeadline = namedStages.find((stage) => stage.stage_name === sourceStage)?.deadline || "";
 	const sourceOnlyStages = sourceStage ? namedStages.map((stage) => {
 		if (stage.stage_name === sourceStage) return stage;
