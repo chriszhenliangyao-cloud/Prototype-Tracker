@@ -52,6 +52,29 @@
   three-month window is shown in the Demand–Supply Matrix title and advances
   automatically after Month Closing.
 
+## Trend Analysis
+
+- The Sales & Inventory toolbar provides a `Matrix | Trend` view switch.
+  Matrix remains the default view; both views share Model, Category, Lifecycle,
+  Only Gap, First Batch Only, history status, and the active three-month period.
+- Trend reuses the same 3M Demand, 3M Supply, Net Gap, Worst Month, and Stockout
+  SKU metrics. Selecting Worst Month opens Trend and highlights that heatmap
+  month.
+- Monthly Demand vs Supply displays paired blue Demand and green Supply bars,
+  plus the red Net Gap below a zero line. New-product First Batch events appear
+  below the corresponding month as `FB!`, `FB~`, or `FB✓`.
+- SKU Gap Heatmap uses rows for filtered SKUs and columns for the rolling months.
+  Severe negative gaps are red, mild negative gaps orange, and healthy gaps
+  green. First Batch badges appear only for New SKUs in their first supply month.
+- EOH Risk Trend includes only risk and First Batch SKUs, includes a zero-stock
+  reference line, and does not place all SKUs and measures in one chart.
+- Top Actions from Trend lists the highest-priority Stockout, First Batch Risk,
+  Gap, and Watch exceptions. Selecting a heatmap cell or action switches to
+  Matrix and highlights the matching SKU and month.
+- All Trend values use the same definitions as Matrix: Demand is Shipment
+  Forecast, Supply is Supply Plan, Gap is Supply minus Demand, and EOH is Ending
+  On Hand. Trend continues to use mock/local data only.
+
 ## Rolling Plan Editor
 
 - Edit Plan opens a modal so editing never reduces the matrix workspace.
