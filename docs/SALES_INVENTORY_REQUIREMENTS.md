@@ -58,8 +58,13 @@
   Plan, and a concise planning comment. It supports inline cells, clipboard
   grid paste, Excel/CSV import, and a selected-SKU focus mode without copying
   one SKU's values into other products.
-- Save Draft updates the browser-local Mock workspace. Publish Plan Snapshot
-  also creates a new read-only Forecast Archive snapshot.
+- Save Draft stores a separate browser-local editable draft and does not alter
+  the published values shown in the Demand–Supply Matrix. Reopening Edit Plan
+  resumes that draft and the toolbar indicates that a draft is saved.
+- Publish Plan Snapshot applies the draft to the Demand–Supply Matrix, clears
+  the draft state, and creates a new read-only Forecast Archive snapshot.
+- The Grid Input table header remains frozen while its rows scroll so SKU,
+  Month, Forecast, Supply Plan, and Comment stay visible.
 - Version History provides working Compare, Restore as Draft, and View Log controls in
   the Mock interface. Change Log records SKU, Month, Field, Before, After,
   User, and Time, and excludes unchanged values. The editor also makes the

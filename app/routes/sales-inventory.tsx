@@ -45,6 +45,7 @@ type ForecastSnapshot = {
 
 type Workspace = {
 	rows: PlanningRow[];
+	draftRows?: PlanningRow[] | null;
 	months: string[];
 	history: HistoryRow[];
 	lastClosedMonth: string | null;
@@ -160,7 +161,7 @@ function ClosingModal({ rows, month, onClose, onConfirm }: { rows: PlanningRow[]
 	return <div className="sip-overlay"><section className="sip-modal wide" role="dialog" aria-modal="true"><header><div><h2>Month Closing · {monthLabel(month)}</h2><p>Enter actual shipment and actual supply. Ending inventory recalculates automatically.</p></div><button onClick={onClose}>×</button></header><div className="sip-table-scroll"><table><thead><tr><th>Model</th><th>Actual Shipment</th><th>Actual Supply</th><th>Beginning Inventory</th><th>Ending Inventory</th></tr></thead><tbody>{rows.map((row) => { const item = actuals.find((entry) => entry.model === row.model)!; return <tr key={row.model}><td>{row.model}</td><td><NumberInput label={`${row.model} actual shipment`} value={item.sales} onChange={(value) => update(row.model, "sales", value)} /></td><td><NumberInput label={`${row.model} actual supply`} value={item.supply} onChange={(value) => update(row.model, "supply", value)} /></td><td>{formatNumber(row.inventory)}</td><td>{formatNumber(row.inventory + item.supply - item.sales)}</td></tr>; })}</tbody></table></div><footer><button className="sip-btn" onClick={onClose}>Cancel</button><button className="sip-btn primary" onClick={() => onConfirm(actuals)}>Confirm Closing</button></footer></section></div>;
 }
 
-function PlanEditor({ rows, months, snapshots, revisionLogs, onClose, onSave }: { rows: PlanningRow[]; months: string[]; snapshots: ForecastSnapshot[]; revisionLogs: ChangeLog[]; onClose: () => void; onSave: (rows: PlanningRow[], publish: boolean, logs: ChangeLog[]) => void }) {
+function PlanEditor({ rows, publishedRows, months, snapshots, revisionLogs, onClose, onSave }: { rows: PlanningRow[]; publishedRows: PlanningRow[]; months: string[]; snapshots: ForecastSnapshot[]; revisionLogs: ChangeLog[]; onClose: () => void; onSave: (rows: PlanningRow[], publish: boolean, logs: ChangeLog[]) => void }) {
 	const [draft, setDraft] = useState(() => clone(rows));
 	const [tab, setTab] = useState<"grid" | "versions" | "log">("grid");
 	const [selected, setSelected] = useState(rows[0]?.model || "");
@@ -170,10 +171,10 @@ function PlanEditor({ rows, months, snapshots, revisionLogs, onClose, onSave }: 
 	const fileRef = useRef<HTMLInputElement>(null);
 	const update = (model: string, month: string, field: "forecast" | "supply", value: number) => setDraft((current) => current.map((row) => row.model === model ? { ...row, months: { ...row.months, [month]: { ...row.months[month], [field]: value } } } : row));
 	const logs = useMemo<ChangeLog[]>(() => draft.flatMap((row) => months.flatMap((month) => (["forecast", "supply"] as const).flatMap((field) => {
-		const before = rows.find((item) => item.model === row.model)?.months[month]?.[field] || 0;
+		const before = publishedRows.find((item) => item.model === row.model)?.months[month]?.[field] || 0;
 		const after = row.months[month]?.[field] || 0;
 		return before === after ? [] : [{ model: row.model, month, field: field === "forecast" ? "Shipment Forecast" : "Supply Plan", before, after, user: "Ivy", time: "Now" }];
-	}))), [draft, months, rows]);
+	}))), [draft, months, publishedRows]);
 	const visibleRows = selectedOnly ? draft.filter((row) => row.model === selected) : draft;
 	const archiveMonths = [...new Set(snapshots.map((item) => item.archiveMonth))].sort().reverse();
 	const restoreArchive = (archiveMonth: string) => {
@@ -208,6 +209,7 @@ function AddProductModal({ months, rows, onClose, onAdd }: { months: string[]; r
 
 export default function SalesInventory() {
 	const [rows, setRows] = useState<PlanningRow[]>(() => clone(initialPlanningRows));
+	const [draftRows, setDraftRows] = useState<PlanningRow[] | null>(null);
 	const [months, setMonths] = useState(() => [...initialPlanningMonths]);
 	const [history, setHistory] = useState<HistoryRow[]>(() => clone(initialHistoryRows));
 	const [lastClosedMonth, setLastClosedMonth] = useState<string | null>("2026-07");
@@ -229,10 +231,10 @@ export default function SalesInventory() {
 	const [addOpen, setAddOpen] = useState(false);
 
 	useEffect(() => {
-		try { const value = localStorage.getItem(STORAGE_KEY); if (value) { const stored = JSON.parse(value) as Workspace; if (stored.rows?.length && stored.months?.length === 3) { const savedSnapshots = stored.forecastSnapshots?.length ? stored.forecastSnapshots : clone(seedSnapshots); setRows(stored.rows); setMonths(stored.months); setHistory(stored.history || []); setLastClosedMonth(stored.lastClosedMonth); setSnapshots(savedSnapshots); setRevisionLogs(stored.revisionLogs?.length ? stored.revisionLogs : snapshotRevisionLogs(savedSnapshots)); } } } catch { localStorage.removeItem(STORAGE_KEY); }
+		try { const value = localStorage.getItem(STORAGE_KEY); if (value) { const stored = JSON.parse(value) as Workspace; if (stored.rows?.length && stored.months?.length === 3) { const savedSnapshots = stored.forecastSnapshots?.length ? stored.forecastSnapshots : clone(seedSnapshots); setRows(stored.rows); setDraftRows(stored.draftRows?.length ? stored.draftRows : null); setMonths(stored.months); setHistory(stored.history || []); setLastClosedMonth(stored.lastClosedMonth); setSnapshots(savedSnapshots); setRevisionLogs(stored.revisionLogs?.length ? stored.revisionLogs : snapshotRevisionLogs(savedSnapshots)); } } } catch { localStorage.removeItem(STORAGE_KEY); }
 		setTheme(document.documentElement.getAttribute("data-theme") || "light"); setLoaded(true);
 	}, []);
-	useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows, months, history, lastClosedMonth, forecastSnapshots: snapshots, revisionLogs } satisfies Workspace)); }, [history, lastClosedMonth, loaded, months, revisionLogs, rows, snapshots]);
+	useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows, draftRows, months, history, lastClosedMonth, forecastSnapshots: snapshots, revisionLogs } satisfies Workspace)); }, [draftRows, history, lastClosedMonth, loaded, months, revisionLogs, rows, snapshots]);
 
 	const categories = [...new Set(rows.map((row) => row.category))].sort();
 	const filtered = rows.filter((row) => {
@@ -261,11 +263,11 @@ export default function SalesInventory() {
 		const closed = months[0]; const savedAt = new Date().toISOString();
 		setSnapshots((current) => [...current, ...rows.flatMap((row) => months.slice(1).map((month) => ({ archiveMonth: closed, savedAt, model: row.model, product: row.product, category: row.category, forecastMonth: month, shipmentForecast: row.months[month]?.forecast || 0, supplyPlan: row.months[month]?.supply || 0 })))]);
 		const closedRows = rows.map((row) => { const actual = actuals.find((item) => item.model === row.model)!; return { month: closed, model: row.model, product: row.product, category: row.category, forecast: row.months[closed]?.forecast || 0, actualSales: actual.sales, supplyPlan: row.months[closed]?.supply || 0, actualSupply: actual.supply, beginningInventory: row.inventory, endingInventory: row.inventory + actual.supply - actual.sales }; });
-		const added = nextMonth(months.at(-1)!); setHistory((current) => [...current, ...closedRows]); setRows((current) => current.map((row) => ({ ...row, inventory: closedRows.find((item) => item.model === row.model)!.endingInventory, months: { ...row.months, [added]: { forecast: 0, supply: 0 } } }))); setMonths([...months.slice(1), added]); setLastClosedMonth(closed); setClosingOpen(false);
+		const added = nextMonth(months.at(-1)!); setHistory((current) => [...current, ...closedRows]); setRows((current) => current.map((row) => ({ ...row, inventory: closedRows.find((item) => item.model === row.model)!.endingInventory, months: { ...row.months, [added]: { forecast: 0, supply: 0 } } }))); setDraftRows(null); setMonths([...months.slice(1), added]); setLastClosedMonth(closed); setClosingOpen(false);
 	};
 
 	return <div className="sip-app sip-v2-app"><ModeHeader theme={theme} onToggleTheme={() => { const value = theme === "dark" ? "light" : "dark"; setTheme(value); document.documentElement.setAttribute("data-theme", value); }} /><main className="sip-v2-main">
-		<header className="sip-v2-toolbar"><h1>Sales &amp; Inventory</h1><div className="sip-v2-tools"><button className="sip-btn" onClick={() => setHistoryOpen(true)}>↻ Pull History</button><span className="sip-v2-synced">History synced: {monthLabel(lastClosedMonth || "2026-07")} ✓</span><ModelFilter rows={rows} selected={models} onChange={setModels} /><label className="sip-v2-field"><span>Category</span><select value={category} onChange={(event) => setCategory(event.target.value)}><option value="all">All Categories</option>{categories.map((item) => <option key={item} value={item}>{item}</option>)}</select></label><div className="sip-v2-field"><span>Lifecycle</span><div className="sip-v2-segment">{(["All", "New", "Launched"] as const).map((item) => <button className={lifecycle === item ? "active" : ""} onClick={() => setLifecycle(item)} key={item}>{item}</button>)}</div></div><Toggle checked={onlyGap} label="Only Gap" onChange={setOnlyGap} /><Toggle checked={firstBatchOnly} label="First Batch Only" onChange={setFirstBatchOnly} /><button className="sip-btn" onClick={() => setEditorOpen(true)}>Edit Plan</button><button className="sip-btn" onClick={() => setArchiveOpen(true)}>Forecast Archive</button><button className="sip-btn primary" onClick={() => setClosingOpen(true)}>Month Closing</button></div></header>
+		<header className="sip-v2-toolbar"><h1>Sales &amp; Inventory</h1><div className="sip-v2-tools"><button className="sip-btn" onClick={() => setHistoryOpen(true)}>↻ Pull History</button><span className="sip-v2-synced">History synced: {monthLabel(lastClosedMonth || "2026-07")} ✓</span><ModelFilter rows={rows} selected={models} onChange={setModels} /><label className="sip-v2-field"><span>Category</span><select value={category} onChange={(event) => setCategory(event.target.value)}><option value="all">All Categories</option>{categories.map((item) => <option key={item} value={item}>{item}</option>)}</select></label><div className="sip-v2-field"><span>Lifecycle</span><div className="sip-v2-segment">{(["All", "New", "Launched"] as const).map((item) => <button className={lifecycle === item ? "active" : ""} onClick={() => setLifecycle(item)} key={item}>{item}</button>)}</div></div><Toggle checked={onlyGap} label="Only Gap" onChange={setOnlyGap} /><Toggle checked={firstBatchOnly} label="First Batch Only" onChange={setFirstBatchOnly} /><button className={`sip-btn ${draftRows ? "has-draft" : ""}`} onClick={() => setEditorOpen(true)}>Edit Plan{draftRows ? " · Draft saved" : ""}</button><button className="sip-btn" onClick={() => setArchiveOpen(true)}>Forecast Archive</button><button className="sip-btn primary" onClick={() => setClosingOpen(true)}>Month Closing</button></div></header>
 
 		<section className="sip-v2-kpis"><article><span>3M DEMAND</span><strong>{compact(demand)}</strong><small>{shortMonth(months[0])} – {shortMonth(months.at(-1)!)}</small><b className="blue">⌁</b></article><article><span>3M SUPPLY</span><strong>{compact(supply)}</strong><small>{shortMonth(months[0])} – {shortMonth(months.at(-1)!)}</small><b className="green">◇</b></article><article className={supply - demand < 0 ? "danger" : ""}><span>NET GAP</span><strong>{signedCompact(supply - demand)}</strong><small>Supply − Demand</small></article><article className={`worst ${(worst?.supply || 0) - (worst?.demand || 0) < 0 ? "danger" : ""}`}><span>WORST MONTH</span><strong>{worst ? monthLabel(worst.month) : "—"}</strong><em>{worst ? signedCompact(worst.supply - worst.demand) : "—"}</em><small>Gap</small></article><article className={stockouts ? "danger stockout" : "stockout"}><span>STOCKOUT SKU</span><strong>{stockouts}</strong><small>Any in 3M</small><b className="alert" aria-label="Attention">!</b></article></section>
 
@@ -275,7 +277,7 @@ export default function SalesInventory() {
 	</main>
 	{historyOpen && <HistoryModal history={history} snapshots={snapshots} revisionLogs={revisionLogs} syncedMonth={lastClosedMonth || "2026-07"} onClose={() => setHistoryOpen(false)} />}
 	{archiveOpen && <ForecastArchiveModal snapshots={snapshots} onClose={() => setArchiveOpen(false)} />}
-	{editorOpen && <PlanEditor rows={rows} months={months} snapshots={snapshots} revisionLogs={revisionLogs} onClose={() => setEditorOpen(false)} onSave={(next, publish, logs) => { const savedAt = new Date().toISOString(); setRows(next); setRevisionLogs((current) => [...current, ...logs.map((item) => ({ ...item, time: savedAt }))]); if (publish) { setSnapshots((current) => [...current, ...next.flatMap((row) => months.map((month) => ({ archiveMonth: months[0], savedAt, model: row.model, product: row.product, category: row.category, forecastMonth: month, shipmentForecast: row.months[month]?.forecast || 0, supplyPlan: row.months[month]?.supply || 0 })))]); } setEditorOpen(false); }} />}
+	{editorOpen && <PlanEditor rows={draftRows || rows} publishedRows={rows} months={months} snapshots={snapshots} revisionLogs={revisionLogs} onClose={() => setEditorOpen(false)} onSave={(next, publish, logs) => { const savedAt = new Date().toISOString(); if (!publish) { setDraftRows(next); setEditorOpen(false); return; } setRows(next); setDraftRows(null); setRevisionLogs((current) => [...current, ...logs.map((item) => ({ ...item, time: savedAt }))]); setSnapshots((current) => [...current, ...next.flatMap((row) => months.map((month) => ({ archiveMonth: months[0], savedAt, model: row.model, product: row.product, category: row.category, forecastMonth: month, shipmentForecast: row.months[month]?.forecast || 0, supplyPlan: row.months[month]?.supply || 0 })))]); setEditorOpen(false); }} />}
 	{closingOpen && <ClosingModal rows={rows} month={months[0]} onClose={() => setClosingOpen(false)} onConfirm={closeMonth} />}
 	{addOpen && <AddProductModal rows={rows} months={months} onClose={() => setAddOpen(false)} onAdd={(row) => { setRows([...rows, row]); setAddOpen(false); }} />}
 	</div>;
