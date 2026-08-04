@@ -59,6 +59,8 @@
   filter, and a searchable multi-select Model filter. Inline Edit and Paste
   Grid toolbar actions are not shown; values remain directly editable in the
   visible table inputs.
+- Import Excel, Month, and Model controls share the same baseline in the editor
+  toolbar so the action and both filters remain visually aligned.
 - Save Draft stores a separate browser-local editable draft and does not alter
   the published values shown in the Demand–Supply Matrix. Reopening Edit Plan
   resumes that draft and the toolbar indicates that a draft is saved.
