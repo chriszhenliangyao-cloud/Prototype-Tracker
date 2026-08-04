@@ -415,6 +415,11 @@
 }
 .sip-v2-main > .sip-trend .sip-eoh svg { height: 248px; padding: 16px 14px 8px; }
 .sip-v2-main > .sip-trend .sip-eoh .stockout-label { fill: #52688d; font-weight: 700; }
+.sip-v2-main > .sip-trend .sip-eoh .risk-series-line {
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .sip-v2-main > .sip-trend .sip-eoh .point-value {
   font-size: 10px;
   font-weight: 800;

@@ -83,7 +83,10 @@
   `4K`, `2K`, `0`, `−2K`, and `−4K`, so inventory risk remains comparable across
   filters and periods. Point labels use series-specific staggered positions and
   a white text halo so values remain legible near the zero line and at line
-  intersections. It does not place all SKUs and measures in one chart.
+  intersections. Series lines and points are visually lightweight, and the
+  `Stockout line` label sits immediately to the right of the shortened dashed
+  zero line instead of covering plotted values. It does not place all SKUs and
+  measures in one chart.
 - Top Actions from Trend lists the highest-priority Stockout, First Batch Risk,
   Gap, and Watch exceptions. Selecting a heatmap cell or action switches to
   Matrix and highlights the matching SKU and month.
