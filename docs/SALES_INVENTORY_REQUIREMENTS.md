@@ -37,8 +37,8 @@
   Only Gap limits it to SKUs with at least one negative monthly supply gap.
 - Pull History opens read-only Actual Shipment, Actual Supply, Beginning
   Inventory, and Ending Inventory for every available historical month. It
-  supports an All Months view or a single Month filter only; no date-range
-  filter is used. Forecast Archive remains read only.
+  supports a From/To month range rather than exact calendar dates. Forecast
+  Archive remains read only.
 - Pull History contains three read-only views: Monthly Actuals, Forecast
   Snapshots, and Revision Log. These provide the inventory baseline, forecast
   comparison source, monthly-close review, and revision audit trail.
