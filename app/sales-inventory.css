@@ -131,6 +131,94 @@
 @media (max-width: 1500px) { .sip-v2-tools { gap: 5px; }.sip-v2-tools .sip-btn { padding-inline: 7px; font-size: 11px; }.sip-v2-synced { font-size: 9px; }.sip-v2-field > select, .sip-v2-model > summary { min-width: 96px; padding-inline: 8px 20px; font-size: 10px; }.sip-v2-field.period select { min-width: 118px; }.sip-v2-segment button { min-width: 56px; padding-inline: 9px; }.sip-v2-toggle { gap: 4px; font-size: 9px; }.sip-v2-toggle i { width: 27px; }.sip-v2-toggle input:checked + i::after { transform: translateX(9px); }.sip-v2-workspace { grid-template-columns: 320px minmax(0, 1fr); }.sip-v2-main { padding-top: 76px; } }
 @media (max-width: 900px) { .sip-v2-tools { zoom: .72; }.sip-v2-kpis { grid-template-columns: repeat(2, 1fr); }.sip-v2-workspace, .sip-trend { grid-template-columns: 1fr; }.sip-trend-top { display: grid; gap: 12px; }.sip-eoh, .sip-actions { grid-column: auto; }.sip-actions > div { grid-template-columns: 1fr 1fr; }.sip-v2-matrix footer { flex-direction: column; }.sip-v2-exceptions { max-height: 460px; overflow: auto; } }
 
+/* Sales & Inventory trend analysis: dense B2B chart layout and visible event markers. */
+.sip-v2-history-filter .sip-v2-model > div label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.sip-v2-history-filter .sip-v2-model > div input[type="checkbox"] {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.sip-trend {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.sip-demand-chart {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 610px;
+}
+
+.sip-demand-chart footer { order: 1; padding-top: 14px; }
+.sip-demand-chart .sip-bars { order: 2; flex: 1; }
+.sip-demand-chart::after {
+  content: "Units";
+  position: absolute;
+  top: 93px;
+  left: 20px;
+  color: var(--sip-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sip-bars {
+  height: auto;
+  min-height: 490px;
+  padding: 62px 28px 16px;
+  background: repeating-linear-gradient(to bottom, transparent 0 74px, rgba(207, 218, 230, .5) 75px);
+}
+
+.sip-bar-month { grid-template-rows: 245px 1px 92px 30px 34px; }
+.sip-bar-positive { height: 245px; gap: 14px; }
+.sip-bar-positive i { width: 44px; }
+.sip-gap-bar { height: 92px; }
+.sip-gap-bar i { width: 46px; }
+.sip-bar-positive i b, .sip-gap-bar b { font-size: 11px; }
+.sip-bar-month > strong { padding-top: 5px; color: var(--sip-text); font-size: 11px; }
+
+.sip-heatmap { grid-column: 2; grid-row: 1; }
+.sip-eoh { grid-column: 2; grid-row: 2; }
+.sip-actions { grid-column: 1 / -1; grid-row: 3; }
+
+.sip-heatmap td span {
+  background: transparent;
+  color: #fff;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.sip-heatmap td span.risk { background: var(--sip-red); }
+.sip-heatmap td span.watch { background: #f97316; }
+.sip-heatmap td span.ok { background: #087a59; }
+
+.sip-eoh svg { height: 300px; }
+.sip-eoh .grid-line { stroke: var(--sip-border); stroke-width: 1; }
+.sip-eoh .axis-line { stroke: #9aa9bc; stroke-width: 1; }
+.sip-eoh .svg-fb rect { stroke: none; }
+.sip-eoh .svg-fb.risk rect { fill: var(--sip-red); }
+.sip-eoh .svg-fb.watch rect { fill: #f97316; }
+.sip-eoh .svg-fb.ok rect { fill: #087a59; }
+.sip-eoh .svg-fb text { fill: #fff; font-size: 8px; font-weight: 800; }
+
+@media (max-width: 900px) {
+  .sip-demand-chart, .sip-heatmap, .sip-eoh, .sip-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .sip-demand-chart { min-height: 520px; }
+}
+
 .sip-mode-bar {
   position: fixed;
   inset: 0 0 auto 0;

@@ -61,13 +61,16 @@
   SKU metrics. Selecting Worst Month opens Trend and highlights that heatmap
   month.
 - Monthly Demand vs Supply displays paired blue Demand and green Supply bars,
-  plus the red Net Gap below a zero line. New-product First Batch events appear
-  below the corresponding month as `FB!`, `FB~`, or `FB✓`.
+  value labels, chart guides, and the red Net Gap below a clear zero line.
+  New-product First Batch events appear below the corresponding month as
+  compact red `FB!`, orange `FB~`, or green `FB✓` badges.
 - SKU Gap Heatmap uses rows for filtered SKUs and columns for the rolling months.
   Severe negative gaps are red, mild negative gaps orange, and healthy gaps
-  green. First Batch badges appear only for New SKUs in their first supply month.
+  green. First Batch badges appear only for New SKUs in their first supply month
+  and use the same red, orange, and green badge language as Matrix.
 - EOH Risk Trend includes only risk and First Batch SKUs, includes a zero-stock
-  reference line, and does not place all SKUs and measures in one chart.
+  reference line, visible axes and grid guides, point values, month labels, and
+  First Batch event badges. It does not place all SKUs and measures in one chart.
 - Top Actions from Trend lists the highest-priority Stockout, First Batch Risk,
   Gap, and Watch exceptions. Selecting a heatmap cell or action switches to
   Matrix and highlights the matching SKU and month.
