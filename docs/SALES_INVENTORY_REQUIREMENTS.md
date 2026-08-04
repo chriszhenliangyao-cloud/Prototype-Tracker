@@ -76,6 +76,9 @@
   selected published snapshot. Restore as Draft copies snapshot values into a
   new editable draft without overwriting the archive. View Log opens the
   revisions associated with that snapshot.
+- Change Log is not a permanent top-level editor tab. It opens contextually
+  inside Version History after View Log is selected, and shows only changes
+  associated with that published snapshot instead of mixing all versions.
 - Month Closing archives actuals, rolls the window forward by one month,
   carries Ending Inventory into the next period, retains the remaining plan,
   and creates the new far month with zero Forecast and Supply.
