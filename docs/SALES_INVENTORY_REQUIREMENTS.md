@@ -81,7 +81,9 @@
   reference line, visible axes and grid guides, point values, month labels, and
   First Batch event badges. Its Y axis is fixed from `4K` to `−4K`, with ticks at
   `4K`, `2K`, `0`, `−2K`, and `−4K`, so inventory risk remains comparable across
-  filters and periods. It does not place all SKUs and measures in one chart.
+  filters and periods. Point labels use series-specific staggered positions and
+  a white text halo so values remain legible near the zero line and at line
+  intersections. It does not place all SKUs and measures in one chart.
 - Top Actions from Trend lists the highest-priority Stockout, First Batch Risk,
   Gap, and Watch exceptions. Selecting a heatmap cell or action switches to
   Matrix and highlights the matching SKU and month.
