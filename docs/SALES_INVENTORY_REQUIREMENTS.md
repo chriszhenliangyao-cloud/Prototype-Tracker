@@ -36,7 +36,12 @@
 - First Batch Only limits the matrix to New SKUs with a First Batch event.
   Only Gap limits it to SKUs with at least one negative monthly supply gap.
 - Pull History opens read-only Actual Shipment, Actual Supply, Beginning
-  Inventory, and Ending Inventory. Forecast Archive remains read only.
+  Inventory, and Ending Inventory for every available historical month. It
+  supports an All Months view or a single Month filter only; no date-range
+  filter is used. Forecast Archive remains read only.
+- Pull History contains three read-only views: Monthly Actuals, Forecast
+  Snapshots, and Revision Log. These provide the inventory baseline, forecast
+  comparison source, monthly-close review, and revision audit trail.
 
 ## Rolling Plan Editor
 
@@ -49,10 +54,14 @@
   one SKU's values into other products.
 - Save Draft updates the browser-local Mock workspace. Publish Plan Snapshot
   also creates a new read-only Forecast Archive snapshot.
-- Version History provides working Compare, Restore, and View Log controls in
+- Version History provides working Compare, Restore as Draft, and View Log controls in
   the Mock interface. Change Log records SKU, Month, Field, Before, After,
   User, and Time, and excludes unchanged values. The editor also makes the
   read-only Actuals/History and auto-calculated Current Inventory scope clear.
+- Compare renders the differences between the editable draft and the latest
+  selected published snapshot. Restore as Draft copies snapshot values into a
+  new editable draft without overwriting the archive. View Log opens the
+  revisions associated with that snapshot.
 - Month Closing archives actuals, rolls the window forward by one month,
   carries Ending Inventory into the next period, retains the remaining plan,
   and creates the new far month with zero Forecast and Supply.
