@@ -43,13 +43,16 @@
 - Edit Plan opens a modal so editing never reduces the matrix workspace.
 - Shipment Forecast and Supply Plan are editable only for the active three
   months. Current Inventory is derived from history and is not edited here.
-- The editor supports inline cells, clipboard grid paste, Excel/CSV import,
-  and applying one selected SKU's grid to the other Mock rows for testing.
+- The compact editor uses one row per SKU and month, with Forecast, Supply
+  Plan, and a concise planning comment. It supports inline cells, clipboard
+  grid paste, Excel/CSV import, and a selected-SKU focus mode without copying
+  one SKU's values into other products.
 - Save Draft updates the browser-local Mock workspace. Publish Plan Snapshot
   also creates a new read-only Forecast Archive snapshot.
-- Version History provides Compare, Restore, and View Log controls in the Mock
-  interface. Change Log records SKU, Month, Field, Before, After, User, and
-  Time, and excludes unchanged values.
+- Version History provides working Compare, Restore, and View Log controls in
+  the Mock interface. Change Log records SKU, Month, Field, Before, After,
+  User, and Time, and excludes unchanged values. The editor also makes the
+  read-only Actuals/History and auto-calculated Current Inventory scope clear.
 - Month Closing archives actuals, rolls the window forward by one month,
   carries Ending Inventory into the next period, retains the remaining plan,
   and creates the new far month with zero Forecast and Supply.
