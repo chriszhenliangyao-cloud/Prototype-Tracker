@@ -65,11 +65,15 @@
 - Trend reuses the same 3M Demand, 3M Supply, Net Gap, Worst Month, and Stockout
   SKU metrics. Selecting Worst Month opens Trend and highlights that heatmap
   month.
-- Monthly Demand vs Supply displays paired blue Demand and green Supply bars,
-  value labels, chart guides, and the red Net Gap below a clear zero line.
+- Monthly Demand vs Supply displays blue Demand, green Supply, and red Net Gap
+  bars as one ordered group per month. Net Gap sits immediately to the right of
+  Supply and is labelled `Net Gap (S − D)`. The chart includes compact legends,
+  visible X/Y axes, value labels, guides, and a clear zero line.
   New-product First Batch events appear below the corresponding month as
   compact red `FB!`, orange `FB~`, or green `FB✓` badges.
 - SKU Gap Heatmap uses rows for filtered SKUs and columns for the rolling months.
+  Its header contains `Gap (S − D)` plus the Severe, Warning, Healthy, and No
+  Data colour legend; explanatory legends are not repeated below the table.
   Severe negative gaps are red, mild negative gaps orange, and healthy gaps
   green. First Batch badges appear only for New SKUs in their first supply month
   and use the same red, orange, and green badge language as Matrix.
