@@ -35,8 +35,9 @@
   First Batch badge.
 - First Batch Only limits the matrix to New SKUs with a First Batch event.
   Only Gap limits it to SKUs with at least one negative monthly supply gap.
-- Pull History opens read-only Actual Shipment, Actual Supply, Beginning
-  Inventory, and Ending Inventory for every available historical month. It
+- Pull History opens read-only Actual Shipment, Actual Supply, and Ending
+  Inventory for every available historical month. Beginning Inventory remains
+  available to inventory calculations but is not displayed in this table. It
   supports a From/To month range rather than exact calendar dates. Forecast
   Archive remains read only.
 - Pull History contains three read-only views: Monthly Actuals, Forecast
