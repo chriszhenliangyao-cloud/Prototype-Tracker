@@ -42,6 +42,11 @@
 - Pull History contains three read-only views: Monthly Actuals, Forecast
   Snapshots, and Revision Log. These provide the inventory baseline, forecast
   comparison source, monthly-close review, and revision audit trail.
+- Pull History additionally supports a searchable Model filter and a Category
+  filter. These filters apply consistently across all three history views.
+- The default planning Period is not an editable filter. The active rolling
+  three-month window is shown in the Demand–Supply Matrix title and advances
+  automatically after Month Closing.
 
 ## Rolling Plan Editor
 
