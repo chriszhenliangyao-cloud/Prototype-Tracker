@@ -239,6 +239,30 @@
 - When Tasks and Materials sheets contain the same marketing material, the
   task's completion state is applied last and remains the source of truth.
 
+## Follow Up email reminders
+
+- Project Progress uses the same `projectNeedsStatusReview` rule for the visual
+  `Follow Up` badge and email detection: the current stage has a DDL from today
+  through the next seven days and that stage has not yet received a status
+  review.
+- When a project first enters Follow Up, ProtoTrack sends one email through
+  Resend to `ivy.bai@iniushop.com` from
+  `ProtoTrack <onboarding@resend.dev>`.
+- The email contains Model, Product, current Stage, DDL, Product Owner,
+  Marketing Project Manager, and a link to the production Project Progress
+  page.
+- D1 stores the active notification state and notification sequence per
+  product. Page refreshes and daily scheduled checks do not resend while the
+  same Follow Up remains active.
+- When a project leaves Follow Up, its notification state becomes inactive. A
+  later transition back into Follow Up may send one new reminder.
+- Detection runs after Project Progress loads for immediate feedback and daily
+  at 09:00 Asia/Shanghai through the Worker cron trigger.
+- `RESEND_API_KEY` is a required Cloudflare secret and is never stored in source
+  control. Recipient, sender, and production URL are non-secret Worker vars.
+- Resend failures are logged, do not block the Project Progress page, and leave
+  the notification eligible for a later retry.
+
 ## Product Material summary cards
 
 - Counts use only the products visible after applying the current search,

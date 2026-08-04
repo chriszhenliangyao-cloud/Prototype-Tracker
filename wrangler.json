@@ -7,6 +7,17 @@
 	"observability": {
 		"enabled": true
 	},
+	"secrets": {
+		"required": ["RESEND_API_KEY"]
+	},
+	"vars": {
+		"FOLLOW_UP_EMAIL_TO": "ivy.bai@iniushop.com",
+		"FOLLOW_UP_EMAIL_FROM": "ProtoTrack <onboarding@resend.dev>",
+		"PROJECT_PROGRESS_URL": "https://prototype-tracker.prototype-tracking.workers.dev/project-progress"
+	},
+	"triggers": {
+		"crons": ["0 1 * * *"]
+	},
 	"upload_source_maps": true,
 	"d1_databases": [
 		{

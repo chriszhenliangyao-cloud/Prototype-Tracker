@@ -13,6 +13,7 @@ import {
 	projectProgress,
 	projectNeedsStatusReview,
 	projectStatus,
+	syncGtmFollowUpNotifications,
 	returnGtmProductToUpcoming,
 	launchGtmProduct,
 	updateGtmOwners,
@@ -39,7 +40,13 @@ export function meta() {
 }
 
 export async function loader({ context }: Route.LoaderArgs) {
-	return getGtmWorkspace(context.cloudflare.env);
+	const workspace = await getGtmWorkspace(context.cloudflare.env);
+	context.cloudflare.ctx.waitUntil(
+		syncGtmFollowUpNotifications(context.cloudflare.env, workspace).catch((error) => {
+			console.error(JSON.stringify({ event: "follow_up_email_sync_failed", error: error instanceof Error ? error.message : String(error) }));
+		}),
+	);
+	return workspace;
 }
 
 export async function action({ request, context }: Route.ActionArgs) {

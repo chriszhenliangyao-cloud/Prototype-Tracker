@@ -1053,3 +1053,94 @@ export function projectNeedsStatusReview(
 	);
 	return daysRemaining >= 0 && daysRemaining <= 7;
 }
+
+type FollowUpNotificationState = {
+	product_id: string;
+	stage_name: string;
+	is_active: number;
+};
+
+const escapeEmailHtml = (value: string | null | undefined) => String(value || "—")
+	.replaceAll("&", "&amp;")
+	.replaceAll("<", "&lt;")
+	.replaceAll(">", "&gt;")
+	.replaceAll('"', "&quot;")
+	.replaceAll("'", "&#039;");
+
+async function sendFollowUpEmail(
+	env: Env,
+	product: GtmProduct,
+	stage: GtmStage,
+	sequence: number,
+) {
+	const response = await fetch("https://api.resend.com/emails", {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${env.RESEND_API_KEY}`,
+			"Content-Type": "application/json",
+			"Idempotency-Key": `prototrack-follow-up-${product.id}-${sequence}`,
+			"User-Agent": "ProtoTrack/1.0",
+		},
+		body: JSON.stringify({
+			from: env.FOLLOW_UP_EMAIL_FROM,
+			to: [env.FOLLOW_UP_EMAIL_TO],
+			subject: `[ProtoTrack] Follow Up: ${product.model} · ${stage.stage_name}`,
+			html: `<div style="font-family:Arial,sans-serif;color:#172033;line-height:1.6;max-width:620px"><h2 style="margin:0 0 16px">Project follow-up required</h2><p>A project stage is within 7 days of its DDL and needs status confirmation.</p><table style="width:100%;border-collapse:collapse;margin:18px 0"><tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#64748b">Model</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;font-weight:700">${escapeEmailHtml(product.model)}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#64748b">Product</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(product.name)}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#64748b">Current stage</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(stage.stage_name)}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#64748b">DDL</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(stage.deadline)}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#64748b">Product Owner</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(product.product_owner)}</td></tr><tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#64748b">Marketing PM</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(product.marketing_project_manager)}</td></tr></table><p><a href="${escapeEmailHtml(env.PROJECT_PROGRESS_URL)}" style="display:inline-block;padding:10px 16px;border-radius:7px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700">Open Project Progress</a></p><p style="color:#64748b;font-size:12px">This reminder is sent once when the project enters Follow Up.</p></div>`,
+		}),
+	});
+	if (!response.ok) {
+		await response.body?.cancel();
+		throw new Error(`Resend returned HTTP ${response.status}`);
+	}
+	await response.body?.cancel();
+}
+
+export async function syncGtmFollowUpNotifications(env: Env, workspace: GtmWorkspaceData) {
+	const candidates = workspace.products.flatMap((product) => {
+		const tasks = workspace.tasks.filter((task) => task.product_id === product.id);
+		const stages = workspace.stages.filter((stage) => stage.product_id === product.id);
+		if (!projectNeedsStatusReview(product, tasks, stages)) return [];
+		const activeStage = currentStage(tasks);
+		const stage = stages.find((item) => item.stage_name === activeStage);
+		return stage ? [{ product, stage }] : [];
+	});
+	const candidateIds = new Set(candidates.map(({ product }) => product.id));
+	const notificationStates = await env.DB.prepare(
+		"SELECT product_id, stage_name, is_active FROM gtm_follow_up_notification WHERE is_active=1",
+	).all<FollowUpNotificationState>();
+	const deactivate = notificationStates.results
+		.filter((state) => !candidateIds.has(state.product_id))
+		.map((state) => env.DB.prepare(
+			"UPDATE gtm_follow_up_notification SET is_active=0, updated_at=CURRENT_TIMESTAMP WHERE product_id=? AND is_active=1",
+		).bind(state.product_id));
+	if (deactivate.length) await env.DB.batch(deactivate);
+
+	for (const { product, stage } of candidates) {
+		const claimed = await env.DB.prepare(
+			`INSERT INTO gtm_follow_up_notification
+			   (product_id, stage_name, is_active, notification_sequence, updated_at)
+			 VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP)
+			 ON CONFLICT(product_id) DO UPDATE SET
+			   stage_name=excluded.stage_name,
+			   is_active=1,
+			   notification_sequence=gtm_follow_up_notification.notification_sequence+1,
+			   updated_at=CURRENT_TIMESTAMP
+			 WHERE gtm_follow_up_notification.is_active=0
+			    OR gtm_follow_up_notification.stage_name<>excluded.stage_name
+			 RETURNING notification_sequence`,
+		).bind(product.id, stage.stage_name).first<{ notification_sequence: number }>();
+		if (!claimed) continue;
+		try {
+			await sendFollowUpEmail(env, product, stage, claimed.notification_sequence);
+			await env.DB.prepare(
+				"UPDATE gtm_follow_up_notification SET last_notified_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP WHERE product_id=?",
+			).bind(product.id).run();
+			console.log(JSON.stringify({ event: "follow_up_email_sent", productId: product.id, model: product.model, stage: stage.stage_name }));
+		} catch (error) {
+			await env.DB.prepare(
+				"UPDATE gtm_follow_up_notification SET is_active=0, updated_at=CURRENT_TIMESTAMP WHERE product_id=?",
+			).bind(product.id).run();
+			console.error(JSON.stringify({ event: "follow_up_email_send_failed", productId: product.id, model: product.model, stage: stage.stage_name, error: error instanceof Error ? error.message : String(error) }));
+		}
+	}
+}
