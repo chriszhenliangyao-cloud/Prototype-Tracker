@@ -55,9 +55,10 @@
 - Shipment Forecast and Supply Plan are editable only for the active three
   months. Current Inventory is derived from history and is not edited here.
 - The compact editor uses one row per SKU and month, with Forecast, Supply
-  Plan, and a concise planning comment. It supports inline cells, clipboard
-  grid paste, Excel/CSV import, and a selected-SKU focus mode without copying
-  one SKU's values into other products.
+  Plan, and a concise planning comment. It supports Excel/CSV import, a Month
+  filter, and a searchable multi-select Model filter. Inline Edit and Paste
+  Grid toolbar actions are not shown; values remain directly editable in the
+  visible table inputs.
 - Save Draft stores a separate browser-local editable draft and does not alter
   the published values shown in the Demand–Supply Matrix. Reopening Edit Plan
   resumes that draft and the toolbar indicates that a draft is saved.
