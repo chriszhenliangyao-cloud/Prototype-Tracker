@@ -19,6 +19,79 @@
   font-family: "DM Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Trend Analysis final layout. Keep these scoped rules after the legacy page styles. */
+.sip-v2-main > .sip-trend {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  margin: 12px 18px 18px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sip-v2-main > .sip-trend > .sip-trend-top { display: contents; }
+
+.sip-v2-main > .sip-trend .sip-demand-chart {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  min-height: 600px;
+}
+
+.sip-v2-main > .sip-trend .sip-bars {
+  box-sizing: border-box;
+  min-height: 465px;
+  padding: 50px 28px 10px;
+}
+
+.sip-v2-main > .sip-trend .sip-bar-month {
+  grid-template-rows: 215px 1px 76px 28px 32px;
+}
+
+.sip-v2-main > .sip-trend .sip-bar-positive { height: 215px; }
+.sip-v2-main > .sip-trend .sip-gap-bar { height: 76px; }
+.sip-v2-main > .sip-trend .sip-heatmap { grid-column: 2; grid-row: 1; }
+.sip-v2-main > .sip-trend .sip-eoh { grid-column: 2; grid-row: 2; }
+.sip-v2-main > .sip-trend .sip-eoh svg { height: 220px; }
+
+.sip-v2-main > .sip-trend > .sip-actions {
+  display: block;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  width: auto;
+  align-items: initial;
+  justify-content: initial;
+  flex-wrap: initial;
+  gap: 0;
+}
+
+.sip-v2-main > .sip-trend > .sip-actions > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sip-v2-main > .sip-trend > .sip-actions > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .sip-v2-main > .sip-trend { grid-template-columns: 1fr; }
+  .sip-v2-main > .sip-trend .sip-demand-chart,
+  .sip-v2-main > .sip-trend .sip-heatmap,
+  .sip-v2-main > .sip-trend .sip-eoh,
+  .sip-v2-main > .sip-trend > .sip-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .sip-v2-main > .sip-trend > .sip-actions > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Demand–Supply Matrix default view (v2) */
 .sip-v2-app { background: #f6f8fb; }
 .sip-v2-main { width: min(1880px, calc(100% - 28px)); margin: 0 auto; padding: 68px 0 36px; }

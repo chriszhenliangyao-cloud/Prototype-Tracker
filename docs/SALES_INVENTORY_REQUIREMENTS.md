@@ -57,6 +57,11 @@
 - The Sales & Inventory toolbar provides a `Matrix | Trend` view switch.
   Matrix remains the default view; both views share Model, Category, Lifecycle,
   Only Gap, First Batch Only, history status, and the active three-month period.
+- The desktop analysis workspace uses a compact two-column composition: Monthly
+  Demand vs Supply spans the left column, SKU Gap Heatmap and EOH Risk Trend are
+  stacked in the right column, and Top Actions spans one full-width row below.
+  Chart heights are coordinated so the three analysis charts form one balanced
+  block without a large empty area.
 - Trend reuses the same 3M Demand, 3M Supply, Net Gap, Worst Month, and Stockout
   SKU metrics. Selecting Worst Month opens Trend and highlights that heatmap
   month.
