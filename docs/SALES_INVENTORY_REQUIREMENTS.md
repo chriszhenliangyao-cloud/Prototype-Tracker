@@ -84,8 +84,9 @@
   filters and periods. Point labels use series-specific staggered positions and
   a white text halo so values remain legible near the zero line and at line
   intersections. Series lines and points are visually lightweight, and the
-  `Stockout line` label sits immediately to the right of the shortened dashed
-  zero line instead of covering plotted values. It does not place all SKUs and
+  `Stockout line` label sits in a dedicated right-side gutter beyond the plot
+  boundary, so the complete label remains clear without covering plotted values.
+  It does not place all SKUs and
   measures in one chart.
 - Top Actions from Trend lists the highest-priority Stockout, First Batch Risk,
   Gap, and Watch exceptions. Selecting a heatmap cell or action switches to
