@@ -3529,28 +3529,33 @@
     }
 
     .project-filterbar {
-      display: grid;
-      align-items: end;
-      gap: 8px;
+      display: block;
+      padding: 6px 8px;
+      margin-bottom: 6px;
       overflow: visible;
     }
 
-    .project-filter-primary,
-    .project-filter-secondary {
+    .project-filter-row {
       display: grid;
       align-items: end;
-      gap: 8px;
+      grid-template-columns:
+        minmax(292px, 1.7fr)
+        minmax(164px, 1fr)
+        repeat(3, minmax(82px, 0.54fr))
+        minmax(92px, auto)
+        minmax(88px, auto);
+      gap: 6px;
       min-width: 0;
     }
 
-    .project-filter-primary {
-      grid-template-columns: minmax(640px, 1.55fr) minmax(220px, 1fr);
+    .project-filterbar .control {
+      gap: 2px;
     }
 
-    .project-filter-secondary {
-      grid-template-columns: repeat(3, minmax(120px, 1fr)) auto auto;
-      padding-top: 7px;
-      border-top: 1px solid var(--line);
+    .project-filterbar .control label {
+      font-size: 8px;
+      letter-spacing: 0;
+      text-transform: none;
     }
 
     .project-scope-control,
@@ -3571,9 +3576,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 0 8px;
+      gap: 3px;
+      min-height: 28px;
+      padding: 0 4px;
       white-space: nowrap;
+      font-size: 10px;
     }
 
     .project-scope-label {
@@ -3583,17 +3590,17 @@
     }
 
     .project-scope-count {
-      min-width: 18px;
-      height: 17px;
+      min-width: 15px;
+      height: 15px;
       flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0 5px;
+      padding: 0 3px;
       border-radius: 4px;
       background: #e8edf5;
       color: var(--muted);
-      font-size: 8px;
+      font-size: 7px;
       font-weight: 900;
       line-height: 1;
     }
@@ -3606,13 +3613,14 @@
     .project-search {
       width: 100%;
       min-width: 0;
-      min-height: 30px;
+      min-height: 28px;
       border: 1px solid var(--line-strong);
       border-radius: 6px;
-      padding: 0 9px;
+      padding: 0 7px;
       color: var(--text);
       background: var(--panel);
       outline: 0;
+      font-size: 10px;
     }
 
     .project-search:focus {
@@ -3622,20 +3630,83 @@
 
     .project-filter-control select {
       width: 100%;
+      min-height: 28px;
+      padding-left: 7px;
+      font-size: 10px;
+    }
+
+    .project-critical-control {
+      min-width: 0;
     }
 
     .project-critical-toggle {
-      justify-self: start;
-      align-self: end;
+      width: 100%;
+      min-height: 28px;
+      justify-content: center;
+      padding: 0 4px;
+      border-color: var(--line-strong);
+      background: var(--panel);
+      font-size: 10px;
+    }
+
+    .project-critical-toggle:hover {
+      border-color: #9fb1cd;
+      background: #fcfdff;
+    }
+
+    .project-critical-toggle .switch {
+      width: 24px;
+      height: 14px;
+    }
+
+    .project-critical-toggle .switch::after {
+      width: 10px;
+      height: 10px;
+    }
+
+    .project-critical-toggle.active .switch::after {
+      transform: translateX(10px);
+    }
+
+    .project-view-control .segmented {
+      width: 100%;
+      min-height: 28px;
+    }
+
+    .project-view-control .segmented button {
+      min-width: 0;
+      flex: 1 1 0;
+      padding: 0 6px;
+      font-size: 10px;
     }
 
     @media (max-width: 1180px) {
-      .project-filter-primary {
-        grid-template-columns: minmax(600px, 1.5fr) minmax(190px, 1fr);
+      .project-filter-row {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
       }
 
-      .project-filter-secondary {
-        grid-template-columns: repeat(3, minmax(100px, 1fr)) auto auto;
+      .project-scope-control {
+        grid-column: span 4;
+      }
+
+      .project-search-control,
+      .project-view-control {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .project-filter-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .project-scope-control,
+      .project-search-control {
+        grid-column: 1 / -1;
+      }
+
+      .project-view-control {
+        grid-column: auto;
       }
     }
 
@@ -5427,6 +5498,7 @@
       { key: "2026-09", label: "2026年9月", short: "9月", legacyLabel: "Sep 2026", legacyShort: "Sep" },
       { key: "2026-10", label: "2026年10月", short: "10月", legacyLabel: "Oct 2026", legacyShort: "Oct" }
     ];
+    const PRODUCT_CATEGORIES = ["Power Bank", "Charger", "Wireless Charger", "Charging Cable"];
 
     const STORAGE_KEY = "salesInventoryPlanningTool.v1";
 
@@ -5912,8 +5984,9 @@
 
     const PROJECT_TEXT_ZH = {
       "Power Bank": "移动电源",
-      "Charger": "充电器",
-      "Wireless Charger": "无线充电器",
+      "Charger": "充头",
+      "Wireless Charger": "无线充",
+      "Charging Cable": "充电线",
       "Mass Production": "量产",
       "Trial Production": "试产",
       "DVT2 Exit": "DVT2阶段评审",
@@ -6016,6 +6089,22 @@
       return PROJECT_TEXT_ZH[value] || value;
     }
 
+    function normalizeProductCategory(value) {
+      const category = String(value || "").trim();
+      return {
+        "Power Bank": "Power Bank",
+        "移动电源": "Power Bank",
+        "Charger": "Charger",
+        "充电器": "Charger",
+        "充头": "Charger",
+        "Wireless Charger": "Wireless Charger",
+        "无线充电器": "Wireless Charger",
+        "无线充": "Wireless Charger",
+        "Charging Cable": "Charging Cable",
+        "充电线": "Charging Cable"
+      }[category] || "Power Bank";
+    }
+
     function projectHealthLabel(health) {
       if (activeLocale === "en-GB") return { red: "At risk", amber: "Warning", green: "On track", grey: "Inactive" }[health] || health;
       return { red: "风险", amber: "预警", green: "正常", grey: "未启用" }[health] || health;
@@ -6051,6 +6140,7 @@
 
     function normalizeProjectLifecycle(project) {
       if (!project || typeof project !== "object") return project;
+      project.category = normalizeProductCategory(project.category);
       project.projectStatus = projectLifecycleStatus(project);
       project.statusHistory = Array.isArray(project.statusHistory) ? project.statusHistory : [];
       project.timelineVersion = Number(project.timelineVersion || 1);
@@ -6593,7 +6683,7 @@
     const PERMISSION_SCOPE_DEFINITIONS = [
       { key: "markets", zh: "市场范围", en: "Markets", noteZh: "控制国家与区域数据", noteEn: "Controls country and regional data", options: [["all", "全部市场", "All markets"], ["DE", "德国", "Germany"], ["FR", "法国", "France"], ["IT", "意大利", "Italy"], ["ES", "西班牙", "Spain"], ["EU", "欧洲汇总", "Europe aggregate"]] },
       { key: "customers", zh: "客户与渠道", en: "Customers & channels", noteZh: "限制客户和渠道台账", noteEn: "Limits customer and channel records", options: [["all", "全部客户", "All customers"], ["Amazon", "Amazon", "Amazon"], ["MediaMarkt", "MediaMarkt", "MediaMarkt"], ["Fnac", "Fnac Darty", "Fnac Darty"], ["Unieuro", "Unieuro", "Unieuro"], ["DTC", "DTC", "DTC"]] },
-      { key: "products", zh: "产品范围", en: "Products", noteZh: "按品类或产品线控制", noteEn: "Controls categories or product lines", options: [["all", "全部产品", "All products"], ["power_bank", "移动电源", "Power Bank"], ["charger", "充电器", "Charger"], ["wireless", "无线充电器", "Wireless Charger"]] },
+      { key: "products", zh: "产品范围", en: "Products", noteZh: "按品类或产品线控制", noteEn: "Controls categories or product lines", options: [["all", "全部产品", "All products"], ["power_bank", "移动电源", "Power Bank"], ["charger", "充头", "Charger"], ["wireless", "无线充", "Wireless Charger"], ["charging_cable", "充电线", "Charging Cable"]] },
       { key: "projects", zh: "项目范围", en: "Projects", noteZh: "控制项目数据可见范围", noteEn: "Controls project visibility", options: [["all", "全部项目", "All projects"], ["owned", "负责项目", "Owned projects"], ["selected", "指定项目", "Selected projects"]] },
       { key: "workstreams", zh: "职能范围", en: "Functions", noteZh: "控制可编辑工作流", noteEn: "Controls editable workstreams", options: [["all", "全部职能", "All functions"], ["engineering", "研发", "Engineering"], ["prototype", "样机", "Prototype"], ["quality", "质量", "Quality"], ["certification", "认证", "Certification"], ["supply", "供应", "Supply"], ["marketing", "营销", "Marketing"], ["sales", "销售", "Sales"]] },
       { key: "entities", zh: "财务主体", en: "Legal entities", noteZh: "控制法人、币种与结算账户", noteEn: "Controls legal entity, currency and settlement account", options: [["all", "全部主体", "All entities"], ["INIU-EU", "INIU Europe", "INIU Europe"], ["INIU-DE", "INIU Germany", "INIU Germany"], ["INIU-FR", "INIU France", "INIU France"]] }
@@ -7172,7 +7262,7 @@
         id: draft.id,
         model: draft.model.trim(),
         name: draft.name.trim(),
-        category: draft.category.trim(),
+        category: normalizeProductCategory(draft.category),
         launchDate: draft.launchDate,
         owner: draft.owner.trim(),
         stage: draft.stage,
@@ -7488,7 +7578,15 @@
     function normalizeSalesState(nextState) {
       nextState.periodLabel = "2026年8月 - 10月";
       nextState.historySynced = "2026年7月";
+      nextState.products = (Array.isArray(nextState.products) ? nextState.products : cloneProducts(seedProducts)).map((product) => ({
+        ...product,
+        category: normalizeProductCategory(product.category)
+      }));
       nextState.baselineProducts = Array.isArray(nextState.baselineProducts) ? nextState.baselineProducts : cloneProducts(seedBaselineProducts);
+      nextState.baselineProducts = nextState.baselineProducts.map((product) => ({
+        ...product,
+        category: normalizeProductCategory(product.category)
+      }));
       const baselinePx51 = nextState.baselineProducts.find((item) => item.model === "PX51");
       const baselineWm321 = nextState.baselineProducts.find((item) => item.model === "WM321");
       const baselineWal101 = nextState.baselineProducts.find((item) => item.model === "WAL101");
@@ -7533,8 +7631,14 @@
         name: snapshot.name === "7月归档 v3" ? "7月正式版 v3" : snapshot.name,
         note: snapshot.note === "8月滚动计划窗口的基准版本" ? "上月正式版本，作为8月滚动计划的对比起点" : snapshot.note,
         owner: snapshot.owner || "Julio",
-        products: snapshot.id === "jul-v3" ? cloneProducts(nextState.baselineProducts) : Array.isArray(snapshot.products) ? snapshot.products : cloneProducts(nextState.baselineProducts)
+        products: (snapshot.id === "jul-v3" ? cloneProducts(nextState.baselineProducts) : Array.isArray(snapshot.products) ? snapshot.products : cloneProducts(nextState.baselineProducts)).map((product) => ({
+          ...product,
+          category: normalizeProductCategory(product.category)
+        }))
       }));
+      if (nextState.filters?.category && nextState.filters.category !== "All Categories") {
+        nextState.filters.category = normalizeProductCategory(nextState.filters.category);
+      }
       return nextState;
     }
 
@@ -7585,8 +7689,9 @@
         "New": "新品",
         "Launched": "已上市",
         "Power Bank": "移动电源",
-        "Wireless Charger": "无线充电器",
-        "Charger": "充电器",
+        "Wireless Charger": "无线充",
+        "Charger": "充头",
+        "Charging Cable": "充电线",
         "Stockout": "缺货",
         "High": "高风险",
         "Watch": "关注",
@@ -9255,21 +9360,22 @@
         </header>
 
         <section class="filterbar project-filterbar" aria-label="项目筛选与视图控制">
-          <div class="project-filter-primary">
+          <div class="project-filter-row">
             ${renderProjectScopeSwitch()}
             <div class="control project-search-control">
               <label for="projectSearch">项目 / 型号</label>
               <input class="project-search" id="projectSearch" list="projectSearchOptions" data-project-filter="search" value="${escapeProjectHtml(projectState.filters.search)}" placeholder="${activeLocale === "en-GB" ? "Type or select a project / model" : "输入或选择项目 / 型号"}" autocomplete="off">
               <datalist id="projectSearchOptions">${projectOptions}</datalist>
             </div>
-          </div>
-          <div class="project-filter-secondary">
             ${renderProjectSelect("health", "健康状态", ["All", "Red", "Amber", "Green"], projectState.filters.health)}
             ${renderProjectSelect("stage", "项目阶段", stages, projectState.filters.stage)}
             ${renderProjectSelect("owner", "项目负责人", owners, projectState.filters.owner)}
-            <button class="toggle project-critical-toggle ${projectState.filters.onlyCritical ? "active" : ""}" data-project-action="toggle-critical" aria-pressed="${projectState.filters.onlyCritical}">
-              <span class="switch"></span><span>仅看重大风险</span>
-            </button>
+            <div class="control project-critical-control">
+              <label>风险</label>
+              <button class="toggle project-critical-toggle ${projectState.filters.onlyCritical ? "active" : ""}" data-project-action="toggle-critical" aria-pressed="${projectState.filters.onlyCritical}" title="仅看重大风险">
+                <span class="switch"></span><span>重大风险</span>
+              </button>
+            </div>
             <div class="control project-view-control">
               <label>视图</label>
               <div class="segmented">
@@ -9871,7 +9977,9 @@
                 </div>
                 <div class="editor-field">
                   <label>产品类别</label>
-                  <input data-new-project-field="category" value="${escapeProjectHtml(projectText(draft.category))}" ${linkedProduct ? "disabled" : ""} placeholder="产品类别">
+                  <select data-new-project-field="category" ${linkedProduct ? "disabled" : ""}>
+                    ${PRODUCT_CATEGORIES.map((category) => `<option value="${category}" ${normalizeProductCategory(draft.category) === category ? "selected" : ""}>${projectText(category)}</option>`).join("")}
+                  </select>
                 </div>
                 <div class="editor-field">
                   <label>计划上市日期</label>
@@ -10420,7 +10528,7 @@
 
     function renderToolbar() {
       const models = ["All Models", ...state.products.map((product) => product.model)];
-      const categories = ["All Categories", ...Array.from(new Set(state.products.map((product) => product.category)))];
+      const categories = ["All Categories", ...PRODUCT_CATEGORIES];
       document.getElementById("historyBadge").innerHTML = `<span class="dot"></span>历史数据：${state.historySynced}`;
       document.getElementById("primaryActions").innerHTML = `
         <button class="btn subtle" data-action="pull-history">拉取历史数据</button>

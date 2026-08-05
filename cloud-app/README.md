@@ -75,6 +75,23 @@ Google Client Secret 只保存在 Google Cloud 和 Supabase，不写入 Vercel�
 
 每次保存都使用文档版本号进行并发校验。其他成员更新后，当前页面会显示“加载团队版本”提示；用户确认后再载入远端数据，避免静默覆盖正在编辑的内容。
 
+## 数据版本、恢复与备份
+
+共享业务文档采用“当前版本 + 不可覆盖历史版本”双层存储：
+
+- `workspace_documents` 保存每份文档的最新数据和当前版本号。
+- `workspace_document_versions` 在每次成功同步时保存一份完整 JSON 数据，记录文档、版本、操作人、时间、操作类型和客户端变更 ID；客户端没有更新或删除权限。
+- 保存当前数据、写入历史版本和生成审计事件在同一个数据库事务中完成，任一步失败都会整体回滚。
+- 管理员恢复历史版本时不会覆盖或删除历史记录，而是以历史内容生成一个新的当前版本，并记录来源版本。
+- 浏览器使用 `operationsPlanningCloudOutbox.v1` 持久化待同步数据。云端确认保存成功后才清除；断网、临时错误或页面关闭后会继续重试。
+- 发生多人版本冲突时，本地数据不会被静默覆盖。选择加载团队版本前，未同步内容会保留到本地恢复记录。
+
+已登录管理员可通过 `window.cloudStore.backups.listVersions(documentKey)` 查询版本，通过 `getVersion(documentKey, version)`读取备份，并通过 `restoreVersion(documentKey, version)`恢复。恢复属于高风险操作，正式接入界面时必须增加版本对比和二次确认。
+
+当前 Supabase 组织使用 Free 计划。上述应用级版本链可防止日常误操作、并发覆盖和前端持续迭代造成的数据丢失，但不能替代跨项目的基础设施灾备。Supabase 官方仅为 Pro、Team 和 Enterprise 项目提供可访问的自动数据库备份；生产正式使用前应升级到含每日备份的计划，或配置定期 `supabase db dump` 到独立存储。需要分钟级恢复点时再启用 PITR。
+
+任何后续开发必须遵守：不复用或删除现有文档键；不清空 `workspace_document_versions`；数据结构升级只做兼容迁移；上线前验证当前文档与最新历史版本内容一致。
+
 ## 双语界面
 
 - 顶栏语言选择支持 `简体中文 (zh-CN)` 与 `English (en-GB)`，每次仅显示一种界面语言。

@@ -8,6 +8,8 @@
     "projectTrackingFormDrafts.v1",
     "marketingAssets.v1"
   ]);
+  const OUTBOX_KEY = "operationsPlanningCloudOutbox.v1";
+  const RECOVERY_KEY = "operationsPlanningLocalRecovery.v1";
   const offline = new URLSearchParams(window.location.search).get("offline") === "1";
 
   const styles = `
@@ -28,6 +30,59 @@
   const originalSetItem = Storage.prototype.setItem;
   const originalRemoveItem = Storage.prototype.removeItem;
   let suppressSync = false;
+
+  function readJsonStorage(key, fallback) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "null");
+      return parsed && typeof parsed === "object" ? parsed : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function readOutbox() {
+    return readJsonStorage(OUTBOX_KEY, {});
+  }
+
+  function writeOutbox(outbox) {
+    if (Object.keys(outbox).length) originalSetItem.call(localStorage, OUTBOX_KEY, JSON.stringify(outbox));
+    else originalRemoveItem.call(localStorage, OUTBOX_KEY);
+  }
+
+  function storeOutboxEntry(key, entry) {
+    const outbox = readOutbox();
+    outbox[key] = entry;
+    writeOutbox(outbox);
+  }
+
+  function removeOutboxEntry(key, mutationId = "") {
+    const outbox = readOutbox();
+    if (!outbox[key]) return;
+    if (mutationId && outbox[key].mutationId !== mutationId) return;
+    delete outbox[key];
+    writeOutbox(outbox);
+  }
+
+  function archiveLocalRecovery(key, entry, reason) {
+    if (!entry) return true;
+    const records = readJsonStorage(RECOVERY_KEY, []);
+    const next = Array.isArray(records) ? records : [];
+    next.unshift({
+      documentKey: key,
+      payload: entry.payload,
+      baseVersion: entry.baseVersion,
+      mutationId: entry.mutationId,
+      queuedAt: entry.queuedAt,
+      archivedAt: new Date().toISOString(),
+      reason
+    });
+    try {
+      originalSetItem.call(localStorage, RECOVERY_KEY, JSON.stringify(next.slice(0, 30)));
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   function setLocalValue(key, payload) {
     suppressSync = true;
@@ -82,8 +137,14 @@
       banner.className = "cloud-update-banner";
       document.body.appendChild(banner);
     }
-    banner.innerHTML = `<span>其他成员更新了共享数据</span><button type="button">加载团队版本</button>`;
+    const pending = readOutbox()[payload.document_key];
+    banner.innerHTML = `<span>${pending ? "共享数据已更新，本地未同步内容已保留" : "其他成员更新了共享数据"}</span><button type="button">加载团队版本${pending ? "并保留本地备份" : ""}</button>`;
     banner.querySelector("button").addEventListener("click", () => {
+      if (pending && !archiveLocalRecovery(payload.document_key, pending, "remote_version_loaded")) {
+        banner.querySelector("span").textContent = "本地恢复空间不足，请先保留当前页面并联系管理员";
+        return;
+      }
+      removeOutboxEntry(payload.document_key);
       setLocalValue(payload.document_key, payload.payload);
       window.location.reload();
     });
@@ -206,13 +267,16 @@
     });
 
     const versions = new Map();
+    const initialOutbox = readOutbox();
     const cloudRows = await supabase.from("workspace_documents")
       .select("document_key, payload, version")
       .eq("workspace_id", workspaceId);
     if (cloudRows.error) throw cloudRows.error;
     cloudRows.data.forEach((row) => {
       versions.set(row.document_key, Number(row.version || 0));
-      if (SYNC_KEYS.has(row.document_key)) setLocalValue(row.document_key, row.payload);
+      if (!SYNC_KEYS.has(row.document_key)) return;
+      const pending = initialOutbox[row.document_key];
+      setLocalValue(row.document_key, pending ? pending.payload : row.payload);
     });
 
     const timers = new Map();
@@ -222,28 +286,57 @@
 
     async function saveKey(key) {
       if (!pendingPayloads.has(key)) return;
-      const payload = pendingPayloads.get(key);
+      const entry = pendingPayloads.get(key);
       pendingPayloads.delete(key);
       activeSaves += 1;
       setStatus(statusNode, "saving", "同步中");
+      let blockedByConflict = false;
+      let retryDelay = 100;
       try {
         const response = await supabase.rpc("save_workspace_document", {
           p_workspace_id: workspaceId,
           p_document_key: key,
-          p_payload: payload,
-          p_base_version: versions.get(key) || 0,
-          p_client_mutation_id: crypto.randomUUID()
+          p_payload: entry.payload,
+          p_base_version: Number(entry.baseVersion || 0),
+          p_client_mutation_id: entry.mutationId
         });
         if (response.error) throw response.error;
         const result = Array.isArray(response.data) ? response.data[0] : response.data;
-        versions.set(key, Number(result?.version || (versions.get(key) || 0) + 1));
+        const savedVersion = Number(result?.version || (versions.get(key) || 0) + 1);
+        versions.set(key, savedVersion);
+        removeOutboxEntry(key, entry.mutationId);
+        const nextEntry = pendingPayloads.get(key);
+        if (nextEntry && Number(nextEntry.baseVersion || 0) === Number(entry.baseVersion || 0)) {
+          nextEntry.baseVersion = savedVersion;
+          pendingPayloads.set(key, nextEntry);
+          storeOutboxEntry(key, nextEntry);
+        }
         setStatus(statusNode, "saved", "已同步");
       } catch (error) {
         const conflict = String(error?.message || error).includes("version_conflict");
+        blockedByConflict = conflict;
+        const latest = pendingPayloads.get(key);
+        if (!latest) {
+          const failedEntry = { ...entry, attempts: Number(entry.attempts || 0) + 1, lastAttemptAt: new Date().toISOString() };
+          pendingPayloads.set(key, failedEntry);
+          storeOutboxEntry(key, failedEntry);
+          retryDelay = Math.min(30000, 1500 * Math.max(1, failedEntry.attempts));
+        }
         setStatus(statusNode, conflict ? "conflict" : "error", conflict ? "存在版本冲突" : "同步失败");
+        if (conflict) {
+          const remote = await supabase.from("workspace_documents")
+            .select("document_key, payload, version, updated_by")
+            .eq("workspace_id", workspaceId)
+            .eq("document_key", key)
+            .maybeSingle();
+          if (remote.data) {
+            versions.set(key, Number(remote.data.version || 0));
+            showRemoteUpdate(remote.data);
+          }
+        }
       } finally {
         activeSaves -= 1;
-        if (pendingPayloads.has(key)) queueKey(key, 100);
+        if (pendingPayloads.has(key) && !blockedByConflict) queueKey(key, retryDelay);
         else if (activeSaves === 0 && !statusNode.classList.contains("error") && !statusNode.classList.contains("conflict")) {
           window.setTimeout(() => setStatus(statusNode, "", "已同步"), 1600);
         }
@@ -262,9 +355,31 @@
       if (!SYNC_KEYS.has(key)) return;
       let payload = null;
       try { payload = value === null ? null : JSON.parse(value); } catch { return; }
-      pendingPayloads.set(key, payload);
+      const entry = {
+        payload,
+        baseVersion: versions.get(key) || 0,
+        mutationId: crypto.randomUUID(),
+        queuedAt: new Date().toISOString(),
+        attempts: 0
+      };
+      pendingPayloads.set(key, entry);
+      storeOutboxEntry(key, entry);
       queueKey(key);
     }
+
+    Object.entries(initialOutbox).forEach(([key, savedEntry]) => {
+      if (!SYNC_KEYS.has(key) || !savedEntry || typeof savedEntry !== "object") return;
+      const entry = {
+        payload: savedEntry.payload,
+        baseVersion: Number(savedEntry.baseVersion || 0),
+        mutationId: savedEntry.mutationId || crypto.randomUUID(),
+        queuedAt: savedEntry.queuedAt || new Date().toISOString(),
+        attempts: Number(savedEntry.attempts || 0)
+      };
+      pendingPayloads.set(key, entry);
+      storeOutboxEntry(key, entry);
+      queueKey(key, 120);
+    });
 
     Storage.prototype.setItem = function cloudAwareSetItem(key, value) {
       originalSetItem.call(this, key, value);
@@ -345,12 +460,51 @@
       }
     };
 
+    const backupApi = {
+      async listVersions(documentKey, limit = 50) {
+        const response = await supabase.from("workspace_document_versions")
+          .select("document_key, version, operation, source_version, created_by, created_at")
+          .eq("workspace_id", workspaceId)
+          .eq("document_key", documentKey)
+          .order("version", { ascending: false })
+          .limit(Math.min(200, Math.max(1, Number(limit || 50))));
+        if (response.error) throw response.error;
+        return response.data || [];
+      },
+      async getVersion(documentKey, version) {
+        const response = await supabase.from("workspace_document_versions")
+          .select("document_key, version, payload, operation, source_version, created_by, created_at")
+          .eq("workspace_id", workspaceId)
+          .eq("document_key", documentKey)
+          .eq("version", Number(version))
+          .single();
+        if (response.error) throw response.error;
+        return response.data;
+      },
+      async restoreVersion(documentKey, version) {
+        if (identity.role !== "admin") throw new Error("admin_permission_required");
+        const response = await supabase.rpc("restore_workspace_document_version", {
+          p_workspace_id: workspaceId,
+          p_document_key: documentKey,
+          p_source_version: Number(version),
+          p_client_mutation_id: crypto.randomUUID()
+        });
+        if (response.error) throw response.error;
+        return Array.isArray(response.data) ? response.data[0] : response.data;
+      },
+      localRecoveryCount() {
+        const records = readJsonStorage(RECOVERY_KEY, []);
+        return Array.isArray(records) ? records.length : 0;
+      }
+    };
+
     window.cloudStore = {
       enabled: true,
       supabase,
       identity,
       permissions: permissionApi,
       preferences: preferenceApi,
+      backups: backupApi,
       hasDocument(key) { return versions.has(key); },
       queuePayload,
       captureAll() {
@@ -370,6 +524,13 @@
       },
       destroy() { supabase.removeChannel(channel); }
     };
+
+    window.addEventListener("online", () => {
+      pendingPayloads.forEach((entry, key) => queueKey(key, 0));
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") window.cloudStore.flush();
+    });
   }
 
   window.cloudSyncReady = start().catch((error) => {

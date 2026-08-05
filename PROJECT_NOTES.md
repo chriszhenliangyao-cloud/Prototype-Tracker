@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Maintain and extend the published bilingual operations collaboration platform. The current delivery improves the Project Tracking control bar: make portfolio scopes unambiguous without label/count overlap and provide a scope-aware, typeable project/model selector.
+Maintain and extend the published bilingual operations collaboration platform. The current production delivery compacts the Project Tracking control bar, standardizes product-category selectors, and adds recoverable immutable cloud document history plus a persistent client sync outbox.
 
 ## Repository Context
 
@@ -57,8 +57,12 @@ The standalone reference remains the design and behavior source for the React ap
 - Checklist completion can advance ordinary not-started/in-progress work to completed, but review, missing and overdue remain explicit business states. Selecting completed checks every deliverable; reducing a completed checklist reopens it as in progress.
 - The Marketing Assets matrix supports two persistent sort controls: Project/Product sorts by launch date and Total Progress sorts by calculated project completion. Each toggles ascending/descending; the default is launch date ascending (nearest launch first).
 - Project Tracking is the source of truth for the Marketing Assets project list. Creating a project initializes all six standard assets as `not_started`; active, paused and closeout projects stay visible, while archived/cancelled records are retained but hidden from the current matrix.
-- Project Tracking filters use two compact rows: portfolio scope and project selection first, then health, phase, owner, critical-only and view controls. Scope counts have fixed independent space, and changing scope clears the previous project-specific search.
+- Project Tracking filters use one compact desktop row and a responsive two-row layout on narrower screens. Portfolio scope, project selection, health, phase, owner, critical-only and view controls stay aligned without internal overflow; changing scope clears the previous project-specific search.
 - The Project / Model filter is a typeable native dropdown. Its options are limited to the selected portfolio scope and ordered by launch date, while free-text model, project-name and category search remains supported.
+- Product categories use one canonical dictionary across Project Tracking, Sales & Inventory and access scope configuration: `Power Bank`, `Charger`, `Wireless Charger` and `Charging Cable`. The Chinese labels are `移动电源`, `充头`, `无线充` and `充电线`; existing `充电器` and `无线充电器` data is normalized on load. Product-category input is a dropdown rather than free text.
+- Every successful shared-document save atomically updates `workspace_documents`, appends the complete payload to `workspace_document_versions`, and writes an audit event. Historical payload rows are read-only to authenticated members and cannot be updated or deleted from the browser.
+- Restoring a cloud document is admin-only and creates a new version with `operation = restore` and the source version recorded; it never rewrites or removes the historical version chain.
+- The browser persists unsynchronized mutations in `operationsPlanningCloudOutbox.v1`. Entries are cleared only after the database confirms the save; transient failures retry, while version conflicts preserve local content and require an explicit choice before loading the team version.
 
 ## Current State
 
@@ -83,6 +87,8 @@ The standalone reference remains the design and behavior source for the React ap
 - The Marketing Asset Delivery Matrix and its shared cloud document are published to the production Vercel application.
 - The no-horizontal-scroll Marketing Assets matrix, project-gap workflow, compact editor and Project Tracking project synchronization are published to production.
 - The Project Tracking filter bar with non-overlapping scope controls and a scope-aware project/model dropdown is published to production.
+- The compact single-row Project Tracking filter, fixed four-category dropdowns, immutable document versions and durable sync outbox are deployed to production.
+- Supabase is currently on the Free plan. Application-level version history protects against user error and frontend evolution, but provider-level disaster recovery still requires a paid daily-backup plan, PITR, or a scheduled off-site logical dump.
 
 ## Key Decisions
 
@@ -162,6 +168,13 @@ The standalone reference remains the design and behavior source for the React ap
 - Production Marketing Assets opens with launch-date ascending order (`PX51`, `WAL101`, `WM321`, `PM61-Black`, `P51L-P2`), exposes correct active/inactive `aria-sort` states, and sorts progress from 3% to 96% on the first progress-header action without document or matrix overflow.
 - Vercel production deployment `dpl_A47N1L7aSkvAvwPfxddig45vipvj` is READY and aliased to `https://operations-planning-hub.vercel.app`; production root and `/api/config` return HTTP 200.
 - Production Project Tracking shows all portfolio-scope labels without clipping or overlap, exposes five current-scope project/model dropdown options in the base production dataset, and filters the matrix to the selected `PX51` project without document or filter-bar overflow.
+- Local Project Tracking at 1280x720 renders all seven filter groups in a 57px bar with matching 1042px client/scroll widths and no document overflow. At 1100px the filter itself wraps cleanly into two rows without internal overflow.
+- The Add Project category control is a `select` with exactly four options in Chinese (`移动电源`, `充头`, `无线充`, `充电线`) and English (`Power Bank`, `Charger`, `Wireless Charger`, `Charging Cable`). The Sales & Inventory category filter exposes the same four values plus the all-category option.
+- Local interaction checks pass for selecting `Charging Cable`, restoring the draft to `Power Bank`, switching languages and filtering Sales & Inventory. Browser console warning/error logs are empty.
+- Migration `immutable_document_versions_and_recovery` is applied in production. All seven current shared documents were backfilled; each current payload is byte-equivalent at the JSON level to its matching archived version and RLS is enabled on the archive table.
+- A rollback-only production durability probe passed: save version 1, save version 2, restore version 1 as version 3, verify the restored payload and three archived rows, then roll back. No probe document, archive or event remains.
+- Supabase security advisor no longer reports the public save RPC as an executable `SECURITY DEFINER` function. Public save/restore wrappers are `SECURITY INVOKER`; checked private implementations retain explicit authenticated workspace-role validation.
+- Production deployment `dpl_5PhLJJGKNa763U8vxt7D7u1B1FC8` is READY and aliased to `https://operations-planning-hub.vercel.app`. Production root and `/api/config` return HTTP 200, required category/filter/outbox markers are present, and the public login page reports no browser warning or error logs.
 - Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.
 
 ## Next Steps
