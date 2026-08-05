@@ -45,10 +45,11 @@
   comparison source, monthly-close review, and revision audit trail.
 - Pull History additionally supports a searchable, multi-select Model filter
   and a Category filter. These filters apply consistently across all three
-  history views. Filtered Monthly Actuals are sorted by month from oldest to
-  newest, then by Model and Product, so multi-model results stay grouped within
-  each month. Forecast Snapshots use archive month, forecast month, then Model;
-  Revision Log shows the newest changes first with stable Model/month ordering.
+  history views. Filtered results are grouped by Model first. Within each Model,
+  Monthly Actuals run from the oldest month to the newest; Forecast Snapshots
+  use archive month then forecast month; Revision Log shows that Model's newest
+  changes first. This lets users review the full month sequence for one Model
+  before continuing to the next Model.
 - Table headers remain frozen inside every scrollable Sales & Inventory modal
   table, including Pull History, Grid Input, comparisons, and snapshot logs.
 - The default planning Period is not an editable filter. The active rolling
