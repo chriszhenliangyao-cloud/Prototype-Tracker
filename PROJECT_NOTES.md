@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Maintain and extend the published bilingual operations collaboration platform. Preserve the existing workflows, support account-level `zh-CN` / `en-GB` switching across all modules and key dialogs, keep user-authored business content in its original language, and keep Supabase, Vercel and the GitHub conversation branch aligned.
+Maintain and extend the published bilingual operations collaboration platform. The current delivery focuses on the Marketing Asset Delivery Matrix: keep it fully visible without horizontal scrolling, make project gaps actionable, and synchronize its project list from Project Tracking so every newly created project is initialized automatically.
 
 ## Repository Context
 
@@ -50,8 +50,9 @@ The standalone reference remains the design and behavior source for the React ap
 - Department workspaces are source-of-truth maintenance surfaces. Project Tracking monitors project impact, the collaboration center aggregates decisions and actions, and System Management owns permissions, master data, integrations and audit.
 - `样机管理` is an independent Function Workspace backed by each project's `prototype` workstream. Its ledger, readiness, owners, deadlines, tasks, blockers and next actions read and write the same project records; it does not maintain a duplicate sample dataset.
 - The Prototype Management page is reachable from Function Workspaces and from the Prototype source control in Project Tracking. Viewing opens the project drawer on the prototype workstream; editing reuses the department update workflow and refreshes both surfaces after publish.
-- `营销物料` is a project-row delivery matrix. Its six fixed standard columns are Product Introduction Slides, Packaging Design Final Draft, Product Sheet, Product & Packaging Images & Manual, POSM, and Social Copy & PR Release; additional special materials appear as managed columns with project applicability, owner, status and DDL.
+- `营销物料` is a project-row delivery matrix. Its six fixed standard columns are Product Introduction Slides, Packaging Design Final Draft, Product Sheet, Product & Packaging Images & Manual, POSM, and Social Copy & PR Release. All special materials are grouped in one final managed column so adding a type never widens the matrix.
 - Marketing material names use English title case in both interface languages, while recognised abbreviations such as POSM remain uppercase. Saving a material updates the linked project's marketing workstream readiness, tasks, owner, next deadline and blockers.
+- Project Tracking is the source of truth for the Marketing Assets project list. Creating a project initializes all six standard assets as `not_started`; active, paused and closeout projects stay visible, while archived/cancelled records are retained but hidden from the current matrix.
 
 ## Current State
 
@@ -70,10 +71,11 @@ The standalone reference remains the design and behavior source for the React ap
 - Access Management now uses a four-layer RBAC model: platform role, one or more functional roles, data scopes and approval limits/authorities. The fixed tabs are Member Accounts, Role Templates, Data Scopes and Approval Access.
 - The local permission workflow includes 16 reusable role templates, default-deny scope selection, independent publish/month-close/archive authorities, approval amount and validity limits, autosaved drafts and explicit apply with an immutable local audit entry.
 - A bilingual Prototype Management workspace provides live project filters, portfolio metrics, a compact project prototype ledger, a seven-day task queue, CSV export and bidirectional Project Tracking links.
-- A bilingual Marketing Asset Delivery Matrix provides project, launch-month, stage, owner and health filters; per-project and per-material totals; missing and overdue visibility; CSV export; autosaved edit drafts; and a controlled Add Special Material workflow.
+- A bilingual Marketing Asset Delivery Matrix provides a typeable project selector, launch-month/stage/owner/health filters, per-project and per-material totals, actionable project-gap summaries, CSV export, autosaved compact edit dialogs, and controlled special-material management.
 - User-entered project reasons, blockers, mitigation notes, handover details and other source-language content are marked as canonical user content and are not changed by UI language switching.
 - The latest platform-shell, bilingual, permission, settlement and Prototype Management changes are published to the production Vercel application.
 - The Marketing Asset Delivery Matrix and its shared cloud document are published to the production Vercel application.
+- The no-horizontal-scroll Marketing Assets matrix, project-gap workflow, compact editor and Project Tracking project synchronization are published to production.
 
 ## Key Decisions
 
@@ -130,18 +132,24 @@ The standalone reference remains the design and behavior source for the React ap
 - Account-switch testing confirms that different local accounts restore their own language preference. Switching back to `zh-CN` restores the original Chinese UI and browser title without changing user-authored content.
 - The four Access Management tabs keep the same 1240 × 662 px dialog footprint at a 1280 × 720 viewport. Role-template assignment, mutually exclusive data scopes, approval authorities, amount editing and autosave have passed local interaction checks.
 - Prototype Management passes local tests for Function Workspace entry, search/reset filters, project drawer opening, department editor launch, publish-and-refresh behavior, reverse source navigation, prototype-owner permissions and Chinese/English rendering at 1280 × 720 without document or table overflow.
-- Marketing Assets passes local Chinese and English browser tests for all six standard columns, title-case rendering, special-material creation and validation, item editing, matrix totals, internal horizontal scrolling without document overflow, and synchronization back to the Project Tracking marketing workstream.
+- Marketing Assets passes local Chinese and English browser tests for all six standard columns, title-case rendering, grouped special-material management, item editing, matrix totals, and synchronization back to the Project Tracking marketing workstream.
+- At a 1280×720 viewport, the Marketing Assets matrix and its container are both 1040px wide, document width equals viewport width, and all nine headers use static positioning. The complete horizontal matrix is visible without scrolling or sticky-column overlap.
+- Project-to-Marketing-Assets synchronization passes an end-to-end local test: creating `MKT-SYNC-01` in Project Tracking automatically adds the same project to the Marketing Assets project selector and matrix with six standard materials initialized as not started.
+- The project total-progress control opens a complete gap list with direct update actions. The material editor is 700×299px in the tested desktop state, with four compact fields on one row and a short full-width note field.
 - JavaScript syntax checks pass for `cloud-app/i18n.js`, `cloud-app/cloud-sync.js`, and the inline application script.
 - The user-locale preference migration is applied to Supabase with RLS. Anonymous table access is revoked; authenticated users receive only select, insert and update privileges, constrained by own-user policies.
 - Vercel production deployment `dpl_D12a4aXTgi75ThZgfMuiUYBHNiFC` is READY and aliased to `https://operations-planning-hub.vercel.app`.
 - Production root and `/api/config` return HTTP 200. Release markers for Prototype Management and Settlement Ledger are present in the deployed HTML.
 - Production browser smoke testing confirms the Google-only login screen has no password input, the Function Workspace opens the independent Prototype Management page, English switching renders the expected navigation and heading, and the 1280px viewport has no document-level horizontal overflow.
+- Vercel production deployment `dpl_8AL1mrmTU6S3j7gdsa9fS43xpa8J` is READY and aliased to `https://operations-planning-hub.vercel.app`. Production root and `/api/config` return HTTP 200.
+- Production Marketing Assets regression confirms the 1040px matrix fits its 1040px container, all nine headers use static positioning, the project selector is present, and WAL101 opens a five-item actionable gap dialog.
 - Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.
 
 ## Next Steps
 
-1. Define a separate translation-service contract for optional user-content translations while keeping original text canonical.
-2. Define normalized API contracts for Forecast versions, Forecast lines, Shipment plans, Shipment milestones, Exceptions, Tasks and Approvals before enabling multi-user editing.
+1. Normalize Project, Marketing Asset Type and Marketing Asset Delivery records in Supabase so the browser prototype synchronization contract can become multi-user and transactional.
+2. Define a separate translation-service contract for optional user-content translations while keeping original text canonical.
+3. Define normalized API contracts for Forecast versions, Forecast lines, Shipment plans, Shipment milestones, Exceptions, Tasks and Approvals before enabling multi-user editing.
 
 ## Resume Instructions
 

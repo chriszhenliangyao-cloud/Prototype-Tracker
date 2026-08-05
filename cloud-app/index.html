@@ -2620,44 +2620,38 @@
 
     .market-assets-matrix-wrap {
       max-width: 100%;
-      overflow: auto;
-      scrollbar-gutter: stable;
+      overflow: visible;
     }
 
     .market-assets-matrix {
       width: 100%;
-      min-width: 1540px;
+      min-width: 0;
       table-layout: fixed;
-      border-collapse: separate;
-      border-spacing: 0;
+      border-collapse: collapse;
     }
 
     .market-assets-matrix th,
     .market-assets-matrix td {
-      height: 72px;
-      padding: 5px;
+      height: 66px;
+      min-width: 0;
+      padding: 4px;
       border-right: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
       background: #fff;
       text-align: left;
       vertical-align: middle;
-      font-size: 8px;
+      font-size: 7px;
+      overflow-wrap: anywhere;
     }
 
     .market-assets-matrix th {
-      height: 58px;
+      height: 52px;
       background: #f5f7fb;
       color: #4d5b70;
       font-weight: 900;
       text-align: center;
       text-transform: none;
       letter-spacing: 0;
-    }
-
-    .market-assets-matrix thead th {
-      position: sticky;
-      top: 0;
-      z-index: 4;
     }
 
     .market-assets-matrix th:last-child,
@@ -2670,56 +2664,32 @@
     }
 
     .market-assets-project-col {
-      width: 190px;
-      min-width: 190px;
-    }
-
-    .market-assets-date-col {
-      width: 88px;
-      min-width: 88px;
+      width: 18%;
     }
 
     .market-assets-progress-col {
-      width: 94px;
-      min-width: 94px;
+      width: 8%;
     }
 
     .market-assets-material-col {
-      width: 145px;
-      min-width: 145px;
+      width: 10%;
     }
 
     .market-assets-custom-col {
-      width: 142px;
-      min-width: 142px;
+      width: 14%;
       background: #f4f8ff !important;
-    }
-
-    .market-assets-risk-col {
-      width: 112px;
-      min-width: 112px;
     }
 
     .market-assets-sticky-project,
     .market-assets-sticky-date,
     .market-assets-sticky-progress {
-      position: sticky;
-      z-index: 3;
+      position: static;
       background: #fff !important;
     }
 
     thead .market-assets-sticky-project,
-    thead .market-assets-sticky-date,
     thead .market-assets-sticky-progress {
-      z-index: 6;
       background: #f5f7fb !important;
-    }
-
-    .market-assets-sticky-project { left: 0; }
-    .market-assets-sticky-date { left: 190px; }
-    .market-assets-sticky-progress {
-      left: 278px;
-      box-shadow: 5px 0 8px rgba(29, 46, 77, .06);
     }
 
     .market-assets-project strong,
@@ -2729,7 +2699,7 @@
 
     .market-assets-project strong {
       color: var(--text);
-      font-size: 9px;
+      font-size: 8px;
       line-height: 1.25;
     }
 
@@ -2740,12 +2710,23 @@
       line-height: 1.25;
     }
 
+    .market-assets-project-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 3px 6px;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 7px;
+      font-weight: 800;
+    }
+
     .market-assets-category-title {
       display: block;
-      max-width: 132px;
+      max-width: 100%;
       margin: 0 auto;
       color: #263247;
-      font-size: 8px;
+      font-size: 7px;
       font-weight: 900;
       line-height: 1.25;
       letter-spacing: 0;
@@ -2755,19 +2736,41 @@
 
     .market-assets-category-note {
       display: block;
-      margin-top: 3px;
+      margin-top: 2px;
       color: var(--muted);
-      font-size: 7px;
+      font-size: 6px;
       font-weight: 800;
     }
 
     .market-assets-progress {
+      width: 100%;
       display: grid;
-      gap: 5px;
+      gap: 4px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
     }
 
     .market-assets-progress strong {
-      font-size: 9px;
+      font-size: 8px;
+    }
+
+    .market-assets-progress small {
+      color: var(--muted);
+      font-size: 6.5px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .market-assets-progress small.risk { color: var(--red); }
+
+    .market-assets-progress:hover small,
+    .market-assets-progress:focus-visible small {
+      color: var(--blue);
+      text-decoration: underline;
     }
 
     .market-assets-progress-bar {
@@ -2786,7 +2789,7 @@
 
     .market-asset-cell {
       width: 100%;
-      min-height: 58px;
+      min-height: 54px;
       display: grid;
       align-content: center;
       gap: 3px;
@@ -2794,7 +2797,7 @@
       border-left: 3px solid #aab5c5;
       border-radius: 4px;
       background: #f6f8fb;
-      padding: 6px 7px;
+      padding: 5px;
       color: var(--text);
       text-align: left;
       cursor: pointer;
@@ -2828,7 +2831,7 @@
 
     .market-asset-cell strong {
       color: inherit;
-      font-size: 8px;
+      font-size: 7px;
       line-height: 1.15;
     }
 
@@ -2838,35 +2841,53 @@
 
     .market-asset-cell small {
       color: var(--muted);
-      font-size: 7px;
+      font-size: 6px;
       font-weight: 700;
       line-height: 1.15;
     }
 
-    .market-assets-risk {
+    .market-assets-special-stack {
       display: grid;
-      gap: 4px;
-      justify-items: start;
+      gap: 3px;
     }
 
-    .market-assets-risk strong {
-      font-size: 8px;
-      line-height: 1.25;
+    .market-assets-special-item {
+      width: 100%;
+      min-height: 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 4px;
+      border: 0;
+      border-left: 2px solid #9aa6b7;
+      border-radius: 3px;
+      background: #f5f7fa;
+      padding: 3px 4px;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .market-assets-special-item.done { border-left-color: var(--green); background: #f1faf6; }
+    .market-assets-special-item.attention { border-left-color: #d97706; background: #fff8ed; }
+    .market-assets-special-item.risk { border-left-color: var(--red); background: #fff3f4; }
+    .market-assets-special-item strong {
+      min-width: 0;
+      font-size: 6.5px;
+      line-height: 1.15;
+    }
+    .market-assets-special-item small {
+      color: var(--muted);
+      font-size: 5.5px;
+      font-weight: 800;
+      white-space: nowrap;
     }
 
     .market-assets-total-row td {
-      position: sticky;
-      bottom: 0;
-      z-index: 2;
-      height: 58px;
+      position: static;
+      height: 48px;
       background: #f5f7fb !important;
       font-weight: 900;
-    }
-
-    .market-assets-total-row .market-assets-sticky-project,
-    .market-assets-total-row .market-assets-sticky-date,
-    .market-assets-total-row .market-assets-sticky-progress {
-      z-index: 5;
     }
 
     .market-assets-total-cell {
@@ -2911,14 +2932,44 @@
     .market-assets-legend i.risk { border-left-color: var(--red); background: #fff3f4; }
 
     .market-asset-modal {
-      width: min(760px, calc(100vw - 32px));
-      max-height: min(640px, calc(100vh - 32px));
+      width: min(720px, calc(100vw - 32px));
+      max-height: min(560px, calc(100vh - 32px));
+    }
+
+    .market-asset-modal.compact-item-modal {
+      width: min(700px, calc(100vw - 32px));
+    }
+
+    .market-asset-modal .modal-head {
+      padding: 10px 14px;
+    }
+
+    .market-asset-modal .modal-body {
+      padding: 10px 14px;
+    }
+
+    .market-asset-modal .modal-foot {
+      min-height: 48px;
+      padding: 8px 14px;
     }
 
     .market-asset-form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
+    }
+
+    .market-asset-item-form {
+      grid-template-columns: minmax(150px, 1.15fr) minmax(90px, .55fr) minmax(120px, .8fr) minmax(130px, .9fr);
+    }
+
+    .market-asset-item-form .editor-field:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .market-asset-item-form textarea {
+      min-height: 62px;
+      max-height: 90px;
     }
 
     .market-asset-project-checks {
@@ -2941,18 +2992,25 @@
     }
 
     .market-asset-readonly-context {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 7px;
-      margin-bottom: 10px;
-    }
-
-    .market-asset-context-item {
-      padding: 7px 8px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px 14px;
+      min-height: 34px;
+      margin-bottom: 8px;
+      padding: 6px 8px;
       border: 1px solid var(--line);
       border-radius: 5px;
       background: #f7f9fc;
     }
+
+    .market-asset-context-item {
+      min-width: 0;
+      padding-right: 14px;
+      border-right: 1px solid var(--line);
+    }
+
+    .market-asset-context-item:last-child { border-right: 0; }
 
     .market-asset-context-item span,
     .market-asset-context-item strong {
@@ -2966,8 +3024,67 @@
     }
 
     .market-asset-context-item strong {
-      margin-top: 3px;
-      font-size: 9px;
+      margin-top: 1px;
+      font-size: 8px;
+    }
+
+    .market-assets-summary-list {
+      display: grid;
+      gap: 5px;
+    }
+
+    .market-assets-summary-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) 88px 76px auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 5px 7px;
+      border: 1px solid var(--line);
+      border-left: 3px solid #9aa6b7;
+      border-radius: 4px;
+      background: #fff;
+      font-size: 8px;
+    }
+
+    .market-assets-summary-row.risk { border-left-color: var(--red); background: #fff8f8; }
+    .market-assets-summary-row.attention { border-left-color: #d97706; background: #fffbf5; }
+    .market-assets-summary-row.neutral { border-left-color: #9aa6b7; }
+    .market-assets-summary-row strong,
+    .market-assets-summary-row small { display: block; }
+    .market-assets-summary-row small { margin-top: 2px; color: var(--muted); font-size: 7px; }
+
+    @media (max-width: 1180px) {
+      .market-assets-matrix th,
+      .market-assets-matrix td { padding: 3px; }
+      .market-assets-project-col { width: 17%; }
+      .market-assets-progress-col { width: 8%; }
+      .market-assets-material-col { width: 10%; }
+      .market-assets-custom-col { width: 15%; }
+      .market-assets-category-title { font-size: 6.5px; }
+      .market-asset-cell { padding: 4px; }
+    }
+
+    @media (max-width: 760px) {
+      .market-asset-item-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .market-assets-summary-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .market-assets-summary-row > span {
+        display: none;
+      }
+
+      .market-asset-readonly-context {
+        align-items: stretch;
+      }
+
+      .market-asset-context-item {
+        flex: 1 1 120px;
+      }
     }
 
     .workspace-status {
@@ -7672,6 +7789,68 @@
       }));
     }
 
+    function createMarketingAssetProject(source) {
+      return {
+        projectId: source.id,
+        model: source.model,
+        name: source.name,
+        launchDate: source.launchDate,
+        stage: source.stage,
+        lifecycleStatus: projectLifecycleStatus(source),
+        synced: true,
+        assets: Object.fromEntries(STANDARD_MARKETING_ASSET_TYPES.map((type) => [type.key, {
+          status: "not_started",
+          progress: 0,
+          ddl: "",
+          owner: "",
+          note: ""
+        }])),
+        special: Object.fromEntries(marketingAssetsState.specialMaterials.map((type) => [type.id, null]))
+      };
+    }
+
+    function syncMarketingAssetProjectsFromTracking() {
+      if (!projectState?.projects?.length) return;
+      const existing = marketingAssetsState.projects || [];
+      const used = new Set();
+      let changed = false;
+      const synced = projectState.projects.map((source) => {
+        const current = existing.find((item) => item.projectId === source.id)
+          || existing.find((item) => !used.has(item) && item.model === source.model);
+        if (!current) {
+          changed = true;
+          return createMarketingAssetProject(source);
+        }
+        used.add(current);
+        const meta = {
+          projectId: source.id,
+          model: source.model,
+          name: source.name,
+          launchDate: source.launchDate,
+          stage: source.stage,
+          lifecycleStatus: projectLifecycleStatus(source),
+          synced: true
+        };
+        if (Object.entries(meta).some(([key, value]) => current[key] !== value)) changed = true;
+        return { ...current, ...meta };
+      });
+      const retained = existing.filter((item) => !used.has(item) && !synced.some((project) => project === item || project.model === item.model)).map((item) => {
+        if (item.synced !== false) changed = true;
+        return { ...item, synced: false };
+      });
+      const next = [...synced, ...retained];
+      if (next.length !== existing.length || next.some((item, index) => {
+        const previous = existing[index];
+        return !previous || (item.projectId || item.model) !== (previous.projectId || previous.model);
+      })) changed = true;
+      marketingAssetsState.projects = next;
+      if (changed) persistMarketingAssets();
+    }
+
+    function activeMarketingAssetProjects() {
+      return marketingAssetsState.projects.filter((project) => project.synced !== false && !["archived", "cancelled"].includes(project.lifecycleStatus));
+    }
+
     function canEditMarketingAssets(user = currentProjectUser()) {
       return Boolean(user?.status === "active" && (user.platformRole === "super_admin" || userHasFunctionalRole(user, "marketing_growth")));
     }
@@ -7718,15 +7897,16 @@
       const missing = configured.filter((entry) => entry.item.status === "missing").length;
       const overdue = configured.filter((entry) => entry.item.status === "overdue").length;
       const attention = configured.filter((entry) => ["in_progress", "review"].includes(entry.item.status)).length;
+      const notStarted = configured.filter((entry) => entry.item.status === "not_started").length;
       const progress = configured.length ? Math.round(configured.reduce((sum, entry) => sum + Number(entry.item.progress || 0), 0) / configured.length) : 0;
       const health = overdue || missing ? "Risk" : attention ? "Warning" : "On Track";
-      return { configured: configured.length, done, missing, overdue, attention, progress, health };
+      return { configured: configured.length, done, missing, overdue, attention, notStarted, progress, health };
     }
 
     function filteredMarketingAssetProjects() {
       const filters = marketingAssetsState.filters;
       const query = String(filters.search || "").trim().toLowerCase();
-      return marketingAssetsState.projects.filter((project) => {
+      return activeMarketingAssetProjects().filter((project) => {
         const metrics = marketingAssetProjectMetrics(project);
         const items = marketingAssetProjectItems(project).filter((entry) => entry.item);
         if (query && !`${project.model} ${project.name}`.toLowerCase().includes(query)) return false;
@@ -7766,7 +7946,7 @@
       return `<div class="market-assets-total-cell"><strong>${stats.done}/${stats.total} · ${percentage}%</strong><small>${marketAssetsText("缺", "Missing")} ${stats.missing} · ${marketAssetsText("逾期", "Overdue")} ${stats.overdue}</small></div>`;
     }
 
-    function renderMarketAssetsWorkspace() {
+    function renderMarketAssetsWorkspaceLegacy() {
       const projects = filteredMarketingAssetProjects();
       const allItems = projects.flatMap((project) => marketingAssetProjectItems(project).filter((entry) => entry.item).map((entry) => entry.item));
       const done = allItems.filter((item) => item.status === "done").length;
@@ -7796,6 +7976,73 @@
       const table = `<div class="market-assets-matrix-wrap"><table class="market-assets-matrix"><thead><tr><th class="market-assets-sticky-project market-assets-project-col">${marketAssetsText("项目 / 产品", "Project / Product")}</th><th class="market-assets-sticky-date market-assets-date-col">${marketAssetsText("上市日期", "Launch date")}</th><th class="market-assets-sticky-progress market-assets-progress-col">${marketAssetsText("总进度", "Total progress")}</th>${standardHeaders}${specialHeaders}<th class="market-assets-risk-col">${marketAssetsText("风险 / 操作", "Risk / Action")}</th></tr></thead><tbody>${rows || `<tr><td colspan="${columnCount}" class="exception-empty">${marketAssetsText("没有符合筛选条件的项目。", "No projects match the current filters.")}</td></tr>`}${projects.length ? totals : ""}</tbody></table></div>`;
       const legend = `<div class="market-assets-legend"><span><i class="done"></i>${marketAssetsText("已完成", "Completed")}</span><span><i class="attention"></i>${marketAssetsText("进行中 / 待审核", "In progress / In review")}</span><span><i class="risk"></i>${marketAssetsText("缺失 / 逾期", "Missing / Overdue")}</span><span><i></i>${marketAssetsText("未开始 / 未配置", "Not started / Not configured")}</span><span>DDL = ${marketAssetsText("最晚交付日期", "Final delivery deadline")}</span></div>`;
       return `<div class="workspace-page market-assets-page">${renderWorkspaceHeader("MARKET GROWTH", "营销物料", marketAssetsText("按项目跟进物料准备、交付和缺失情况", "Project-based asset readiness, delivery and gap tracking"), actions)}${filters}${renderWorkspaceSummary([{ label: marketAssetsText("进行中项目", "Active projects"), value: String(projects.length), foot: marketAssetsText("当前筛选范围", "Current filter scope") }, { label: marketAssetsText("按时完成率", "On-time completion"), value: `${completion}%`, foot: `${done}/${allItems.length} ${marketAssetsText("项已完成", "items completed")}` }, { label: marketAssetsText("缺失物料", "Missing assets"), value: String(missing), foot: marketAssetsText("需要补充交付", "Delivery required"), tone: missing ? "number-negative" : "" }, { label: marketAssetsText("已逾期", "Overdue"), value: String(overdue), foot: marketAssetsText("需要调整或升级", "Escalate or reschedule"), tone: overdue ? "number-negative" : "" }, { label: marketAssetsText("7天内到期", "Due in 7 days"), value: String(dueSoon), foot: marketAssetsText("未完成物料", "Open deliverables") }])}<div class="market-assets-guidance"><span><strong>${marketAssetsText("标准物料固定展示", "Standard materials stay fixed")}</strong> · ${marketAssetsText("特殊物料按项目新增并独立设置负责人、状态与DDL", "Add special materials by project with an independent owner, status and DDL")}</span><span>${marketAssetsText("点击物料方框查看或更新", "Select any material cell to view or update")}</span></div><section class="market-assets-panel"><div class="market-assets-panel-head"><h2>${marketAssetsText("营销物料交付矩阵", "Marketing Asset Delivery Matrix")}</h2><span>${marketAssetsText("所有标准物料与特殊物料统一跟进", "Track standard and special materials together")}</span></div>${table}${legend}</section></div>`;
+    }
+
+    function marketingAssetRiskCopy(metrics) {
+      if (metrics.missing || metrics.overdue) {
+        return `${marketAssetsText("缺", "Missing")} ${metrics.missing} · ${marketAssetsText("逾期", "Overdue")} ${metrics.overdue}`;
+      }
+      if (metrics.attention) return `${metrics.attention}${marketAssetsText("项待推进", " open")}`;
+      if (metrics.notStarted) return `${metrics.notStarted}${marketAssetsText("项未开始", " not started")}`;
+      return marketAssetsText("按计划", "On track");
+    }
+
+    function marketingAssetSpecialCell(project) {
+      if (!marketingAssetsState.specialMaterials.length) {
+        return `<button class="market-assets-special-item neutral" data-market-asset-action="add-special"><strong>${marketAssetsText("暂无特殊物料", "No special materials")}</strong><small>+ ${marketAssetsText("新增", "Add")}</small></button>`;
+      }
+      return `<div class="market-assets-special-stack">${marketingAssetsState.specialMaterials.map((type) => {
+        const item = project.special?.[type.id];
+        const name = activeLocale === "en-GB" ? type.nameEn : type.nameZh;
+        if (!item) {
+          return `<button class="market-assets-special-item neutral" data-market-asset-action="edit-item" data-model="${project.model}" data-material-key="${type.id}" data-special="true" title="${escapeProjectHtml(name)}"><strong>${escapeProjectHtml(name)}</strong><small>${marketAssetsText("未配置", "Not set")}</small></button>`;
+        }
+        const meta = marketingAssetStatusMeta(item.status);
+        const status = activeLocale === "en-GB" ? meta.en : meta.zh;
+        return `<button class="market-assets-special-item ${meta.tone}" data-market-asset-action="edit-item" data-model="${project.model}" data-material-key="${type.id}" data-special="true" title="${escapeProjectHtml(`${name} · ${item.owner || "--"}`)}"><strong>${escapeProjectHtml(name)}</strong><small>${status} · ${marketingAssetDateLabel(item.ddl)} · ${escapeProjectHtml(item.owner || "--")}</small></button>`;
+      }).join("")}</div>`;
+    }
+
+    function marketingAssetSpecialColumnStats(projects) {
+      const items = projects.flatMap((project) => marketingAssetsState.specialMaterials.map((type) => project.special?.[type.id]).filter(Boolean));
+      return {
+        total: items.length,
+        done: items.filter((item) => item.status === "done").length,
+        missing: items.filter((item) => item.status === "missing").length,
+        overdue: items.filter((item) => item.status === "overdue").length
+      };
+    }
+
+    function renderMarketAssetsWorkspace() {
+      syncMarketingAssetProjectsFromTracking();
+      const projects = filteredMarketingAssetProjects();
+      const sourceProjects = activeMarketingAssetProjects();
+      const allItems = projects.flatMap((project) => marketingAssetProjectItems(project).filter((entry) => entry.item).map((entry) => entry.item));
+      const done = allItems.filter((item) => item.status === "done").length;
+      const missing = allItems.filter((item) => item.status === "missing").length;
+      const overdue = allItems.filter((item) => item.status === "overdue").length;
+      const dueSoon = allItems.filter((item) => item.status !== "done" && marketingAssetDaysFromToday(item.ddl) >= 0 && marketingAssetDaysFromToday(item.ddl) <= 7).length;
+      const completion = allItems.length ? Math.round(done / allItems.length * 100) : 0;
+      const owners = Array.from(new Set(sourceProjects.flatMap((project) => marketingAssetProjectItems(project).filter((entry) => entry.item?.owner).map((entry) => entry.item.owner)))).sort();
+      const launchMonths = Array.from(new Set(sourceProjects.map((project) => project.launchDate.slice(0, 7)))).sort();
+      const stages = Array.from(new Set(sourceProjects.map((project) => project.stage))).sort();
+      const editable = canEditMarketingAssets();
+      const actions = `<button class="btn" data-market-asset-action="export">${marketAssetsText("导出", "Export")}</button>${editable ? `<button class="btn primary" data-market-asset-action="add-special">+ ${marketAssetsText("增加特殊物料", "Add Special Material")}</button>` : ""}`;
+      const projectOptions = sourceProjects.map((project) => `<option value="${project.model}" label="${escapeProjectHtml(project.name)}"></option>`).join("");
+      const filters = `<section class="market-assets-filterbar" aria-label="${marketAssetsText("营销物料筛选", "Marketing asset filters")}"><div class="control"><label>${marketAssetsText("选择项目", "Select project")}</label><input id="marketingAssetSearch" list="marketingAssetProjectOptions" data-marketing-asset-filter="search" value="${escapeProjectHtml(marketingAssetsState.filters.search)}" placeholder="${marketAssetsText("输入或选择型号", "Type or select a model")}" autocomplete="off"><datalist id="marketingAssetProjectOptions">${projectOptions}</datalist></div><div class="control"><label>${marketAssetsText("上市月份", "Launch month")}</label><select data-marketing-asset-filter="launchMonth"><option value="All">${marketAssetsText("全部月份", "All months")}</option>${launchMonths.map((month) => `<option value="${month}" ${marketingAssetsState.filters.launchMonth === month ? "selected" : ""}>${marketingAssetDateLabel(`${month}-01`, true).replace(activeLocale === "en-GB" ? "1 " : "1日", "")}</option>`).join("")}</select></div><div class="control"><label>${marketAssetsText("项目阶段", "Project stage")}</label><select data-marketing-asset-filter="stage"><option value="All">${marketAssetsText("全部阶段", "All stages")}</option>${stages.map((stage) => `<option value="${stage}" ${marketingAssetsState.filters.stage === stage ? "selected" : ""}>${projectStageLabel(stage)}</option>`).join("")}</select></div><div class="control"><label>${marketAssetsText("物料负责人", "Asset owner")}</label><select data-marketing-asset-filter="owner"><option value="All">${marketAssetsText("全部负责人", "All owners")}</option>${owners.map((owner) => `<option value="${owner}" ${marketingAssetsState.filters.owner === owner ? "selected" : ""}>${escapeProjectHtml(owner)}</option>`).join("")}</select></div><div class="control"><label>${marketAssetsText("健康状态", "Health")}</label><select data-marketing-asset-filter="health"><option value="All">${marketAssetsText("全部状态", "All statuses")}</option><option value="Risk" ${marketingAssetsState.filters.health === "Risk" ? "selected" : ""}>${marketAssetsText("风险", "Risk")}</option><option value="Warning" ${marketingAssetsState.filters.health === "Warning" ? "selected" : ""}>${marketAssetsText("预警", "Warning")}</option><option value="On Track" ${marketingAssetsState.filters.health === "On Track" ? "selected" : ""}>${marketAssetsText("正常", "On track")}</option></select></div><button class="btn" data-market-asset-action="reset-filters">${marketAssetsText("重置", "Reset")}</button></section>`;
+      const standardHeaders = STANDARD_MARKETING_ASSET_TYPES.map((type) => `<th class="market-assets-material-col"><span class="market-assets-category-title" data-preserve-language>${type.name}</span></th>`).join("");
+      const specialHeader = `<th class="market-assets-custom-col"><span class="market-assets-category-title">${marketAssetsText("特殊物料", "Special Materials")}</span><span class="market-assets-category-note">${marketingAssetsState.specialMaterials.length}${marketAssetsText("类", " types")} ${editable ? `· <button class="link-btn" data-market-asset-action="manage-specials">${marketAssetsText("管理", "Manage")}</button>` : ""}</span></th>`;
+      const rows = projects.map((project) => {
+        const metrics = marketingAssetProjectMetrics(project);
+        const riskCopy = marketingAssetRiskCopy(metrics);
+        return `<tr><td class="market-assets-project-col"><div class="market-assets-project"><strong>${project.model} · ${escapeProjectHtml(project.name)}</strong><div class="market-assets-project-meta"><span>${projectStageLabel(project.stage)}</span><span>${marketingAssetDateLabel(project.launchDate)} ${marketAssetsText("上市", "launch")}</span></div></div></td><td class="market-assets-progress-col"><button class="market-assets-progress" data-market-asset-action="project-summary" data-model="${project.model}" title="${marketAssetsText("打开项目物料缺口明细", "Open project asset gap details")}"><strong>${metrics.done}/${metrics.configured} · ${metrics.progress}%</strong><div class="market-assets-progress-bar"><span style="width:${metrics.progress}%"></span></div><small class="${metrics.missing || metrics.overdue ? "risk" : ""}">${riskCopy}</small></button></td>${STANDARD_MARKETING_ASSET_TYPES.map((type) => `<td>${marketingAssetCell(project, type.key, project.assets?.[type.key], false)}</td>`).join("")}<td class="market-assets-custom-col">${marketingAssetSpecialCell(project)}</td></tr>`;
+      }).join("");
+      const totalConfigured = projects.reduce((sum, project) => sum + marketingAssetProjectMetrics(project).configured, 0);
+      const totalDone = projects.reduce((sum, project) => sum + marketingAssetProjectMetrics(project).done, 0);
+      const totals = `<tr class="market-assets-total-row"><td class="market-assets-project-col"><strong>${marketAssetsText("当前筛选合计", "Filtered total")} · ${projects.length}${marketAssetsText("个项目", " projects")}</strong></td><td class="market-assets-progress-col">${totalDone}/${totalConfigured}<br>${totalConfigured ? Math.round(totalDone / totalConfigured * 100) : 0}%</td>${STANDARD_MARKETING_ASSET_TYPES.map((type) => `<td>${marketingAssetTotalsCell(marketingAssetColumnStats(projects, type.key, false))}</td>`).join("")}<td class="market-assets-custom-col">${marketingAssetTotalsCell(marketingAssetSpecialColumnStats(projects))}</td></tr>`;
+      const table = `<div class="market-assets-matrix-wrap"><table class="market-assets-matrix"><colgroup><col class="market-assets-project-col"><col class="market-assets-progress-col">${STANDARD_MARKETING_ASSET_TYPES.map(() => `<col class="market-assets-material-col">`).join("")}<col class="market-assets-custom-col"></colgroup><thead><tr><th class="market-assets-project-col">${marketAssetsText("项目 / 产品", "Project / Product")}</th><th class="market-assets-progress-col">${marketAssetsText("总进度", "Total progress")}</th>${standardHeaders}${specialHeader}</tr></thead><tbody>${rows || `<tr><td colspan="9" class="exception-empty">${marketAssetsText("没有符合筛选条件的项目。", "No projects match the current filters.")}</td></tr>`}${projects.length ? totals : ""}</tbody></table></div>`;
+      const legend = `<div class="market-assets-legend"><span><i class="done"></i>${marketAssetsText("已完成", "Completed")}</span><span><i class="attention"></i>${marketAssetsText("进行中 / 待审核", "In progress / In review")}</span><span><i class="risk"></i>${marketAssetsText("缺失 / 逾期", "Missing / Overdue")}</span><span><i></i>${marketAssetsText("未开始 / 未配置", "Not started / Not configured")}</span><span>DDL = ${marketAssetsText("最晚交付日期", "Final delivery deadline")}</span></div>`;
+      return `<div class="workspace-page market-assets-page">${renderWorkspaceHeader("MARKET GROWTH", "营销物料", marketAssetsText("按项目跟进物料准备、交付和缺失情况", "Project-based asset readiness, delivery and gap tracking"), actions)}${filters}${renderWorkspaceSummary([{ label: marketAssetsText("进行中项目", "Active projects"), value: String(projects.length), foot: marketAssetsText("当前筛选范围", "Current filter scope") }, { label: marketAssetsText("按时完成率", "On-time completion"), value: `${completion}%`, foot: `${done}/${allItems.length} ${marketAssetsText("项已完成", "items completed")}` }, { label: marketAssetsText("缺失物料", "Missing assets"), value: String(missing), foot: marketAssetsText("需要补充交付", "Delivery required"), tone: missing ? "number-negative" : "" }, { label: marketAssetsText("已逾期", "Overdue"), value: String(overdue), foot: marketAssetsText("需要调整或升级", "Escalate or reschedule"), tone: overdue ? "number-negative" : "" }, { label: marketAssetsText("7天内到期", "Due in 7 days"), value: String(dueSoon), foot: marketAssetsText("未完成物料", "Open deliverables") }])}<div class="market-assets-guidance"><span><strong>${marketAssetsText("六类标准物料固定展示", "Six standard materials stay fixed")}</strong> · ${marketAssetsText("特殊物料统一收纳在最后一列，不增加矩阵宽度", "Special materials stay grouped in the final column without widening the matrix")}</span><span>${marketAssetsText("点击物料编辑；点击总进度查看项目缺口", "Select a material to edit; select total progress for project gaps")}</span></div><section class="market-assets-panel"><div class="market-assets-panel-head"><h2>${marketAssetsText("营销物料交付矩阵", "Marketing Asset Delivery Matrix")}</h2><span>${marketAssetsText("当前页面完整展示全部物料", "All material information fits in the current view")}</span></div>${table}${legend}</section></div>`;
     }
 
     function marketingAssetMaterialName(key, special = false) {
@@ -7852,10 +8099,11 @@
         return;
       }
       const type = marketingAssetsState.specialMaterials.find((item) => item.id === specialId);
+      const activeProjects = activeMarketingAssetProjects();
       const configuredProjects = type
-        ? marketingAssetsState.projects.filter((project) => project.special?.[specialId]).map((project) => project.model)
+        ? activeProjects.filter((project) => project.special?.[specialId]).map((project) => project.model)
         : [];
-      const firstConfigured = type ? marketingAssetsState.projects.find((project) => project.special?.[specialId])?.special?.[specialId] : null;
+      const firstConfigured = type ? activeProjects.find((project) => project.special?.[specialId])?.special?.[specialId] : null;
       const draftType = type ? `special:${type.id}` : "special:new";
       const saved = savedMarketingAssetDraft(draftType);
       marketingAssetsState.modal = draftType;
@@ -7870,7 +8118,22 @@
       renderMarketingAssetModal();
     }
 
-    function renderMarketingAssetModal() {
+    function openMarketingAssetProjectSummary(model) {
+      const project = activeMarketingAssetProjects().find((item) => item.model === model);
+      if (!project) return;
+      marketingAssetsState.modal = `summary:${model}`;
+      marketingAssetsState.draft = { model };
+      renderMarketingAssetModal();
+    }
+
+    function openMarketingAssetSpecialManager() {
+      if (!canEditMarketingAssets()) return;
+      marketingAssetsState.modal = "special-manager";
+      marketingAssetsState.draft = {};
+      renderMarketingAssetModal();
+    }
+
+    function renderMarketingAssetModalLegacy() {
       const root = document.getElementById("marketingAssetModalRoot");
       if (!marketingAssetsState.modal || !marketingAssetsState.draft) {
         root.className = "modal-backdrop project-editor-backdrop";
@@ -7902,6 +8165,77 @@
       root.className = "modal-backdrop project-editor-backdrop active";
       root.setAttribute("aria-hidden", "false");
       root.innerHTML = `<section class="modal project-editor-modal market-asset-modal" role="dialog" aria-modal="true" aria-labelledby="marketingAssetModalTitle"><div class="modal-head"><div><h2 class="modal-title" id="marketingAssetModalTitle">${title}</h2><p class="modal-subtitle">${subtitle}</p></div><button class="icon-btn" data-market-asset-action="close-modal" aria-label="${marketAssetsText("关闭", "Close")}">×</button></div><div class="modal-body"><div class="admin-context-strip"><span>${marketAssetsText("当前操作人", "Current user")}：${escapeProjectHtml(currentProjectUser()?.name || "--")}</span><span>${editable ? marketAssetsText("自动保存草稿 · 保存后同步项目", "Draft autosave · Syncs on save") : marketAssetsText("只读查看", "Read-only view")}</span></div>${body}</div><div class="modal-foot"><span>${editable ? autosaveStatusMarkup("marketing-assets") : marketAssetsText("当前账号没有编辑权限", "Your account does not have edit access")}</span><div style="display:flex;gap:7px"><button class="btn" data-market-asset-action="close-modal">${editable ? marketAssetsText("暂存并关闭", "Save and close") : marketAssetsText("关闭", "Close")}</button>${editable ? `<button class="btn primary" data-market-asset-action="${saveAction}">${isSpecialDefinition ? marketAssetsText("保存特殊物料", "Save Special Material") : marketAssetsText("保存更新", "Save Update")}</button>` : ""}</div></div></section>`;
+      window.operationsI18n?.apply(root);
+    }
+
+    function renderMarketingAssetModal() {
+      const root = document.getElementById("marketingAssetModalRoot");
+      if (!marketingAssetsState.modal || !marketingAssetsState.draft) {
+        root.className = "modal-backdrop project-editor-backdrop";
+        root.setAttribute("aria-hidden", "true");
+        root.innerHTML = "";
+        return;
+      }
+      const editable = canEditMarketingAssets();
+      const draft = marketingAssetsState.draft;
+      const mode = marketingAssetsState.modal;
+      const isSpecialDefinition = mode.startsWith("special:");
+      const isProjectSummary = mode.startsWith("summary:");
+      const isSpecialManager = mode === "special-manager";
+      const tracksDraft = isSpecialDefinition || mode.startsWith("item:");
+      let body = "";
+      let title = "";
+      let subtitle = "";
+      let saveAction = "";
+
+      if (isProjectSummary) {
+        const project = activeMarketingAssetProjects().find((item) => item.model === draft.model);
+        if (!project) return;
+        const metrics = marketingAssetProjectMetrics(project);
+        const priority = { missing: 0, overdue: 0, review: 1, in_progress: 1, not_started: 2 };
+        const openItems = marketingAssetProjectItems(project)
+          .filter((entry) => entry.item && entry.item.status !== "done")
+          .sort((a, b) => (priority[a.item.status] ?? 3) - (priority[b.item.status] ?? 3) || String(a.item.ddl || "9999").localeCompare(String(b.item.ddl || "9999")));
+        title = marketAssetsText("项目物料缺口", "Project Asset Gaps");
+        subtitle = `${project.model} · ${escapeProjectHtml(project.name)} · ${metrics.done}/${metrics.configured} ${marketAssetsText("项完成", "completed")}`;
+        const rows = openItems.map((entry) => {
+          const meta = marketingAssetStatusMeta(entry.item.status);
+          const status = activeLocale === "en-GB" ? meta.en : meta.zh;
+          const material = marketingAssetMaterialName(entry.key, entry.special);
+          return `<div class="market-assets-summary-row ${meta.tone}"><div><strong data-preserve-language>${escapeProjectHtml(material)}</strong><small>${status}${entry.special ? ` · ${marketAssetsText("特殊物料", "Special material")}` : ""}${entry.item.note ? ` · ${escapeProjectHtml(entry.item.note)}` : ""}</small></div><span>DDL<br><strong>${marketingAssetDateLabel(entry.item.ddl)}</strong></span><span>${marketAssetsText("负责人", "Owner")}<br><strong>${escapeProjectHtml(entry.item.owner || "--")}</strong></span><button class="btn" data-market-asset-action="edit-item" data-model="${project.model}" data-material-key="${entry.key}" data-special="${entry.special}">${editable ? marketAssetsText("处理", "Update") : marketAssetsText("查看", "View")}</button></div>`;
+        }).join("");
+        body = `<div class="market-asset-readonly-context"><div class="market-asset-context-item"><span>${marketAssetsText("上市日期", "Launch date")}</span><strong>${marketingAssetDateLabel(project.launchDate, true)}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("缺失 / 逾期", "Missing / Overdue")}</span><strong class="${metrics.missing || metrics.overdue ? "number-negative" : ""}">${metrics.missing} / ${metrics.overdue}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("待推进", "Open items")}</span><strong>${metrics.attention + metrics.notStarted}</strong></div></div><div class="market-assets-summary-list">${rows || `<div class="exception-empty">${marketAssetsText("该项目全部物料已完成。", "All materials for this project are complete.")}</div>`}</div>`;
+      } else if (isSpecialManager) {
+        title = marketAssetsText("特殊物料管理", "Special Material Management");
+        subtitle = marketAssetsText("特殊物料集中在矩阵最后一列，不再增加表格宽度", "Special materials stay grouped in the final matrix column");
+        const rows = marketingAssetsState.specialMaterials.map((type) => {
+          const projectCount = activeMarketingAssetProjects().filter((project) => project.special?.[type.id]).length;
+          return `<div class="market-assets-summary-row neutral"><div><strong>${escapeProjectHtml(type.nameZh)}</strong><small data-preserve-language>${escapeProjectHtml(type.nameEn)}</small></div><span>${projectCount}<br><small>${marketAssetsText("个项目", "projects")}</small></span><span>${escapeProjectHtml(type.createdBy || "--")}</span><button class="btn" data-market-asset-action="edit-special" data-special-id="${type.id}">${marketAssetsText("管理", "Manage")}</button></div>`;
+        }).join("");
+        body = `<div class="market-assets-summary-list">${rows || `<div class="exception-empty">${marketAssetsText("尚未增加特殊物料。", "No special materials have been added.")}</div>`}</div>${editable ? `<div style="margin-top:8px"><button class="btn primary" data-market-asset-action="add-special">+ ${marketAssetsText("增加特殊物料", "Add Special Material")}</button></div>` : ""}`;
+      } else if (isSpecialDefinition) {
+        const isExisting = Boolean(draft.specialId);
+        title = isExisting ? marketAssetsText("管理特殊物料", "Manage Special Material") : marketAssetsText("增加特殊物料", "Add Special Material");
+        subtitle = marketAssetsText("配置物料名称、默认交付信息和适用项目", "Configure its name, default delivery details and applicable projects");
+        saveAction = "save-special";
+        body = `<div class="market-asset-form-grid"><div class="editor-field"><label>${marketAssetsText("中文名称", "Chinese name")}</label><input data-market-asset-draft-field="nameZh" value="${escapeProjectHtml(draft.nameZh)}" placeholder="例如：渠道培训包" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>${marketAssetsText("英文名称", "English name")}</label><input data-market-asset-draft-field="nameEn" value="${escapeProjectHtml(draft.nameEn)}" placeholder="e.g. Channel Training Kit" ${editable ? "" : "disabled"}><small>${marketAssetsText("使用标题式大小写，不要全部大写", "Use title case; do not use all caps")}</small></div><div class="editor-field"><label>${marketAssetsText("默认负责人", "Default owner")}</label><input data-market-asset-draft-field="owner" value="${escapeProjectHtml(draft.owner)}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>${marketAssetsText("默认DDL", "Default DDL")}</label><input type="date" data-market-asset-draft-field="ddl" value="${draft.ddl}" ${editable ? "" : "disabled"}></div></div><section class="editor-section"><div class="editor-section-head"><div><h3 class="editor-section-title">${marketAssetsText("适用项目", "Applicable projects")}</h3><div class="permission-note">${marketAssetsText("未勾选项目显示“未配置”，后续仍可单独添加", "Unselected projects show “Not configured” and can be added later")}</div></div></div><div class="market-asset-project-checks">${activeMarketingAssetProjects().map((project) => `<label class="market-asset-project-check"><input type="checkbox" data-market-asset-project="${project.model}" ${draft.projectIds.includes(project.model) ? "checked" : ""} ${editable ? "" : "disabled"}><span><strong>${project.model}</strong> · ${escapeProjectHtml(project.name)}</span></label>`).join("")}</div></section>`;
+      } else {
+        const project = activeMarketingAssetProjects().find((item) => item.model === draft.model) || marketingAssetsState.projects.find((item) => item.model === draft.model);
+        title = marketAssetsText("更新物料交付", "Update Material Delivery");
+        subtitle = marketAssetsText("保存后同步营销物料矩阵和项目跟进", "Saves to the material matrix and Project Tracking");
+        saveAction = "save-item";
+        const statusOptions = ["not_started", "in_progress", "review", "done", "missing", "overdue"];
+        body = `<div class="market-asset-readonly-context"><div class="market-asset-context-item"><span>${marketAssetsText("项目", "Project")}</span><strong>${project?.model || draft.model} · ${escapeProjectHtml(project?.name || "")}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("物料", "Material")}</span><strong data-preserve-language>${escapeProjectHtml(marketingAssetMaterialName(draft.key, draft.special))}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("上市", "Launch")}</span><strong>${marketingAssetDateLabel(project?.launchDate, true)}</strong></div></div><div class="market-asset-form-grid market-asset-item-form"><div class="editor-field"><label>${marketAssetsText("交付状态", "Delivery status")}</label><select data-market-asset-draft-field="status" ${editable ? "" : "disabled"}>${statusOptions.map((status) => { const meta = marketingAssetStatusMeta(status); return `<option value="${status}" ${draft.status === status ? "selected" : ""}>${activeLocale === "en-GB" ? meta.en : meta.zh}</option>`; }).join("")}</select></div><div class="editor-field"><label>${marketAssetsText("完成比例", "Completion")}</label><input type="number" min="0" max="100" step="5" data-market-asset-draft-field="progress" value="${draft.progress}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>${marketAssetsText("负责人", "Owner")}</label><input data-market-asset-draft-field="owner" value="${escapeProjectHtml(draft.owner)}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>DDL</label><input type="date" data-market-asset-draft-field="ddl" value="${draft.ddl}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>${marketAssetsText("交付说明 / 卡点", "Delivery note / Blocker")}</label><textarea data-market-asset-draft-field="note" placeholder="${marketAssetsText("说明当前交付、缺失原因或下一步", "Describe delivery status, missing reason or next action")}" ${editable ? "" : "disabled"}>${escapeProjectHtml(draft.note)}</textarea></div></div>`;
+      }
+
+      const footerStatus = tracksDraft
+        ? (editable ? autosaveStatusMarkup("marketing-assets") : marketAssetsText("当前账号没有编辑权限", "Your account does not have edit access"))
+        : marketAssetsText("点击具体物料可继续查看或处理", "Select a material to view or update it");
+      const closeLabel = tracksDraft && editable ? marketAssetsText("暂存并关闭", "Save and close") : marketAssetsText("关闭", "Close");
+      const primary = saveAction && editable ? `<button class="btn primary" data-market-asset-action="${saveAction}">${isSpecialDefinition ? marketAssetsText("保存特殊物料", "Save Special Material") : marketAssetsText("保存更新", "Save Update")}</button>` : "";
+      root.className = "modal-backdrop project-editor-backdrop active";
+      root.setAttribute("aria-hidden", "false");
+      root.innerHTML = `<section class="modal project-editor-modal market-asset-modal ${isSpecialDefinition ? "" : "compact-item-modal"}" role="dialog" aria-modal="true" aria-labelledby="marketingAssetModalTitle"><div class="modal-head"><div><h2 class="modal-title" id="marketingAssetModalTitle">${title}</h2><p class="modal-subtitle">${subtitle}</p></div><button class="icon-btn" data-market-asset-action="close-modal" aria-label="${marketAssetsText("关闭", "Close")}">×</button></div><div class="modal-body">${body}</div><div class="modal-foot"><span>${footerStatus}</span><div style="display:flex;gap:7px"><button class="btn" data-market-asset-action="close-modal">${closeLabel}</button>${primary}</div></div></section>`;
       window.operationsI18n?.apply(root);
     }
 
@@ -8000,7 +8334,7 @@
       const existingIndex = marketingAssetsState.specialMaterials.findIndex((item) => item.id === draft.specialId);
       if (existingIndex >= 0) marketingAssetsState.specialMaterials[existingIndex] = { ...marketingAssetsState.specialMaterials[existingIndex], ...definition };
       else marketingAssetsState.specialMaterials.push(definition);
-      marketingAssetsState.projects.forEach((project) => {
+      activeMarketingAssetProjects().forEach((project) => {
         project.special = project.special || {};
         if (draft.projectIds.includes(project.model)) {
           project.special[id] = project.special[id] || { status: "not_started", progress: 0, ddl: draft.ddl, owner: draft.owner.trim(), note: "" };
@@ -8011,7 +8345,7 @@
         }
       });
       persistMarketingAssets();
-      marketingAssetsState.projects.forEach((project) => syncMarketingAssetProject(project.model));
+      activeMarketingAssetProjects().forEach((project) => syncMarketingAssetProject(project.model));
       clearMarketingAssetDraft();
       marketingAssetsState.modal = null;
       marketingAssetsState.draft = null;
@@ -8054,15 +8388,11 @@
       if (action === "add-special") openSpecialMaterialModal();
       if (action === "edit-special") openSpecialMaterialModal(button.getAttribute("data-special-id"));
       if (action === "edit-item") openMarketingAssetItemModal(button.getAttribute("data-model"), button.getAttribute("data-material-key"), button.getAttribute("data-special") === "true");
+      if (action === "project-summary") openMarketingAssetProjectSummary(button.getAttribute("data-model"));
+      if (action === "manage-specials") openMarketingAssetSpecialManager();
       if (action === "export") exportMarketingAssets();
       if (action === "reset-filters") {
         marketingAssetsState.filters = { search: "", launchMonth: "All", stage: "All", owner: "All", health: "All" };
-        persistMarketingAssets();
-        renderWorkspaceModule("market-assets");
-        window.operationsI18n?.apply(document.getElementById("workspaceModule"));
-      }
-      if (action === "project-risk") {
-        marketingAssetsState.filters.search = button.getAttribute("data-model") || "";
         persistMarketingAssets();
         renderWorkspaceModule("market-assets");
         window.operationsI18n?.apply(document.getElementById("workspaceModule"));
@@ -11364,6 +11694,7 @@
       const project = buildProjectFromDraft(draft);
       projectState.projects.unshift(project);
       persistProjectData();
+      syncMarketingAssetProjectsFromTracking();
       cancelAutosave("project-add");
       clearProjectFormDraft("add-project");
       projectState.adminModal = null;
