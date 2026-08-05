@@ -15,12 +15,11 @@
     .cloud-auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}.cloud-auth-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:7px;background:#172033;color:#fff;font-size:12px;font-weight:800}
     .cloud-auth-panel h1{font-size:21px;margin:0}.cloud-auth-panel p{margin:6px 0 20px;color:#65738a;font-size:13px;line-height:1.55}
     .cloud-google-login{width:100%;height:42px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #c7d2e2;border-radius:6px;background:#fff;color:#172033;font:700 13px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}.cloud-google-login:hover{border-color:#8fa5c4;background:#f8fafc}.cloud-google-login:focus{outline:2px solid #b8ccff;border-color:#225be8}.cloud-google-login:disabled{opacity:.55;cursor:wait}.cloud-google-mark{display:grid;place-items:center;width:22px;height:22px;border:1px solid #d8e0eb;border-radius:50%;color:#4285f4;font-size:13px;font-weight:900}.cloud-auth-policy{margin:14px 0 0!important;text-align:center;color:#65738a!important;font-size:11px!important}.cloud-auth-message{min-height:18px;margin:12px 0 0!important;color:#d82331!important;font-size:12px!important;text-align:center}.cloud-auth-message.success{color:#11845b!important}
-    .cloud-status{position:fixed;z-index:4500;right:14px;top:66px;display:flex;align-items:center;gap:8px;min-height:34px;padding:6px 9px;border:1px solid #d8e0eb;border-radius:6px;background:rgba(255,255,255,.97);box-shadow:0 8px 24px rgba(30,42,64,.12);font:600 11px/1.2 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#4d5b70}
-    .cloud-status-dot{width:7px;height:7px;border-radius:50%;background:#11845b}.cloud-status.saving .cloud-status-dot{background:#225be8;animation:cloud-pulse 1s infinite}.cloud-status.error .cloud-status-dot,.cloud-status.conflict .cloud-status-dot{background:#e4232f}.cloud-status button{border:0;background:transparent;color:#225be8;font:inherit;cursor:pointer;padding:2px 3px}.cloud-status .cloud-logout{color:#65738a;border-left:1px solid #d8e0eb;padding-left:8px}
+    .cloud-status{position:relative;z-index:30;display:inline-flex;align-items:center;flex:0 0 auto;font:600 10px/1.2 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#4d5b70}.cloud-status-trigger{height:28px;display:inline-flex;align-items:center;gap:6px;border:1px solid #d8e0eb;border-radius:5px;background:#fff;padding:0 8px;color:#4d5b70;font:inherit;cursor:pointer;white-space:nowrap}.cloud-status-trigger:hover,.cloud-status-trigger[aria-expanded="true"]{border-color:#9fb0c8;background:#f7f9fc}.cloud-status-dot{width:7px;height:7px;border-radius:50%;background:#11845b;flex:0 0 auto}.cloud-status.saving .cloud-status-dot{background:#225be8;animation:cloud-pulse 1s infinite}.cloud-status.error .cloud-status-dot,.cloud-status.conflict .cloud-status-dot{background:#e4232f}.cloud-status-chevron{width:6px;height:6px;border-right:1.5px solid #65738a;border-bottom:1.5px solid #65738a;transform:rotate(45deg) translateY(-2px);transition:transform .15s ease}.cloud-status-trigger[aria-expanded="true"] .cloud-status-chevron{transform:rotate(225deg) translate(-1px,-1px)}.cloud-account-menu{position:absolute;top:calc(100% + 6px);right:0;width:244px;border:1px solid #d8e0eb;border-radius:7px;background:#fff;box-shadow:0 14px 36px rgba(24,35,55,.18);padding:7px}.cloud-account-menu[hidden]{display:none}.cloud-account-summary{padding:7px 8px 9px;border-bottom:1px solid #e3e8f0;margin-bottom:5px}.cloud-account-email{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#172033;font-size:11px;font-weight:800}.cloud-account-role{display:block;margin-top:3px;color:#65738a;font-size:9px}.cloud-account-menu button{width:100%;min-height:31px;display:flex;align-items:center;border:0;border-radius:5px;background:transparent;padding:0 8px;color:#4d5b70;font:700 10px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}.cloud-account-menu button:hover{background:#f1f4f8;color:#172033}.cloud-account-menu .cloud-logout{color:#b42331}
     .cloud-update-banner{position:fixed;z-index:4600;left:50%;top:72px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;border:1px solid #b8ccff;border-radius:6px;background:#edf3ff;color:#172033;padding:9px 12px;box-shadow:0 10px 28px rgba(34,91,232,.14);font:700 12px ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.cloud-update-banner button{border:0;border-radius:5px;background:#225be8;color:#fff;padding:6px 10px;font-weight:800;cursor:pointer}
     .cloud-dialog-backdrop{position:fixed;inset:0;z-index:4800;display:grid;place-items:center;background:rgba(23,32,51,.42);padding:16px}.cloud-dialog{width:min(540px,100%);background:#fff;border:1px solid #d8e0eb;border-radius:8px;box-shadow:0 24px 64px rgba(24,35,55,.22);padding:22px}.cloud-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.cloud-dialog h2{margin:0;font-size:18px}.cloud-dialog-header p{margin:5px 0 0;color:#65738a;font-size:12px;line-height:1.5}.cloud-dialog-close{width:30px;height:30px;border:1px solid #d8e0eb;border-radius:5px;background:#fff;color:#65738a;font-size:18px;cursor:pointer}.cloud-invite-form{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:12px}.cloud-invite-form label{display:grid;gap:6px;color:#4d5b70;font-size:12px;font-weight:700}.cloud-invite-form input,.cloud-invite-form select{height:40px;border:1px solid #c7d2e2;border-radius:6px;background:#fff;padding:0 10px;color:#172033;font:inherit}.cloud-invite-form input:focus,.cloud-invite-form select:focus{outline:2px solid #b8ccff;border-color:#225be8}.cloud-dialog-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:18px}.cloud-dialog-actions button{height:38px;border-radius:6px;padding:0 16px;font-weight:800;cursor:pointer}.cloud-dialog-cancel{border:1px solid #c7d2e2;background:#fff;color:#4d5b70}.cloud-dialog-submit{border:0;background:#225be8;color:#fff}.cloud-dialog-submit:disabled{opacity:.55;cursor:wait}.cloud-invite-message{min-height:18px;margin:12px 0 0;color:#d82331;font-size:12px}.cloud-invite-message.success{color:#11845b}.cloud-authorization-list{margin-top:18px;border-top:1px solid #e3e8f0;padding-top:14px}.cloud-authorization-list h3{margin:0 0 9px;font-size:12px;color:#4d5b70}.cloud-authorization-items{display:grid;gap:7px;max-height:210px;overflow:auto}.cloud-authorization-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 70px;align-items:center;gap:8px;min-height:38px;border:1px solid #e3e8f0;border-radius:6px;padding:6px 8px;font-size:11px}.cloud-authorization-email{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#172033;font-weight:700}.cloud-authorization-state{color:#65738a}.cloud-authorization-revoke{height:28px;border:1px solid #f0b7bc;border-radius:5px;background:#fff;color:#c91d2e;font-size:11px;font-weight:700;cursor:pointer}.cloud-authorization-empty{padding:12px;border:1px dashed #d8e0eb;border-radius:6px;text-align:center;color:#65738a;font-size:11px}
     @keyframes cloud-pulse{50%{opacity:.35}}
-    @media(max-width:760px){.cloud-status{top:auto;bottom:10px;right:10px}.cloud-status .cloud-email{display:none}.cloud-update-banner{top:58px;width:calc(100vw - 24px);justify-content:space-between}}
+    @media(max-width:760px){.cloud-update-banner{top:58px;width:calc(100vw - 24px);justify-content:space-between}}
   `;
   const style = document.createElement("style");
   style.textContent = styles;
@@ -44,8 +43,28 @@
     const node = document.createElement("div");
     node.className = "cloud-status";
     const inviteButton = identity.role === "admin" ? '<button class="cloud-invite" type="button">授权成员</button>' : "";
-    node.innerHTML = `<span class="cloud-status-dot"></span><span data-cloud-status-text>云端已连接</span><span class="cloud-email">${escapeHtml(identity.email)}</span>${inviteButton}<button class="cloud-logout" type="button">退出</button>`;
-    document.body.appendChild(node);
+    const roleLabel = identity.role === "admin" ? "云端管理员" : identity.role === "editor" ? "云端可编辑" : "云端只读";
+    node.innerHTML = `
+      <button class="cloud-status-trigger" type="button" aria-expanded="false" aria-haspopup="menu" title="云端账号与同步状态">
+        <span class="cloud-status-dot"></span><span data-cloud-status-text>已同步</span><span class="cloud-status-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="cloud-account-menu" role="menu" hidden>
+        <div class="cloud-account-summary"><span class="cloud-account-email">${escapeHtml(identity.email)}</span><span class="cloud-account-role">${roleLabel}</span></div>
+        ${inviteButton}<button class="cloud-logout" type="button">退出登录</button>
+      </div>`;
+    const mount = document.getElementById("cloudStatusMount");
+    (mount || document.body).appendChild(node);
+    const trigger = node.querySelector(".cloud-status-trigger");
+    const menu = node.querySelector(".cloud-account-menu");
+    const closeMenu = () => { menu.hidden = true; trigger.setAttribute("aria-expanded", "false"); };
+    trigger.addEventListener("click", () => {
+      const opening = menu.hidden;
+      menu.hidden = !opening;
+      trigger.setAttribute("aria-expanded", String(opening));
+    });
+    menu.addEventListener("click", (event) => { if (event.target.closest("button")) closeMenu(); });
+    document.addEventListener("click", (event) => { if (!node.contains(event.target)) closeMenu(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeMenu(); });
     return node;
   }
 
@@ -147,7 +166,8 @@
 
   function setStatus(node, status, text) {
     if (!node) return;
-    node.className = `cloud-status ${status || ""}`.trim();
+    node.classList.remove("saving", "saved", "error", "conflict");
+    if (status) node.classList.add(status);
     const label = node.querySelector("[data-cloud-status-text]");
     if (label) label.textContent = text;
   }
@@ -281,7 +301,7 @@
       const payload = pendingPayloads.get(key);
       pendingPayloads.delete(key);
       activeSaves += 1;
-      setStatus(statusNode, "saving", "正在同步");
+      setStatus(statusNode, "saving", "同步中");
       try {
         const response = await supabase.rpc("save_workspace_document", {
           p_workspace_id: workspaceId,
@@ -293,7 +313,7 @@
         if (response.error) throw response.error;
         const result = Array.isArray(response.data) ? response.data[0] : response.data;
         versions.set(key, Number(result?.version || (versions.get(key) || 0) + 1));
-        setStatus(statusNode, "saved", "刚刚已同步");
+        setStatus(statusNode, "saved", "已同步");
       } catch (error) {
         const conflict = String(error?.message || error).includes("version_conflict");
         setStatus(statusNode, conflict ? "conflict" : "error", conflict ? "存在版本冲突" : "同步失败");
@@ -301,7 +321,7 @@
         activeSaves -= 1;
         if (pendingPayloads.has(key)) queueKey(key, 100);
         else if (activeSaves === 0 && !statusNode.classList.contains("error") && !statusNode.classList.contains("conflict")) {
-          window.setTimeout(() => setStatus(statusNode, "", "云端已连接"), 1600);
+          window.setTimeout(() => setStatus(statusNode, "", "已同步"), 1600);
         }
       }
     }

@@ -2048,6 +2048,14 @@
       white-space: nowrap;
     }
 
+    .tool-access-core,
+    .cloud-status-mount {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
     .tool-account-label {
       color: var(--muted);
       font-size: 9px;
@@ -3194,7 +3202,10 @@
           <span class="module-alert" id="projectAlertCount">0</span>
         </button>
       </div>
-      <div class="suite-access" id="suiteAccess" aria-label="工具账号与权限"></div>
+      <div class="suite-access" id="suiteAccess" aria-label="工具账号与权限">
+        <div class="tool-access-core" id="toolAccessCore"></div>
+        <div class="cloud-status-mount" id="cloudStatusMount"></div>
+      </div>
     </nav>
 
     <section id="salesModule">
@@ -4292,7 +4303,7 @@
     }
 
     function renderToolAccessControls() {
-      const root = document.getElementById("suiteAccess");
+      const root = document.getElementById("toolAccessCore");
       const user = currentProjectUser();
       if (!root || !user) return;
       const cloudIdentity = window.cloudStore?.identity;
