@@ -2883,6 +2883,17 @@
       max-height: 92vh;
     }
 
+    .permission-manager-modal {
+      width: min(1280px, 97vw);
+      height: min(720px, 92vh);
+      max-height: 92vh;
+    }
+
+    .permission-manager-modal .modal-body {
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
     .admin-context-strip {
       display: flex;
       align-items: center;
@@ -2977,6 +2988,171 @@
       box-shadow: 0 0 0 2px rgba(34, 91, 232, 0.1);
     }
 
+    .permission-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcff;
+      overflow: hidden;
+    }
+
+    .permission-summary-item {
+      padding: 7px 10px;
+      border-right: 1px solid var(--line);
+    }
+
+    .permission-summary-item:last-child {
+      border-right: 0;
+    }
+
+    .permission-summary-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .permission-summary-item strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .permission-invite-bar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 130px auto minmax(240px, .8fr);
+      align-items: end;
+      gap: 8px;
+      padding: 9px;
+      margin-bottom: 8px;
+      border: 1px solid #bfd0ff;
+      border-radius: 6px;
+      background: var(--blue-soft);
+    }
+
+    .permission-invite-field {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .permission-invite-field label {
+      color: #3d557c;
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .permission-invite-field input,
+    .permission-invite-field select {
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: var(--text);
+      padding: 5px 7px;
+      outline: 0;
+    }
+
+    .permission-invite-field input:focus,
+    .permission-invite-field select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(34, 91, 232, .1);
+    }
+
+    .permission-invite-help {
+      align-self: center;
+      color: #3d557c;
+      font-size: 9px;
+      line-height: 1.45;
+    }
+
+    .permission-message {
+      min-height: 18px;
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .permission-message.success { color: var(--green); }
+    .permission-message.error { color: var(--red); }
+
+    .permission-table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .permission-table-wrap .permission-table {
+      min-width: 1120px;
+    }
+
+    .permission-table-wrap thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f7f9fc;
+    }
+
+    .permission-member-fields {
+      display: grid;
+      gap: 4px;
+    }
+
+    .permission-member-fields input + input {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .permission-access-stack,
+    .permission-row-actions {
+      display: grid;
+      gap: 4px;
+    }
+
+    .permission-access-state {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 20px;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #f7f9fc;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .permission-access-state.active {
+      border-color: #a9ddcb;
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .permission-access-state.pending {
+      border-color: #ffd09a;
+      background: var(--orange-soft);
+      color: #9a5400;
+    }
+
+    .permission-row-actions .btn {
+      width: 100%;
+      min-height: 27px;
+      padding: 4px 6px;
+      font-size: 8px;
+    }
+
+    .permission-current-user {
+      color: var(--blue);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
     .editor-section {
       padding: 11px 0;
       border-bottom: 1px solid var(--line);
@@ -3028,13 +3204,14 @@
       accent-color: var(--blue);
     }
 
-    .permission-table .permission-name-col { width: 14%; }
-    .permission-table .permission-dept-col { width: 14%; }
-    .permission-table .permission-role-col { width: 14%; }
-    .permission-table .permission-scope-col { width: 18%; }
-    .permission-table .permission-project-col { width: 16%; }
-    .permission-table .permission-status-col { width: 10%; }
-    .permission-table .permission-login-col { width: 14%; }
+    .permission-table .permission-name-col { width: 19%; }
+    .permission-table .permission-cloud-col { width: 12%; }
+    .permission-table .permission-role-col { width: 12%; }
+    .permission-table .permission-dept-col { width: 11%; }
+    .permission-table .permission-scope-col { width: 15%; }
+    .permission-table .permission-project-col { width: 12%; }
+    .permission-table .permission-status-col { width: 9%; }
+    .permission-table .permission-action-col { width: 10%; }
 
     .permission-note {
       color: var(--muted);
@@ -4135,13 +4312,32 @@
     let activeModule = "sales";
     let cloudIdentityNeedsSync = false;
     let projectState = loadProjectState();
+    let permissionCloudState = createPermissionCloudState();
     applyCloudUserIdentity();
+
+    function createPermissionCloudState() {
+      return {
+        loading: false,
+        busyEmail: "",
+        members: [],
+        message: "",
+        messageTone: "",
+        newEmail: "",
+        newRole: "editor"
+      };
+    }
+
+    function normalizePermissionEmail(value) {
+      return String(value || "").trim().toLowerCase();
+    }
 
     function applyCloudUserIdentity() {
       const identity = window.cloudStore?.identity;
       if (!identity) return;
       const userId = `SB-${identity.id}`;
-      let user = projectState.users.find((item) => item.id === userId);
+      const identityEmail = normalizePermissionEmail(identity.email);
+      let user = projectState.users.find((item) => item.id === userId)
+        || projectState.users.find((item) => normalizePermissionEmail(item.email) === identityEmail);
       if (!user) {
         user = {
           id: userId,
@@ -4157,6 +4353,10 @@
         projectState.users.push(user);
         cloudIdentityNeedsSync = true;
       } else {
+        if (user.id !== userId) {
+          user.id = userId;
+          cloudIdentityNeedsSync = true;
+        }
         user.email = identity.email;
         user.lastLogin = "刚刚";
         if (identity.role === "admin") user.role = "super_admin";
@@ -4308,12 +4508,13 @@
       if (!root || !user) return;
       const cloudIdentity = window.cloudStore?.identity;
       const visibleUsers = cloudIdentity ? [user] : projectState.users.filter((item) => item.status === "active");
+      const canManagePermissions = user.role === "super_admin" && (!cloudIdentity || cloudIdentity.role === "admin");
       root.innerHTML = `
         <span class="tool-account-label">当前账号</span>
         <select class="tool-account-select" data-tool-user aria-label="当前账号" ${cloudIdentity ? "disabled" : ""}>
           ${visibleUsers.map((item) => `<option value="${item.id}" ${item.id === user.id ? "selected" : ""}>${item.name} · ${projectRoleLabel(item.role)}</option>`).join("")}
         </select>
-        ${user.role === "super_admin" ? `<button class="btn" data-project-action="permissions">账号与权限</button>` : ""}
+        ${canManagePermissions ? `<button class="btn" data-project-action="permissions">权限管理</button>` : ""}
       `;
     }
 
@@ -5762,64 +5963,210 @@
       `;
     }
 
+    function ensurePermissionDraftMember(email, cloudRole = "editor", activatedAt = null) {
+      if (!projectState.permissionDraft) return null;
+      const normalizedEmail = normalizePermissionEmail(email);
+      let user = projectState.permissionDraft.find((item) => normalizePermissionEmail(item.email) === normalizedEmail);
+      if (!user) {
+        user = {
+          id: `AUTH-${Date.now()}-${projectState.permissionDraft.length}`,
+          name: normalizedEmail.split("@")[0] || "协同成员",
+          email: normalizedEmail,
+          department: "待分配",
+          workstream: "all",
+          cloudRole,
+          role: "viewer",
+          scope: "all",
+          status: "active",
+          lastLogin: activatedAt ? "已登录" : "待首次登录"
+        };
+        projectState.permissionDraft.push(user);
+      } else {
+        user.cloudRole = cloudRole;
+        if (activatedAt && (!user.lastLogin || user.lastLogin === "尚未登录" || user.lastLogin === "待首次登录")) user.lastLogin = "已登录";
+      }
+      return user;
+    }
+
+    async function loadPermissionCloudMembers(options = {}) {
+      const permissionApi = window.cloudStore?.permissions;
+      if (!permissionApi || window.cloudStore?.identity?.role !== "admin") return;
+      permissionCloudState.loading = true;
+      if (!options.preserveMessage) {
+        permissionCloudState.message = "正在同步授权成员...";
+        permissionCloudState.messageTone = "";
+      }
+      if (projectState.adminModal === "permissions") renderProjectAdminModal();
+      try {
+        const members = await permissionApi.listMembers();
+        permissionCloudState.members = members;
+        members.forEach((member) => ensurePermissionDraftMember(member.email, member.role, member.activated_at));
+        if (projectState.permissionDraft) scheduleProjectFormAutosave("project-permissions", "permissions", projectState.permissionDraft);
+        if (!options.preserveMessage) permissionCloudState.message = "";
+      } catch (error) {
+        permissionCloudState.message = error.message || "授权成员加载失败，请稍后重试。";
+        permissionCloudState.messageTone = "error";
+      } finally {
+        permissionCloudState.loading = false;
+        permissionCloudState.busyEmail = "";
+        if (projectState.adminModal === "permissions") renderProjectAdminModal();
+      }
+    }
+
+    async function savePermissionCloudMember(email, role, options = {}) {
+      const permissionApi = window.cloudStore?.permissions;
+      const normalizedEmail = normalizePermissionEmail(email);
+      if (!permissionApi) {
+        permissionCloudState.message = "当前环境未连接云端授权服务。";
+        permissionCloudState.messageTone = "error";
+        renderProjectAdminModal();
+        return;
+      }
+      if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        permissionCloudState.message = "请输入有效的 Google 邮箱。";
+        permissionCloudState.messageTone = "error";
+        renderProjectAdminModal();
+        return;
+      }
+      permissionCloudState.busyEmail = normalizedEmail;
+      permissionCloudState.message = options.isUpdate ? "正在更新登录权限..." : "正在授权成员...";
+      permissionCloudState.messageTone = "";
+      renderProjectAdminModal();
+      try {
+        const result = await permissionApi.authorizeMember(normalizedEmail, role);
+        ensurePermissionDraftMember(normalizedEmail, role, result?.activated_at || (result?.status === "active" ? new Date().toISOString() : null));
+        scheduleProjectFormAutosave("project-permissions", "permissions", projectState.permissionDraft);
+        permissionCloudState.newEmail = "";
+        permissionCloudState.message = result?.status === "active"
+          ? `${normalizedEmail} 的登录权限已更新并立即生效。`
+          : `${normalizedEmail} 已获授权，可使用该 Google 邮箱登录。`;
+        permissionCloudState.messageTone = "success";
+        await loadPermissionCloudMembers({ preserveMessage: true });
+      } catch (error) {
+        permissionCloudState.busyEmail = "";
+        permissionCloudState.message = error.message || "授权保存失败，请稍后重试。";
+        permissionCloudState.messageTone = "error";
+        if (projectState.adminModal === "permissions") renderProjectAdminModal();
+      }
+    }
+
+    async function revokePermissionCloudMember(userIndex) {
+      const user = projectState.permissionDraft?.[userIndex];
+      const email = normalizePermissionEmail(user?.email);
+      const permissionApi = window.cloudStore?.permissions;
+      if (!user || !email || !permissionApi) return;
+      if (!window.confirm(`确认撤销 ${email} 的 Google 登录权限？职责记录将保留。`)) return;
+      permissionCloudState.busyEmail = email;
+      permissionCloudState.message = "正在撤销登录权限...";
+      permissionCloudState.messageTone = "";
+      renderProjectAdminModal();
+      try {
+        await permissionApi.revokeMember(email);
+        permissionCloudState.message = `${email} 的登录权限已撤销，职责记录已保留。`;
+        permissionCloudState.messageTone = "success";
+        await loadPermissionCloudMembers({ preserveMessage: true });
+      } catch (error) {
+        permissionCloudState.busyEmail = "";
+        permissionCloudState.message = error.message || "撤销失败，请稍后重试。";
+        permissionCloudState.messageTone = "error";
+        if (projectState.adminModal === "permissions") renderProjectAdminModal();
+      }
+    }
+
     function renderProjectPermissionModal() {
       const users = projectState.permissionDraft || [];
+      const identity = window.cloudStore?.identity;
+      const cloudReady = Boolean(window.cloudStore?.permissions && identity?.role === "admin");
+      const authorizationMap = new Map(permissionCloudState.members.map((member) => [normalizePermissionEmail(member.email), member]));
+      const activeCloudMembers = permissionCloudState.members.filter((member) => member.activated_at).length;
+      const messageClass = permissionCloudState.messageTone ? ` ${permissionCloudState.messageTone}` : "";
       return `
-        <section class="modal project-editor-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle">
+        <section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle">
           <div class="modal-head">
             <div>
-              <h2 class="modal-title" id="permissionTitle">账号与权限</h2>
-              <p class="modal-subtitle">统一管理产销管理与项目跟进的账号、角色和职能范围</p>
+              <h2 class="modal-title" id="permissionTitle">权限管理</h2>
+              <p class="modal-subtitle">统一管理 Google 邮箱准入、云端权限，以及产销管理和项目跟进的职责范围</p>
             </div>
             <button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button>
           </div>
           <div class="modal-body">
             <div class="admin-context-strip">
               <span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">总管理员</span></span>
-              <span>${users.filter((user) => user.status === "active").length} 个启用账号</span>
+              <span>登录授权即时生效 · 工具职责保存后生效</span>
+            </div>
+
+            <div class="permission-summary">
+              <div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div>
+              <div class="permission-summary-item"><span>已完成首次登录</span><strong>${permissionCloudState.loading ? "--" : activeCloudMembers}</strong></div>
+              <div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div>
             </div>
 
             <section class="editor-section">
-              <div class="editor-section-head"><h3 class="editor-section-title">权限规则</h3></div>
-              <div class="access-rule-grid">
-                <div class="access-rule"><strong>总管理员</strong><span>查看和编辑全部模块、项目、计划、账号及权限。</span></div>
-                <div class="access-rule"><strong>项目负责人</strong><span>查看完整项目，并更新项目级状态、风险和里程碑。</span></div>
-                <div class="access-rule"><strong>部门编辑</strong><span>编辑授权职能；销售和供应账号同时获得对应计划字段权限。</span></div>
-                <div class="access-rule"><strong>只读用户</strong><span>查看被授权模块和项目，不可保存、提交或发布。</span></div>
+              <div class="editor-section-head">
+                <div><h3 class="editor-section-title">新增授权成员</h3><div class="permission-note">精确匹配 Google 邮箱；新成员的工具角色默认只读，授权后请在下方补齐职责。</div></div>
               </div>
+              ${cloudReady ? `
+                <div class="permission-invite-bar">
+                  <div class="permission-invite-field"><label>Google 邮箱</label><input type="email" autocomplete="email" data-permission-new-field="email" value="${escapeProjectHtml(permissionCloudState.newEmail)}" placeholder="name@company.com"></div>
+                  <div class="permission-invite-field"><label>云端权限</label><select data-permission-new-field="role"><option value="editor" ${permissionCloudState.newRole === "editor" ? "selected" : ""}>可编辑</option><option value="viewer" ${permissionCloudState.newRole === "viewer" ? "selected" : ""}>只读</option></select></div>
+                  <button class="btn primary" data-project-editor-action="authorize-new-member" ${permissionCloudState.busyEmail ? "disabled" : ""}>授权并添加</button>
+                  <div class="permission-invite-help">授权控制能否登录；工具角色与职能控制登录后能查看和编辑什么。</div>
+                </div>` : `<div class="delay-warning">${window.cloudStore?.offline ? "本地预览模式不连接云端授权；仍可配置下方工具职责。" : "当前云端账号没有成员授权管理权限。"}</div>`}
+              <p class="permission-message${messageClass}" role="status">${escapeProjectHtml(permissionCloudState.message || (permissionCloudState.loading ? "正在同步授权成员..." : ""))}</p>
             </section>
 
             <section class="editor-section">
               <div class="editor-section-head">
-                <div><h3 class="editor-section-title">账号列表</h3><div class="permission-note">“授权职能”同时控制项目工作流与产销计划中的销售/供应字段。</div></div>
-                <button class="btn" data-project-editor-action="add-user">+ 新增账号</button>
+                <div><h3 class="editor-section-title">成员账号与职责</h3><div class="permission-note">部门编辑的“授权职能”同时控制项目工作流与产销计划中的销售/供应字段；撤销登录不会删除职责记录。</div></div>
+                <button class="btn" data-project-editor-action="add-user">+ 添加内部账号</button>
               </div>
-              <div style="overflow:auto">
+              <div class="permission-table-wrap">
                 <table class="permission-table">
-                  <thead><tr><th class="permission-name-col">姓名</th><th class="permission-dept-col">部门</th><th class="permission-role-col">角色</th><th class="permission-scope-col">授权职能</th><th class="permission-project-col">项目范围</th><th class="permission-status-col">状态</th><th class="permission-login-col">最近登录</th></tr></thead>
-                  <tbody>${users.map((user, index) => renderPermissionUserRow(user, index)).join("")}</tbody>
+                  <thead><tr><th class="permission-name-col">成员 / Google 邮箱</th><th class="permission-cloud-col">登录授权</th><th class="permission-role-col">工具角色</th><th class="permission-dept-col">部门</th><th class="permission-scope-col">授权职能</th><th class="permission-project-col">项目范围</th><th class="permission-status-col">账号状态</th><th class="permission-action-col">授权操作</th></tr></thead>
+                  <tbody>${users.map((user, index) => renderPermissionUserRow(user, index, authorizationMap, cloudReady)).join("")}</tbody>
                 </table>
               </div>
             </section>
           </div>
           <div class="modal-foot">
-            <span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">自动保存不代表权限已生效。</span></span>
-            <div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存并生效</button></div>
+            <span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">登录授权即时生效；职责修改需保存后生效。</span></span>
+            <div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存职责并生效</button></div>
           </div>
         </section>
       `;
     }
 
-    function renderPermissionUserRow(user, index) {
+    function renderPermissionUserRow(user, index, authorizationMap, cloudReady) {
+      const email = normalizePermissionEmail(user.email);
+      const authorization = authorizationMap.get(email);
+      const identityEmail = normalizePermissionEmail(window.cloudStore?.identity?.email);
+      const isCurrentCloudAdmin = authorization?.role === "admin" && email === identityEmail;
+      const cloudRole = authorization?.role || user.cloudRole || "editor";
+      const accessState = authorization
+        ? authorization.activated_at
+          ? '<span class="permission-access-state active">已激活</span>'
+          : '<span class="permission-access-state pending">待首次登录</span>'
+        : `<span class="permission-access-state">${email ? "未授权" : "未绑定邮箱"}</span>`;
+      let actions = '<span class="permission-note">云端不可用</span>';
+      if (cloudReady) {
+        if (authorization?.role === "admin") {
+          actions = `<span class="permission-current-user">${isCurrentCloudAdmin ? "当前管理员" : "云端管理员"}</span>`;
+        } else if (authorization) {
+          actions = `<button class="btn" data-project-editor-action="update-member-access" data-user-index="${index}" ${permissionCloudState.busyEmail === email ? "disabled" : ""}>更新</button><button class="btn danger" data-project-editor-action="revoke-member-access" data-user-index="${index}" ${permissionCloudState.busyEmail === email ? "disabled" : ""}>撤销</button>`;
+        } else {
+          actions = `<button class="btn" data-project-editor-action="authorize-existing-member" data-user-index="${index}" ${!email || permissionCloudState.busyEmail === email ? "disabled" : ""}>授权登录</button>`;
+        }
+      }
       return `
         <tr>
-          <td><input data-project-user-field="name" data-user-index="${index}" value="${escapeProjectHtml(user.name)}" placeholder="姓名"></td>
-          <td><input data-project-user-field="department" data-user-index="${index}" value="${escapeProjectHtml(user.department)}" placeholder="部门"></td>
+          <td><div class="permission-member-fields"><input data-project-user-field="name" data-user-index="${index}" value="${escapeProjectHtml(user.name)}" placeholder="姓名"><input type="email" data-project-user-field="email" data-user-index="${index}" value="${escapeProjectHtml(user.email || "")}" placeholder="Google 邮箱" ${authorization ? "disabled title=\"请先撤销登录授权再更换邮箱\"" : ""}><span class="permission-note">${escapeProjectHtml(user.lastLogin || "尚未登录")}</span></div></td>
+          <td><div class="permission-access-stack">${accessState}${authorization?.role === "admin" ? '<span class="permission-note">云端管理员</span>' : `<select data-project-user-field="cloudRole" data-user-index="${index}"><option value="editor" ${cloudRole === "editor" ? "selected" : ""}>云端可编辑</option><option value="viewer" ${cloudRole === "viewer" ? "selected" : ""}>云端只读</option></select>`}</div></td>
           <td><select data-project-user-field="role" data-user-index="${index}">${["super_admin", "project_owner", "department_editor", "viewer"].map((role) => `<option value="${role}" ${user.role === role ? "selected" : ""}>${projectRoleLabel(role)}</option>`).join("")}</select></td>
+          <td><input data-project-user-field="department" data-user-index="${index}" value="${escapeProjectHtml(user.department)}" placeholder="部门"></td>
           <td><select data-project-user-field="workstream" data-user-index="${index}"><option value="all" ${user.workstream === "all" ? "selected" : ""}>全部工作流</option>${PROJECT_WORKSTREAMS.map((meta) => `<option value="${meta.key}" ${user.workstream === meta.key ? "selected" : ""}>${meta.label}</option>`).join("")}</select></td>
           <td><select data-project-user-field="scope" data-user-index="${index}"><option value="all" ${user.scope === "all" ? "selected" : ""}>全部项目</option><option value="owned" ${user.scope === "owned" ? "selected" : ""}>负责项目</option><option value="selected" ${user.scope === "selected" ? "selected" : ""}>指定项目</option></select></td>
           <td><select data-project-user-field="status" data-user-index="${index}"><option value="active" ${user.status === "active" ? "selected" : ""}>启用</option><option value="disabled" ${user.status === "disabled" ? "selected" : ""}>停用</option></select></td>
-          <td><span class="permission-note">${user.lastLogin || "尚未登录"}</span></td>
+          <td><div class="permission-row-actions">${actions}</div></td>
         </tr>
       `;
     }
@@ -7035,12 +7382,27 @@
         publishProjectWorkstreamUpdate();
         return;
       }
+      if (action === "authorize-new-member") {
+        savePermissionCloudMember(permissionCloudState.newEmail, permissionCloudState.newRole);
+        return;
+      }
+      if (action === "authorize-existing-member" || action === "update-member-access") {
+        const user = projectState.permissionDraft?.[Number(button.getAttribute("data-user-index"))];
+        if (user) savePermissionCloudMember(user.email, user.cloudRole || "editor", { isUpdate: action === "update-member-access" });
+        return;
+      }
+      if (action === "revoke-member-access") {
+        revokePermissionCloudMember(Number(button.getAttribute("data-user-index")));
+        return;
+      }
       if (action === "add-user") {
         projectState.permissionDraft.push({
           id: "USR-" + Date.now(),
           name: "",
+          email: "",
           department: "",
           workstream: "engineering",
+          cloudRole: "editor",
           role: "department_editor",
           scope: "all",
           status: "active",
@@ -7064,7 +7426,7 @@
         projectState.permissionDraft = null;
         renderApp();
         renderProjectAdminModal();
-        showProjectToast("账号与权限已保存。");
+        showProjectToast("成员职责与工具权限已保存。登录授权已即时生效。");
         return;
       }
       if (action === "create-project") {
@@ -7102,6 +7464,12 @@
         const task = projectState.editorDraft.tasks[Number(target.getAttribute("data-task-index"))];
         if (task) task[taskField] = taskField === "critical" ? target.checked : target.value;
         scheduleProjectWorkstreamAutosave();
+        return true;
+      }
+      const permissionNewField = target.getAttribute("data-permission-new-field");
+      if (permissionNewField) {
+        if (permissionNewField === "email") permissionCloudState.newEmail = target.value;
+        if (permissionNewField === "role") permissionCloudState.newRole = target.value;
         return true;
       }
       const userField = target.getAttribute("data-project-user-field");
@@ -7354,15 +7722,18 @@
         return;
       }
       if (action === "permissions") {
-        if (currentProjectUser()?.role !== "super_admin") {
-          showProjectToast("仅总管理员可以管理账号与权限。");
+        const cloudIdentity = window.cloudStore?.identity;
+        if (currentProjectUser()?.role !== "super_admin" || (cloudIdentity && cloudIdentity.role !== "admin")) {
+          showProjectToast("仅云端总管理员可以管理权限。");
           return;
         }
         projectState.adminModal = "permissions";
         projectState.permissionDraft = structuredClone(projectState.formDrafts?.permissions || projectState.users);
+        permissionCloudState = createPermissionCloudState();
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
         renderProjectAdminModal();
+        loadPermissionCloudMembers();
         return;
       }
       if (action === "edit-workstream") {

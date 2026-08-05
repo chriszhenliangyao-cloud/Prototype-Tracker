@@ -33,6 +33,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Project delays create immutable timeline revisions with cause, accountable owner, mitigation, complete before/after dates, and downstream impact. Repeated delays preserve the original baseline and every intermediate version.
 - Sales & Inventory first-batch Forecast and Supply values feed the Project Supply workstream as read-only data.
 - Account and permission management belongs to the application shell, not inside the monthly planning workflow.
+- Exact-email authorization and tool-level account permissions are managed from one unified `权限管理` interface. Login authorization is immediate; tool responsibility changes remain an explicit saved action.
 
 ## Current State
 
@@ -73,7 +74,9 @@ The standalone reference remains the design and behavior source for the React ap
 - Local offline smoke test passes for the Chinese Sales view and Project Tracking module switch.
 - Google login page JavaScript and visual smoke tests pass locally against the real Supabase configuration.
 - Production login page shows only Google login, with no password fields, and the OAuth request reaches Google with the expected Supabase callback and `email profile` scopes.
-- The cloud account status is mounted inside the persistent top application bar. Its compact trigger shows sync state only; email, authorization management and logout are contained in a click-open account menu, with no fixed overlay positioning.
+- The cloud account status is mounted inside the persistent top application bar. Its compact trigger shows sync state only; email and logout are contained in a click-open account menu, with no fixed overlay positioning.
+- The duplicate cloud authorization dialog and menu action have been removed. `权限管理` now provides one member table for Google email access, activation state, cloud role, tool role, department, workstream, project scope and account status.
+- New authorized emails are added to the responsibility draft with a safe default tool role of read-only. Revoking login keeps the responsibility record for audit and later recovery.
 - Exact-email authorization upserts use the named unique constraint to avoid PL/pgSQL output-column ambiguity. Authorization UI errors are logged for diagnostics but shown to users as concise Chinese business messages.
 - Anonymous requests to the authorization table and authorization RPC are rejected with HTTP 401/404.
 - Authorization and revocation privilege logic lives in the unexposed `private` schema; public RPCs are `SECURITY INVOKER` wrappers.
