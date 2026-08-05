@@ -99,6 +99,19 @@
   `Follow Up` label and `Update` control appear again.
 - Completed projects display `Completed` and do not show a reminder.
 
+## Project portfolio lifecycle management
+
+- Project phase and project lifecycle are separate fields. Phase continues to describe the delivery gate; lifecycle controls whether the project remains in the active tracking portfolio.
+- Lifecycle statuses are `Active`, `Paused`, `Launched Closeout`, `Archived`, and `Cancelled`.
+- The default cross-functional matrix includes Active, Paused, and Launched Closeout projects. Archived and Cancelled projects are available from the History scope and the complete Project Ledger.
+- Created projects are not hard-deleted. Pausing, cancelling, launching, archiving, and restoring require an explicit lifecycle transition.
+- Every transition records the previous and new status, reason type, detailed reason, accountable owner, effective date, operator, optional related project, actual launch date where applicable, and handover notes.
+- Only a tool-level super administrator can change lifecycle status. Archived and Cancelled projects are read-only until they are restored.
+- A launched project first enters `Launched Closeout`; it remains visible in the default matrix until required closeout work is complete or an administrator confirms that remaining work has an accountable handover.
+- Moving to `Launched Closeout` or `Archived` updates the linked Sales & Inventory product lifecycle to Launched and retains a First Batch snapshot for project history. Cancelling a project does not delete or rewrite its Sales & Inventory record.
+- The Project Ledger shows all lifecycle states, planned and actual launch dates, owner, remaining required work, blockers, latest status change, and actions to view, manage, or restore a project.
+- Lifecycle form inputs automatically save as drafts. Publishing a lifecycle change remains an explicit audited action.
+
 ## Delay Records editing
 
 - The Status column uses a text entry in the form `Delay Records (count)`.

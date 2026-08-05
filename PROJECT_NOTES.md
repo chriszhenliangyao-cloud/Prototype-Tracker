@@ -31,6 +31,10 @@ The standalone reference remains the design and behavior source for the React ap
 - Automatic saving is persistence only. Create, submit, publish, close, and permission-apply actions remain explicit and audited.
 - Project Tracking is a cross-functional control tower. Department modules remain the source of truth for detailed tasks.
 - Project workstream matrix cards use the colored left border as the single compact health indicator; redundant colored dots are reserved for surfaces without a status border.
+- Project phase and project lifecycle are independent. The lifecycle states are active, paused, launched closeout, archived and cancelled; created projects are never hard-deleted.
+- The default project matrix includes active, paused and launched-closeout projects. Archived and cancelled projects remain read-only in the History scope and the complete Project Ledger.
+- Project lifecycle transitions require a reason, accountable owner and effective date, retain immutable status history, and support restoring archived or cancelled projects.
+- Moving a linked project to launched closeout or archive updates its Sales & Inventory product to launched and retains a First Batch snapshot. Cancelling a project does not rewrite Sales & Inventory data.
 - Source-module controls only use button styling when a real destination exists. Sales & Inventory opens with the project model prefiltered; unconnected department sources are shown as non-interactive status labels.
 - Project delays create immutable timeline revisions with cause, accountable owner, mitigation, complete before/after dates, and downstream impact. Repeated delays preserve the original baseline and every intermediate version.
 - Sales & Inventory first-batch Forecast and Supply values feed the Project Supply workstream as read-only data.
@@ -47,6 +51,7 @@ The standalone reference remains the design and behavior source for the React ap
 - The first administrator authorization is registered for `payton.ppc@gmail.com`. That address becomes the administrator on its first successful Google login.
 - Google OAuth frontend and database support are deployed in production. Supabase reports the Google Provider as enabled.
 - The existing React Sales route is still an earlier implementation and does not yet contain the full Chinese collaboration workflow from the standalone tool.
+- The production Vercel cloud app includes the Project Ledger and project lifecycle management workflow described below.
 
 ## Key Decisions
 
@@ -78,6 +83,9 @@ The standalone reference remains the design and behavior source for the React ap
 - Production login page shows only Google login, with no password fields, and the OAuth request reaches Google with the expected Supabase callback and `email profile` scopes.
 - The cloud account status is mounted inside the persistent top application bar. Its compact trigger shows sync state only; email and logout are contained in a click-open account menu, with no fixed overlay positioning.
 - The duplicate cloud authorization dialog and menu action have been removed. `权限管理` now provides one member table for Google email access, activation state, cloud role, tool role, department, workstream, project scope and account status.
+- Project Tracking now includes portfolio-scope switching and a complete Project Ledger. Super administrators can pause, cancel, move projects into launched closeout, archive them after closeout confirmation, and restore historical projects without deleting project records.
+- Lifecycle forms auto-save personal drafts; published transitions are recorded in both dedicated status history and the project activity timeline. Archived and cancelled projects disable workstream editing and delay registration.
+- The launched-closeout flow updates the linked Sales & Inventory lifecycle and preserves the project's First Batch snapshot for historical review.
 - New authorized emails are added to the responsibility draft with a safe default tool role of read-only. Revoking login keeps the responsibility record for audit and later recovery.
 - Exact-email authorization upserts use the named unique constraint to avoid PL/pgSQL output-column ambiguity. Authorization UI errors are logged for diagnostics but shown to users as concise Chinese business messages.
 - Anonymous requests to the authorization table and authorization RPC are rejected with HTTP 401/404.
@@ -85,11 +93,12 @@ The standalone reference remains the design and behavior source for the React ap
 - Supabase security advisor now reports only the existing versioned-document save RPC; it performs an explicit workspace editor/admin check.
 - Supabase performance advisor reports only unused-index informational notices on the newly created, nearly empty database.
 - Production root and `/api/config` return HTTP 200; browser smoke testing finds the cloud login screen without console errors.
+- Local browser tests passed for project pause, cancel-to-history, restore, launched-closeout, archive, History scope filtering, Project Ledger rendering, and linked Sales & Inventory lifecycle updates. No browser warnings or errors were reported.
 
 ## Next Steps
 
 1. Sign in with the first authorized administrator email, authorize one editor and one viewer, then verify cross-browser Realtime updates and access restrictions with real sessions.
-2. Push `codex/operations-planning-updates` and open a draft pull request when GitHub credentials are available.
+2. Install and authenticate GitHub CLI, then push `codex/operations-planning-updates` and open a draft pull request. The current HTTPS credential is rejected by GitHub.
 3. Port the current Chinese Sales & Inventory collaboration workflow from the standalone reference into `app/routes/sales-inventory.tsx` and focused components.
 4. Replace shared JSON documents with normalized domain tables when field-level multi-user editing becomes the priority.
 

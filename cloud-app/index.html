@@ -2155,6 +2155,34 @@
       align-items: center;
     }
 
+    .project-scope-control {
+      min-width: 368px;
+    }
+
+    .project-scope-switch button {
+      gap: 5px;
+      padding-inline: 9px;
+    }
+
+    .project-scope-switch button span {
+      min-width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: #e8edf5;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .project-scope-switch button.active span {
+      background: #dbe6ff;
+      color: var(--blue);
+    }
+
     .project-search {
       min-width: 210px;
       min-height: 30px;
@@ -2342,6 +2370,7 @@
     }
 
     .project-owner {
+      display: block;
       color: var(--muted);
       font-size: 9px;
       margin-top: 3px;
@@ -2351,6 +2380,16 @@
       color: var(--red);
       font-weight: 900;
     }
+
+    .lifecycle-inline {
+      font-weight: 900;
+    }
+
+    .lifecycle-inline.green { color: var(--green); }
+    .lifecycle-inline.amber { color: #a65a00; }
+    .lifecycle-inline.blue { color: var(--blue); }
+    .lifecycle-inline.grey { color: var(--muted); }
+    .lifecycle-inline.red { color: var(--red); }
 
     .stage-cell {
       display: grid;
@@ -2926,6 +2965,220 @@
     .project-editor-modal {
       width: min(1120px, 96vw);
       max-height: 92vh;
+    }
+
+    .project-lifecycle-badge {
+      min-height: 21px;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 0 7px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #f7f9fc;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+      line-height: 1;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .project-lifecycle-badge.green { border-color: #a9ddcb; background: var(--green-soft); color: var(--green); }
+    .project-lifecycle-badge.amber { border-color: #ffd09a; background: var(--orange-soft); color: #9a5400; }
+    .project-lifecycle-badge.blue { border-color: #b8caff; background: var(--blue-soft); color: var(--blue); }
+    .project-lifecycle-badge.grey { border-color: var(--line); background: #f1f4f8; color: var(--muted); }
+    .project-lifecycle-badge.red { border-color: #ffc7c8; background: var(--red-soft); color: var(--red); }
+
+    .drawer-subtitle .project-lifecycle-badge {
+      margin-left: 5px;
+    }
+
+    .project-ledger-modal {
+      width: min(1260px, 97vw);
+      height: min(720px, 92vh);
+      max-height: 92vh;
+    }
+
+    .project-ledger-modal .modal-body {
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
+    .ledger-summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcff;
+      overflow: hidden;
+    }
+
+    .ledger-summary-item {
+      padding: 7px 10px;
+      border-right: 1px solid var(--line);
+    }
+
+    .ledger-summary-item:last-child { border-right: 0; }
+
+    .ledger-summary-item span,
+    .closeout-check-grid span {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .ledger-summary-item strong,
+    .closeout-check-grid strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .ledger-guidance {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      padding: 8px 10px;
+      margin: 8px 0;
+      border: 1px solid #bfd0ff;
+      border-radius: 6px;
+      background: var(--blue-soft);
+      color: #3d557c;
+      font-size: 9px;
+    }
+
+    .project-ledger-table-wrap {
+      max-height: calc(92vh - 225px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .project-ledger-table {
+      width: 100%;
+      min-width: 1040px;
+      border-collapse: collapse;
+    }
+
+    .project-ledger-table th,
+    .project-ledger-table td {
+      padding: 7px 8px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 9px;
+    }
+
+    .project-ledger-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f7f9fc;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .project-ledger-table th:first-child { width: 245px; }
+    .project-ledger-table th:last-child { width: 150px; }
+    .project-ledger-table td:last-child,
+    .project-ledger-table th:last-child { border-right: 0; }
+
+    .ledger-scope-note {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.35;
+    }
+
+    .ledger-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .project-transition-modal {
+      width: min(900px, 96vw);
+      height: min(690px, 92vh);
+      max-height: 92vh;
+    }
+
+    .project-transition-modal .modal-body {
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
+    .transition-path {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      margin-bottom: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcff;
+    }
+
+    .transition-arrow {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .transition-impact-copy {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .transition-form-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .closeout-check-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcff;
+      overflow: hidden;
+    }
+
+    .closeout-check-grid > div {
+      padding: 7px 9px;
+      border-right: 1px solid var(--line);
+    }
+
+    .closeout-check-grid > div:last-child { border-right: 0; }
+
+    .transition-confirm {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 8px 9px;
+      border: 1px solid #ffd09a;
+      border-radius: 5px;
+      background: var(--orange-soft);
+      color: #7b4909;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .transition-confirm input {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 auto;
+      margin: 1px 0 0;
+      accent-color: var(--blue);
     }
 
     .permission-manager-modal {
@@ -3765,6 +4018,13 @@
       updateAutosaveStatus(scope, "saved", text);
     }
     const PROJECT_GATES = ["Confirm", "DVT1", "DVT2", "Trial", "MP", "Launch"];
+    const PROJECT_LIFECYCLE = {
+      active: { label: "进行中", tone: "green", scope: "current" },
+      paused: { label: "已暂停", tone: "amber", scope: "paused" },
+      closeout: { label: "已上市待收尾", tone: "blue", scope: "closeout" },
+      archived: { label: "已归档", tone: "grey", scope: "history" },
+      cancelled: { label: "已取消", tone: "red", scope: "history" }
+    };
     const PROJECT_WORKSTREAMS = [
       { key: "engineering", label: "研发准备", short: "研发" },
       { key: "prototype", label: "样机管理", short: "样机" },
@@ -3784,6 +4044,8 @@
       "DVT2 Exit": "DVT2阶段评审",
       "DVT1 Exit": "DVT1阶段评审",
       "Project Confirmation": "项目立项确认",
+      "Launch Closeout": "上市收尾",
+      "Project Archived": "项目已归档",
       "Launch": "上市",
       "Firmware thermal fix awaiting verification": "固件温升修复等待验证",
       "Firmware thermal verification": "固件温升验证",
@@ -3895,6 +4157,37 @@
 
     function projectStageLabel(stage) {
       return { Confirm: "项目立项", DVT1: "DVT1", DVT2: "DVT2", Trial: "试产", MP: "量产", Launch: "上市" }[stage] || stage;
+    }
+
+    function projectLifecycleStatus(project) {
+      return PROJECT_LIFECYCLE[project?.projectStatus] ? project.projectStatus : "active";
+    }
+
+    function projectLifecycleMeta(projectOrStatus) {
+      const status = typeof projectOrStatus === "string" ? projectOrStatus : projectLifecycleStatus(projectOrStatus);
+      return PROJECT_LIFECYCLE[status] || PROJECT_LIFECYCLE.active;
+    }
+
+    function normalizeProjectLifecycle(project) {
+      if (!project || typeof project !== "object") return project;
+      project.projectStatus = projectLifecycleStatus(project);
+      project.statusHistory = Array.isArray(project.statusHistory) ? project.statusHistory : [];
+      project.timelineVersion = Number(project.timelineVersion || 1);
+      project.delayRecords = Array.isArray(project.delayRecords) ? project.delayRecords : [];
+      project.history = Array.isArray(project.history) ? project.history : [];
+      return project;
+    }
+
+    function projectIsReadOnly(project) {
+      return ["archived", "cancelled"].includes(projectLifecycleStatus(project));
+    }
+
+    function projectMatchesPortfolioScope(project, scope = projectState?.portfolioScope || "current") {
+      const status = projectLifecycleStatus(project);
+      if (scope === "paused") return status === "paused";
+      if (scope === "closeout") return status === "closeout";
+      if (scope === "history") return ["archived", "cancelled"].includes(status);
+      return ["active", "paused", "closeout"].includes(status);
     }
 
     function projectDateLabel(value) {
@@ -4428,6 +4721,7 @@
         drafts: loadProjectDrafts(),
         formDrafts: loadProjectFormDrafts(),
         view: "matrix",
+        portfolioScope: "current",
         filters: { search: "", health: "All", stage: "All", owner: "All", onlyCritical: false },
         selectedProjectId: null,
         selectedWorkstream: null,
@@ -4442,11 +4736,12 @@
         editorDraft: null,
         permissionDraft: null,
         newProjectDraft: null,
-        delayDraft: null
+        delayDraft: null,
+        transitionDraft: null
       };
       try {
         const saved = JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY) || "null");
-        return saved ? { ...defaults, ...saved, projects: defaults.projects, users: defaults.users, drafts: defaults.drafts, formDrafts: defaults.formDrafts, selectedProjectId: null, selectedWorkstream: null, toast: "", adminModal: null, editorDraft: null, permissionDraft: null, newProjectDraft: null, delayDraft: null } : defaults;
+        return saved ? { ...defaults, ...saved, projects: defaults.projects, users: defaults.users, drafts: defaults.drafts, formDrafts: defaults.formDrafts, selectedProjectId: null, selectedWorkstream: null, toast: "", adminModal: null, editorDraft: null, permissionDraft: null, newProjectDraft: null, delayDraft: null, transitionDraft: null } : defaults;
       } catch (error) {
         return defaults;
       }
@@ -4455,9 +4750,9 @@
     function loadProjectData() {
       try {
         const savedProjects = JSON.parse(localStorage.getItem(PROJECT_DATA_STORAGE_KEY) || "null");
-        return applySeedTimelineExamples(savedProjects || structuredClone(seedProjects));
+        return applySeedTimelineExamples(savedProjects || structuredClone(seedProjects)).map(normalizeProjectLifecycle);
       } catch (error) {
-        return structuredClone(seedProjects);
+        return structuredClone(seedProjects).map(normalizeProjectLifecycle);
       }
     }
 
@@ -4535,7 +4830,8 @@
         editor: "project-workstream",
         permissions: "project-permissions",
         "add-project": "project-add",
-        delay: "project-delay"
+        delay: "project-delay",
+        "project-transition": "project-transition"
       }[projectState.adminModal];
       if (scope) flushAutosave(scope);
     }
@@ -4584,9 +4880,15 @@
       return PROJECT_WORKSTREAMS.find((item) => item.key === key)?.label || key;
     }
 
-    function canEditProjectWorkstream(workstreamKey) {
+    function canEditProjectWorkstream(workstreamKey, projectId = null) {
       const user = currentProjectUser();
+      const project = projectId ? projectState.projects.find((item) => item.id === projectId) : null;
+      if (project && projectIsReadOnly(project)) return false;
       return user?.status === "active" && (user.role === "super_admin" || user.role === "project_owner" || user.role === "department_editor" && user.workstream === workstreamKey);
+    }
+
+    function canManageProjectLifecycle() {
+      return currentProjectUser()?.status === "active" && currentProjectUser()?.role === "super_admin";
     }
 
     function projectDraftKey(projectId, workstreamKey) {
@@ -4701,6 +5003,18 @@
         workstreams,
         gates,
         dependencies: [],
+        projectStatus: "active",
+        statusHistory: [{
+          id: `PS-${Date.now()}`,
+          fromStatus: "draft",
+          toStatus: "active",
+          reasonCode: "project_created",
+          reason: "项目创建并进入跟进范围",
+          responsibleOwner: draft.owner.trim(),
+          effectiveDate: new Date().toISOString().slice(0, 10),
+          createdAt: new Date().toISOString(),
+          createdBy: currentProjectUser()?.name || "Ivy"
+        }],
         timelineVersion: 1,
         delayRecords: [],
         history: [{ time: "刚刚", source: "Product", detail: `项目已创建，使用${draft.template === "new_launch" ? "新品上市" : draft.template === "product_refresh" ? "产品更新" : "市场扩展"}模板` }]
@@ -4765,6 +5079,81 @@
       };
     }
 
+    function projectAllowedTransitions(project) {
+      return {
+        active: ["paused", "closeout", "cancelled"],
+        paused: ["active", "closeout", "cancelled"],
+        closeout: ["archived", "active", "cancelled"],
+        archived: ["active"],
+        cancelled: ["active"]
+      }[projectLifecycleStatus(project)] || [];
+    }
+
+    function projectTransitionReasonOptions(targetStatus) {
+      return {
+        active: [
+          ["resume", "恢复项目跟进"],
+          ["restart", "项目重新启动"],
+          ["scope_confirmed", "范围重新确认"]
+        ],
+        paused: [
+          ["resource", "资源冲突"],
+          ["technical", "技术问题"],
+          ["supply", "供应问题"],
+          ["market", "市场策略调整"],
+          ["decision", "等待管理决策"]
+        ],
+        closeout: [
+          ["launched_on_plan", "按计划上市"],
+          ["launched_early", "提前上市"],
+          ["launched_delayed", "延期后上市"]
+        ],
+        archived: [
+          ["closeout_complete", "上市收尾完成"],
+          ["admin_confirmed", "管理员确认归档"]
+        ],
+        cancelled: [
+          ["demand_cancelled", "需求取消"],
+          ["project_merged", "项目合并"],
+          ["market_withdrawn", "市场退出"],
+          ["duplicate", "重复项目"],
+          ["business_decision", "商业决策"]
+        ]
+      }[targetStatus] || [["other", "其他"]];
+    }
+
+    function projectTransitionReasonLabel(code, targetStatus) {
+      return projectTransitionReasonOptions(targetStatus).find((item) => item[0] === code)?.[1] || code || "--";
+    }
+
+    function createProjectTransitionDraft(projectId, preferredTarget = "") {
+      const project = projectState.projects.find((item) => item.id === projectId);
+      if (!project) return null;
+      const targets = projectAllowedTransitions(project);
+      const targetStatus = targets.includes(preferredTarget) ? preferredTarget : targets[0];
+      const reasonOptions = projectTransitionReasonOptions(targetStatus);
+      return {
+        projectId,
+        fromStatus: projectLifecycleStatus(project),
+        targetStatus,
+        reasonCode: reasonOptions[0]?.[0] || "other",
+        reason: "",
+        responsibleOwner: project.owner,
+        effectiveDate: new Date().toISOString().slice(0, 10),
+        actualLaunchDate: project.actualLaunchDate || (targetStatus === "closeout" || targetStatus === "archived" ? project.launchDate : ""),
+        relatedProjectId: "",
+        note: "",
+        closeoutConfirmed: false
+      };
+    }
+
+    function projectCloseoutProgress(project) {
+      const activeStreams = PROJECT_WORKSTREAMS.map((meta) => project.workstreams[meta.key]).filter((stream) => stream && stream.health !== "grey");
+      const remaining = activeStreams.reduce((sum, stream) => sum + Math.max(0, Number(stream.total || 0) - Number(stream.done || 0)), 0);
+      const blockers = activeStreams.reduce((sum, stream) => sum + stream.tasks.filter((task) => task.status === "Blocked").length, 0);
+      return { remaining, blockers, ready: remaining === 0 && blockers === 0 };
+    }
+
     function buildProjectDelayPreview(project, draft) {
       if (!project || !draft) return null;
       const anchorIndex = Math.max(0, PROJECT_GATES.indexOf(draft.anchorGate));
@@ -4813,6 +5202,7 @@
     function persistProjectState() {
       const persistable = {
         view: projectState.view,
+        portfolioScope: projectState.portfolioScope,
         filters: projectState.filters,
         syncedAt: projectState.syncedAt,
         activeUserId: projectState.activeUserId
@@ -5170,7 +5560,7 @@
         button.classList.toggle("active", active);
         button.setAttribute("aria-pressed", String(active));
       });
-      const alertCount = projectExceptionRows(projectState.projects).filter((item) => item.health === "red").length;
+      const alertCount = projectExceptionRows(projectState.projects.filter((project) => projectMatchesPortfolioScope(project, "current"))).filter((item) => item.health === "red").length;
       document.getElementById("projectAlertCount").textContent = String(alertCount);
       if (isSales) {
         render();
@@ -5186,9 +5576,9 @@
       return { red: 0, amber: 1, green: 2, grey: 3 }[health] ?? 4;
     }
 
-    function projectFirstBatchData(project) {
+    function projectFirstBatchData(project, includeHistorical = false) {
       const product = state.products.find((item) => item.model === project.model);
-      if (!product || product.lifecycle !== "New") return null;
+      if (!product || product.lifecycle !== "New") return includeHistorical && project.firstBatchSnapshot ? { ...project.firstBatchSnapshot, historical: true } : null;
       const enriched = enrichedProduct(product);
       let month = enriched.months.find((item) => item.isFirstBatch);
       let planned = true;
@@ -5243,6 +5633,7 @@
       const search = projectState.filters.search.trim().toLowerCase();
       return projectState.projects.filter((project) => {
         const metrics = projectMetrics(project);
+        if (!projectMatchesPortfolioScope(project)) return false;
         if (search && !`${project.model} ${project.name} ${project.category}`.toLowerCase().includes(search)) return false;
         if (projectState.filters.health !== "All" && metrics.health !== projectState.filters.health.toLowerCase()) return false;
         if (projectState.filters.stage !== "All" && project.stage !== projectState.filters.stage) return false;
@@ -5294,17 +5685,19 @@
       const projects = filteredProjects();
       const exceptions = projectExceptionRows(projects);
       const owners = ["All", ...Array.from(new Set(projectState.projects.map((project) => project.owner)))];
-      const stages = ["All", ...PROJECT_GATES.slice(0, 5)];
+      const stages = ["All", ...PROJECT_GATES];
+      const currentCount = projectState.projects.filter((project) => projectMatchesPortfolioScope(project, "current")).length;
       document.getElementById("projectModule").innerHTML = `
         <header class="topbar">
           <div class="brand">
             <h1>项目跟进</h1>
-            <span class="status-pill"><span class="dot"></span>${projectState.projects.length} 个进行中项目</span>
+            <span class="status-pill"><span class="dot"></span>${currentCount} 个当前跟进项目</span>
           </div>
           <div class="header-actions">
             <span class="status-pill"><span class="dot"></span>${projectText(projectState.syncedAt)}已同步</span>
             <div class="toolbar">
               ${currentProjectUser()?.role === "super_admin" ? `<button class="btn primary" data-project-action="add-project">+ 新增项目</button>` : ""}
+              <button class="btn" data-project-action="project-ledger">项目台账</button>
               <button class="btn" data-project-action="export">导出</button>
               <button class="btn" data-project-action="sync" ${projectState.syncing ? "disabled" : ""}>${projectState.syncing ? "同步中..." : "同步子模块"}</button>
             </div>
@@ -5312,6 +5705,7 @@
         </header>
 
         <section class="filterbar project-filterbar" aria-label="项目筛选与视图控制">
+          ${renderProjectScopeSwitch()}
           <div class="control" style="min-width:210px">
             <label for="projectSearch">项目 / 型号</label>
             <input class="project-search" id="projectSearch" data-project-filter="search" value="${projectState.filters.search}" placeholder="搜索项目">
@@ -5342,6 +5736,26 @@
       renderProjectAdminModal();
     }
 
+    function renderProjectScopeSwitch() {
+      const items = [
+        ["current", "当前跟进"],
+        ["paused", "暂停"],
+        ["closeout", "上市待收尾"],
+        ["history", "历史项目"]
+      ];
+      return `
+        <div class="control project-scope-control">
+          <label>项目范围</label>
+          <div class="segmented project-scope-switch">
+            ${items.map(([scope, label]) => {
+              const count = projectState.projects.filter((project) => projectMatchesPortfolioScope(project, scope)).length;
+              return `<button class="${projectState.portfolioScope === scope ? "active" : ""}" data-project-scope="${scope}">${label}<span>${count}</span></button>`;
+            }).join("")}
+          </div>
+        </div>
+      `;
+    }
+
     function renderProjectSelect(name, label, options, value) {
       return `
         <div class="control">
@@ -5356,7 +5770,7 @@
     function renderProjectKpis(projects) {
       const kpi = projectKpiData(projects);
       const cards = [
-        { label: "进行中项目", value: kpi.active, foot: "当前筛选范围" },
+        { label: "范围内项目", value: kpi.active, foot: "当前筛选范围" },
         { label: "上市有风险", value: kpi.launchRisk, foot: "关键路径为红色", risk: kpi.launchRisk > 0 },
         { label: "阻塞任务", value: kpi.blockedTasks, foot: "需要立即处理", risk: kpi.blockedTasks > 0 },
         { label: "未来14天到期", value: kpi.dueNext14, foot: "尚未完成的交付项" },
@@ -5435,13 +5849,14 @@
 
     function renderProjectRow(project) {
       const metrics = projectMetrics(project);
+      const lifecycle = projectLifecycleMeta(project);
       const stageProgress = Math.round(((project.gateIndex + 1) / PROJECT_GATES.length) * 100);
       return `
         <tr>
           <td class="project-col">
             <button class="project-link" data-project-action="open-project" data-project-id="${project.id}">
               <span class="sku-main">${project.model} · ${project.name}</span>
-              <span class="project-owner">${projectText(project.category)} · 负责人 ${project.owner}${project.delayRecords?.length ? `<span class="timeline-inline"> · V${project.timelineVersion} / 延期${project.delayRecords.length}</span>` : ""}</span>
+              <span class="project-owner">${projectText(project.category)} · 负责人 ${project.owner}${project.projectStatus !== "active" ? `<span class="lifecycle-inline ${lifecycle.tone}"> · ${lifecycle.label}</span>` : ""}${project.delayRecords?.length ? `<span class="timeline-inline"> · V${project.timelineVersion} / 延期${project.delayRecords.length}</span>` : ""}</span>
             </button>
           </td>
           <td class="launch-col"><span class="launch-date-stack"><span>${project.launchDate.slice(5)}</span>${project.originalLaunchDate && project.originalLaunchDate !== project.launchDate ? `<span class="date-original">原 ${project.originalLaunchDate.slice(5)}</span>` : ""}</span></td>
@@ -5519,6 +5934,8 @@
         return;
       }
       const metrics = projectMetrics(project);
+      const lifecycle = projectLifecycleMeta(project);
+      const readOnly = projectIsReadOnly(project);
       const selectedMeta = PROJECT_WORKSTREAMS.find((item) => item.key === projectState.selectedWorkstream);
       const selectedStream = selectedMeta ? projectWorkstreamView(project, selectedMeta.key) : null;
       root.className = "drawer-backdrop active";
@@ -5528,7 +5945,7 @@
           <div class="drawer-head">
             <div>
               <h2 class="drawer-title" id="projectDrawerTitle">${project.model} · ${selectedMeta ? selectedMeta.label : project.name}</h2>
-              <div class="drawer-subtitle">${project.name} · ${projectStageLabel(project.stage)} · 负责人 ${project.owner}</div>
+              <div class="drawer-subtitle">${project.name} · ${projectStageLabel(project.stage)} · 负责人 ${project.owner} <span class="project-lifecycle-badge ${lifecycle.tone}">${lifecycle.label}</span></div>
             </div>
             <button class="icon-btn" data-project-action="close-drawer" aria-label="关闭">×</button>
           </div>
@@ -5553,8 +5970,13 @@
             ${renderProjectDrawerBody(project, selectedMeta)}
           </div>
           <div class="drawer-foot">
-            <span class="helper-note">当前状态可在项目跟进中更新；已接入模块可跳转查看来源数据。</span>
-            ${selectedStream ? `<div class="drawer-actions">${renderProjectSourceControl(project, selectedStream, selectedMeta.key)}${canEditProjectWorkstream(selectedMeta.key) ? `<button class="btn danger" data-project-action="register-delay" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">登记延期</button><button class="btn primary" data-project-action="edit-workstream" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">编辑更新</button>` : ""}</div>` : `<button class="btn" data-project-action="close-drawer">关闭</button>`}
+            <span class="helper-note">${readOnly ? "历史项目只读保留，可从项目台账恢复跟进。" : "状态和部门更新均保留操作记录；已接入模块可查看来源数据。"}</span>
+            <div class="drawer-actions">
+              ${selectedStream ? renderProjectSourceControl(project, selectedStream, selectedMeta.key) : ""}
+              ${selectedStream && canEditProjectWorkstream(selectedMeta.key, project.id) ? `<button class="btn danger" data-project-action="register-delay" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">登记延期</button><button class="btn primary" data-project-action="edit-workstream" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">编辑更新</button>` : ""}
+              ${canManageProjectLifecycle() ? `<button class="btn ${readOnly ? "primary" : ""}" data-project-action="manage-project-status" data-project-id="${project.id}">${readOnly ? "恢复跟进" : "状态管理"}</button>` : ""}
+              <button class="btn" data-project-action="close-drawer">关闭</button>
+            </div>
           </div>
         </aside>
       `;
@@ -5628,7 +6050,9 @@
     }
 
     function renderProjectHistory(project) {
+      const statusRecords = project.statusHistory || [];
       return `
+        ${statusRecords.length ? `<section class="drawer-section"><h3 class="drawer-section-title">项目状态记录</h3><div class="activity-list">${statusRecords.map((item) => `<div class="activity-row"><strong>${projectISODateLabel(item.effectiveDate)}</strong><span class="dependency-copy"><span class="project-lifecycle-badge ${projectLifecycleMeta(item.toStatus).tone}">${projectLifecycleMeta(item.toStatus).label}</span> ${escapeProjectHtml(item.reason)}</span><span class="task-status">${escapeProjectHtml(item.createdBy)} · ${escapeProjectHtml(item.responsibleOwner)}</span></div>`).join("")}</div></section>` : ""}
         <section class="drawer-section">
           <h3 class="drawer-section-title">最近动态</h3>
           <div class="activity-list">
@@ -5677,7 +6101,7 @@
     }
 
     function renderFirstBatchSyncStrip(project) {
-      const firstBatch = projectFirstBatchData(project);
+      const firstBatch = projectFirstBatchData(project, true);
       if (!firstBatch) return "";
       return `
         <section class="first-batch-sync" aria-label="产销首批同步数据">
@@ -5686,7 +6110,7 @@
           <div class="first-batch-sync-item"><div class="first-batch-sync-label">供应计划</div><div class="first-batch-sync-value">${formatNumber(firstBatch.supply)}</div></div>
           <div class="first-batch-sync-item"><div class="first-batch-sync-label">供需差</div><div class="first-batch-sync-value ${firstBatch.gap < 0 ? "number-negative" : "number-positive"}">${signed(firstBatch.gap)}</div></div>
           <div class="first-batch-sync-item"><div class="first-batch-sync-label">EOH</div><div class="first-batch-sync-value ${firstBatch.eoh < 0 ? "number-negative" : ""}">${formatNumber(firstBatch.eoh)}</div></div>
-          <div class="first-batch-sync-source">数据来源：产销管理 · 只读同步 · 供应计划请在产销模块更新</div>
+          <div class="first-batch-sync-source">数据来源：产销管理 · ${firstBatch.historical ? "上市时首批快照" : "只读同步"} · ${firstBatch.historical ? "历史数据不参与当前健康状态计算" : "供应计划请在产销模块更新"}</div>
         </section>
       `;
     }
@@ -5703,11 +6127,138 @@
       root.setAttribute("aria-hidden", "false");
       root.innerHTML = projectState.adminModal === "permissions"
         ? renderProjectPermissionModal()
+        : projectState.adminModal === "project-ledger"
+          ? renderProjectLedgerModal()
+          : projectState.adminModal === "project-transition"
+            ? renderProjectTransitionModal()
         : projectState.adminModal === "add-project"
           ? renderAddProjectModal()
           : projectState.adminModal === "delay"
             ? renderProjectDelayModal()
             : renderProjectWorkstreamEditor();
+    }
+
+    function renderProjectLedgerModal() {
+      const statusOrder = { active: 0, paused: 1, closeout: 2, archived: 3, cancelled: 4 };
+      const projects = [...projectState.projects].sort((a, b) => statusOrder[projectLifecycleStatus(a)] - statusOrder[projectLifecycleStatus(b)] || a.launchDate.localeCompare(b.launchDate));
+      const counts = Object.fromEntries(Object.keys(PROJECT_LIFECYCLE).map((status) => [status, projects.filter((project) => projectLifecycleStatus(project) === status).length]));
+      return `
+        <section class="modal project-editor-modal project-ledger-modal" role="dialog" aria-modal="true" aria-labelledby="projectLedgerTitle">
+          <div class="modal-head">
+            <div>
+              <h2 class="modal-title" id="projectLedgerTitle">项目台账</h2>
+              <p class="modal-subtitle">统一管理项目进入、退出、上市收尾和恢复；历史项目只读保留</p>
+            </div>
+            <button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="ledger-summary" aria-label="项目状态摘要">
+              ${[["active", "进行中"], ["paused", "暂停"], ["closeout", "上市待收尾"], ["archived", "已归档"], ["cancelled", "已取消"]].map(([status, label]) => `<div class="ledger-summary-item"><span>${label}</span><strong class="${status === "cancelled" ? "number-negative" : ""}">${counts[status] || 0}</strong></div>`).join("")}
+            </div>
+            <div class="ledger-guidance">
+              <span><strong>默认矩阵：</strong>进行中、暂停和上市待收尾</span>
+              <span><strong>历史保留：</strong>归档和取消项目不再占用默认矩阵</span>
+              <span><strong>删除规则：</strong>已创建项目不硬删除，所有退出和恢复均留痕</span>
+            </div>
+            <div class="project-ledger-table-wrap">
+              <table class="project-ledger-table">
+                <thead><tr><th>项目</th><th>状态</th><th>上市时间</th><th>负责人</th><th>收尾情况</th><th>最近状态变更</th><th>操作</th></tr></thead>
+                <tbody>${projects.map((project) => {
+                  const lifecycle = projectLifecycleMeta(project);
+                  const progress = projectCloseoutProgress(project);
+                  const latest = project.statusHistory?.[0];
+                  return `<tr>
+                    <td><button class="project-link" data-project-editor-action="open-ledger-project" data-project-id="${project.id}"><span class="sku-main">${project.model} · ${project.name}</span><span class="project-owner">${project.id} · ${projectText(project.category)}</span></button></td>
+                    <td><span class="project-lifecycle-badge ${lifecycle.tone}">${lifecycle.label}</span><div class="ledger-scope-note">${projectMatchesPortfolioScope(project, "history") ? "历史项目" : "默认矩阵可见"}</div></td>
+                    <td><strong>${project.actualLaunchDate || project.launchDate}</strong>${project.actualLaunchDate ? `<div class="ledger-scope-note">原计划 ${project.launchDate}</div>` : `<div class="ledger-scope-note">计划日期</div>`}</td>
+                    <td>${escapeProjectHtml(project.owner)}</td>
+                    <td><span class="${progress.ready ? "number-positive" : progress.blockers ? "number-negative" : ""}">${progress.ready ? "已完成" : `剩余 ${progress.remaining} 项`}</span>${progress.blockers ? `<div class="ledger-scope-note number-negative">${progress.blockers} 项阻塞</div>` : ""}</td>
+                    <td>${latest ? `<strong>${projectISODateLabel(latest.effectiveDate)}</strong><div class="ledger-scope-note">${escapeProjectHtml(latest.createdBy)} · ${escapeProjectHtml(latest.reason)}</div>` : `<span class="ledger-scope-note">暂无状态变更</span>`}</td>
+                    <td><div class="ledger-actions"><button class="btn" data-project-editor-action="open-ledger-project" data-project-id="${project.id}">查看</button>${canManageProjectLifecycle() ? `<button class="btn ${projectIsReadOnly(project) ? "primary" : ""}" data-project-editor-action="manage-project-status" data-project-id="${project.id}">${projectIsReadOnly(project) ? "恢复" : "管理状态"}</button>` : ""}</div></td>
+                  </tr>`;
+                }).join("")}</tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-foot">
+            <span class="helper-note">项目台账统计全部项目，不受主页面筛选条件影响。</span>
+            <button class="btn" data-project-editor-action="close">关闭</button>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderProjectTransitionModal() {
+      const draft = projectState.transitionDraft;
+      const project = projectState.projects.find((item) => item.id === draft?.projectId);
+      if (!draft || !project) return "";
+      const targets = projectAllowedTransitions(project);
+      const fromMeta = projectLifecycleMeta(draft.fromStatus);
+      const targetMeta = projectLifecycleMeta(draft.targetStatus);
+      const reasons = projectTransitionReasonOptions(draft.targetStatus);
+      const closeout = projectCloseoutProgress(project);
+      const requiresLaunchDate = ["closeout", "archived"].includes(draft.targetStatus);
+      const movesToHistory = ["archived", "cancelled"].includes(draft.targetStatus);
+      return `
+        <section class="modal project-editor-modal project-transition-modal" role="dialog" aria-modal="true" aria-labelledby="projectTransitionTitle">
+          <div class="modal-head">
+            <div>
+              <h2 class="modal-title" id="projectTransitionTitle">项目状态管理</h2>
+              <p class="modal-subtitle">${project.model} · ${project.name}</p>
+            </div>
+            <button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="transition-path">
+              <span class="project-lifecycle-badge ${fromMeta.tone}">${fromMeta.label}</span>
+              <span class="transition-arrow">→</span>
+              <span class="project-lifecycle-badge ${targetMeta.tone}">${targetMeta.label}</span>
+              <span class="transition-impact-copy">${movesToHistory ? "确认后退出默认矩阵并进入历史项目" : draft.targetStatus === "active" ? "确认后恢复到当前跟进范围" : "确认后保留在默认矩阵，可按状态筛选"}</span>
+            </div>
+
+            <section class="editor-section">
+              <div class="editor-section-head"><h3 class="editor-section-title">状态变更信息</h3><span class="permission-note">发布后生成不可覆盖的状态记录</span></div>
+              <div class="editor-form-grid transition-form-grid">
+                <div class="editor-field">
+                  <label>目标状态</label>
+                  <select data-project-transition-field="targetStatus">${targets.map((status) => `<option value="${status}" ${draft.targetStatus === status ? "selected" : ""}>${projectLifecycleMeta(status).label}</option>`).join("")}</select>
+                </div>
+                <div class="editor-field">
+                  <label>变更类型</label>
+                  <select data-project-transition-field="reasonCode">${reasons.map(([code, label]) => `<option value="${code}" ${draft.reasonCode === code ? "selected" : ""}>${label}</option>`).join("")}</select>
+                </div>
+                <div class="editor-field">
+                  <label>责任人</label>
+                  <input data-project-transition-field="responsibleOwner" value="${escapeProjectHtml(draft.responsibleOwner)}">
+                </div>
+                <div class="editor-field">
+                  <label>生效日期</label>
+                  <input type="date" data-project-transition-field="effectiveDate" value="${draft.effectiveDate}">
+                </div>
+                ${requiresLaunchDate ? `<div class="editor-field"><label>实际上市日期</label><input type="date" data-project-transition-field="actualLaunchDate" value="${draft.actualLaunchDate}"></div>` : ""}
+                <div class="editor-field ${requiresLaunchDate ? "" : "span-2"}">
+                  <label>关联项目（选填）</label>
+                  <select data-project-transition-field="relatedProjectId"><option value="">无</option>${projectState.projects.filter((item) => item.id !== project.id && !projectIsReadOnly(item)).map((item) => `<option value="${item.id}" ${draft.relatedProjectId === item.id ? "selected" : ""}>${item.model} · ${item.name}</option>`).join("")}</select>
+                </div>
+                <div class="editor-field span-2">
+                  <label>变更原因</label>
+                  <textarea data-project-transition-field="reason" placeholder="说明项目暂停、取消、上市收尾或恢复的事实依据">${escapeProjectHtml(draft.reason)}</textarea>
+                </div>
+                <div class="editor-field span-2">
+                  <label>交接与后续安排</label>
+                  <textarea data-project-transition-field="note" placeholder="说明未完成事项、资料位置、承接人或恢复条件">${escapeProjectHtml(draft.note)}</textarea>
+                </div>
+              </div>
+            </section>
+
+            ${["closeout", "archived"].includes(draft.targetStatus) ? `<section class="editor-section"><div class="editor-section-head"><h3 class="editor-section-title">上市收尾检查</h3><span class="project-lifecycle-badge ${closeout.ready ? "green" : closeout.blockers ? "red" : "amber"}">${closeout.ready ? "可归档" : "待收尾"}</span></div><div class="closeout-check-grid"><div><span>未完成必需任务</span><strong>${closeout.remaining}</strong></div><div><span>阻塞任务</span><strong class="${closeout.blockers ? "number-negative" : ""}">${closeout.blockers}</strong></div><div><span>项目资料</span><strong>${draft.note.trim() ? "已填写交接" : "待补充"}</strong></div></div>${draft.targetStatus === "archived" ? `<label class="transition-confirm"><input type="checkbox" data-project-transition-field="closeoutConfirmed" ${draft.closeoutConfirmed ? "checked" : ""}><span>确认上市收尾已完成；若仍有未完成项，已在交接说明中明确承接人和完成时间。</span></label>` : `<div class="delay-warning">进入“已上市待收尾”后仍保留在默认矩阵，完成必要任务并由管理员确认后再归档。</div>`}</section>` : ""}
+          </div>
+          <div class="modal-foot">
+            <span>${autosaveStatusMarkup("project-transition")} <span class="helper-note">自动保存仅保留草稿，状态变更需明确确认。</span></span>
+            <div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="back-to-ledger">返回台账</button><button class="btn primary" data-project-editor-action="apply-project-transition">确认变更为${targetMeta.label}</button></div>
+          </div>
+        </section>
+      `;
     }
 
     function renderAddProjectModal() {
@@ -5916,7 +6467,7 @@
               <div class="editor-field">
                 <label>项目</label>
                 <select data-project-editor-context="projectId">
-                  ${projectState.projects.map((item) => `<option value="${item.id}" ${item.id === project.id ? "selected" : ""}>${item.model} · ${item.name}</option>`).join("")}
+                  ${projectState.projects.filter((item) => !projectIsReadOnly(item)).map((item) => `<option value="${item.id}" ${item.id === project.id ? "selected" : ""}>${item.model} · ${item.name}</option>`).join("")}
                 </select>
               </div>
               <div class="editor-field">
@@ -7384,7 +7935,7 @@
     }
 
     function openProjectWorkstreamEditor(projectId, workstreamKey) {
-      if (!canEditProjectWorkstream(workstreamKey)) {
+      if (!canEditProjectWorkstream(workstreamKey, projectId)) {
         showProjectToast("当前账号没有该工作流的编辑权限。");
         return;
       }
@@ -7392,6 +7943,23 @@
       projectState.editorProjectId = projectId;
       projectState.editorWorkstream = workstreamKey;
       projectState.editorDraft = createProjectEditorDraft(projectId, workstreamKey);
+      renderProjectAdminModal();
+    }
+
+    function openProjectTransition(projectId, preferredTarget = "") {
+      if (!canManageProjectLifecycle()) {
+        showProjectToast("仅总管理员可以变更项目状态。");
+        return;
+      }
+      const project = projectState.projects.find((item) => item.id === projectId);
+      if (!project || !projectAllowedTransitions(project).length) return;
+      const key = `project-transition:${projectId}`;
+      const saved = projectState.formDrafts?.[key];
+      projectState.adminModal = "project-transition";
+      projectState.transitionDraft = structuredClone(saved && saved.fromStatus === projectLifecycleStatus(project) ? saved : createProjectTransitionDraft(projectId, preferredTarget));
+      projectState.editorDraft = null;
+      projectState.newProjectDraft = null;
+      projectState.delayDraft = null;
       renderProjectAdminModal();
     }
 
@@ -7405,7 +7973,34 @@
         projectState.permissionDraft = null;
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         renderProjectAdminModal();
+        return;
+      }
+      if (action === "open-ledger-project") {
+        const projectId = button.getAttribute("data-project-id");
+        projectState.adminModal = null;
+        projectState.transitionDraft = null;
+        projectState.selectedProjectId = projectId;
+        projectState.selectedWorkstream = null;
+        projectState.drawerTab = "overview";
+        renderProjectAdminModal();
+        renderProjectDrawer(projectId);
+        return;
+      }
+      if (action === "manage-project-status") {
+        openProjectTransition(button.getAttribute("data-project-id"));
+        return;
+      }
+      if (action === "back-to-ledger") {
+        flushAutosave("project-transition");
+        projectState.adminModal = "project-ledger";
+        projectState.transitionDraft = null;
+        renderProjectAdminModal();
+        return;
+      }
+      if (action === "apply-project-transition") {
+        applyProjectLifecycleTransition();
         return;
       }
       if (action === "add-task") {
@@ -7502,7 +8097,7 @@
         flushAutosave("project-workstream");
         if (contextField === "projectId") projectState.editorProjectId = target.value;
         if (contextField === "workstream") projectState.editorWorkstream = target.value;
-        if (!canEditProjectWorkstream(projectState.editorWorkstream)) {
+        if (!canEditProjectWorkstream(projectState.editorWorkstream, projectState.editorProjectId)) {
           showProjectToast("当前账号没有该工作流的编辑权限。");
           return true;
         }
@@ -7577,6 +8172,29 @@
         if (["sourceWorkstream", "anchorGate", "newDate", "propagation"].includes(delayField)) renderProjectAdminModal();
         return true;
       }
+      const transitionField = target.getAttribute("data-project-transition-field");
+      if (transitionField && projectState.transitionDraft) {
+        const draft = projectState.transitionDraft;
+        draft[transitionField] = transitionField === "closeoutConfirmed" ? target.checked : target.value;
+        if (transitionField === "targetStatus") {
+          const project = projectState.projects.find((item) => item.id === draft.projectId);
+          const replacement = createProjectTransitionDraft(draft.projectId, target.value);
+          projectState.transitionDraft = {
+            ...replacement,
+            reason: draft.reason,
+            responsibleOwner: draft.responsibleOwner,
+            effectiveDate: draft.effectiveDate,
+            relatedProjectId: draft.relatedProjectId,
+            note: draft.note,
+            actualLaunchDate: replacement.actualLaunchDate || draft.actualLaunchDate
+          };
+          if (!projectAllowedTransitions(project).includes(target.value)) return true;
+        }
+        const activeDraft = projectState.transitionDraft;
+        scheduleProjectFormAutosave("project-transition", `project-transition:${activeDraft.projectId}`, activeDraft);
+        if (transitionField === "targetStatus") renderProjectAdminModal();
+        return true;
+      }
       return false;
     }
 
@@ -7584,6 +8202,10 @@
       const draft = projectState.delayDraft;
       const project = projectState.projects.find((item) => item.id === draft?.projectId);
       if (!draft || !project) return;
+      if (projectIsReadOnly(project)) {
+        showProjectToast("历史项目为只读状态，请先恢复项目跟进。");
+        return;
+      }
       const preview = buildProjectDelayPreview(project, draft);
       if (!draft.reason.trim()) {
         showProjectToast("请填写延期原因。");
@@ -7674,6 +8296,108 @@
       showProjectToast(`${project.model} 时间线已更新至 V${project.timelineVersion}，延期记录已归档。`);
     }
 
+    function applyProjectLifecycleTransition() {
+      const draft = projectState.transitionDraft;
+      const project = projectState.projects.find((item) => item.id === draft?.projectId);
+      if (!draft || !project || !canManageProjectLifecycle()) return;
+      const currentStatus = projectLifecycleStatus(project);
+      if (currentStatus !== draft.fromStatus || !projectAllowedTransitions(project).includes(draft.targetStatus)) {
+        showProjectToast("项目状态已发生变化，请重新打开状态管理。");
+        return;
+      }
+      if (!draft.reason.trim()) {
+        showProjectToast("请填写本次状态变更的具体原因。");
+        return;
+      }
+      if (!draft.responsibleOwner.trim() || !draft.effectiveDate) {
+        showProjectToast("请完整填写责任人和生效日期。");
+        return;
+      }
+      if (["closeout", "archived"].includes(draft.targetStatus) && !draft.actualLaunchDate) {
+        showProjectToast("请填写实际上市日期。");
+        return;
+      }
+      const closeout = projectCloseoutProgress(project);
+      if (draft.targetStatus === "archived" && !draft.closeoutConfirmed) {
+        showProjectToast("归档前请确认上市收尾已完成或已有明确交接。");
+        return;
+      }
+      if (draft.targetStatus === "archived" && !closeout.ready && !draft.note.trim()) {
+        showProjectToast("项目仍有未完成项，请填写承接人和后续完成安排。");
+        return;
+      }
+
+      const firstBatch = projectFirstBatchData(project);
+      if (firstBatch && ["closeout", "archived"].includes(draft.targetStatus)) {
+        project.firstBatchSnapshot = { ...firstBatch, historical: true, capturedAt: new Date().toISOString() };
+      }
+      const now = new Date();
+      const actor = currentProjectUser()?.name || "Ivy";
+      const targetMeta = projectLifecycleMeta(draft.targetStatus);
+      const relatedProject = projectState.projects.find((item) => item.id === draft.relatedProjectId);
+      const record = {
+        id: `PS-${Date.now()}`,
+        fromStatus: currentStatus,
+        toStatus: draft.targetStatus,
+        reasonCode: draft.reasonCode,
+        reasonType: projectTransitionReasonLabel(draft.reasonCode, draft.targetStatus),
+        reason: draft.reason.trim(),
+        responsibleOwner: draft.responsibleOwner.trim(),
+        effectiveDate: draft.effectiveDate,
+        actualLaunchDate: draft.actualLaunchDate || "",
+        relatedProjectId: draft.relatedProjectId || "",
+        relatedProjectLabel: relatedProject ? `${relatedProject.model} · ${relatedProject.name}` : "",
+        note: draft.note.trim(),
+        createdAt: now.toISOString(),
+        createdBy: actor
+      };
+
+      project.projectStatus = draft.targetStatus;
+      project.statusChangedAt = now.toISOString();
+      project.statusChangedBy = actor;
+      project.statusHistory = project.statusHistory || [];
+      project.statusHistory.unshift(record);
+      project.updated = "just now";
+      if (["closeout", "archived"].includes(draft.targetStatus)) {
+        project.actualLaunchDate = draft.actualLaunchDate;
+        project.stage = "Launch";
+        project.gateIndex = PROJECT_GATES.length - 1;
+        project.nextMilestone = draft.targetStatus === "closeout" ? "Launch Closeout" : "Project Archived";
+        project.nextDate = projectISOToDue(draft.actualLaunchDate);
+        project.gates.forEach((gate) => { gate.state = "done"; });
+        const product = state.products.find((item) => item.model === project.model);
+        if (product) {
+          product.lifecycle = "Launched";
+          product.launch = draft.actualLaunchDate;
+          persistState();
+        }
+      }
+      if (["archived", "cancelled"].includes(draft.targetStatus)) {
+        project.closedAt = draft.effectiveDate;
+        project.closedBy = actor;
+      } else if (draft.targetStatus === "active") {
+        delete project.closedAt;
+        delete project.closedBy;
+      }
+      project.history.unshift({
+        time: "刚刚",
+        source: "Product",
+        detail: `项目状态由${projectLifecycleMeta(currentStatus).label}变更为${targetMeta.label}：${draft.reason.trim()}`
+      });
+
+      persistProjectData();
+      cancelAutosave("project-transition");
+      clearProjectFormDraft(`project-transition:${project.id}`);
+      projectState.portfolioScope = targetMeta.scope;
+      projectState.adminModal = "project-ledger";
+      projectState.transitionDraft = null;
+      projectState.selectedProjectId = null;
+      projectState.selectedWorkstream = null;
+      persistProjectState();
+      renderProjectModule();
+      showProjectToast(`${project.model} 已变更为“${targetMeta.label}”，状态记录已保存。`);
+    }
+
     function createNewProject() {
       const draft = projectState.newProjectDraft;
       if (!draft) return;
@@ -7704,6 +8428,10 @@
       const meta = PROJECT_WORKSTREAMS.find((item) => item.key === projectState.editorWorkstream);
       const draft = projectState.editorDraft;
       if (!project || !meta || !draft) return;
+      if (projectIsReadOnly(project)) {
+        showProjectToast("历史项目为只读状态，请先恢复项目跟进。");
+        return;
+      }
       if (!draft.owner.trim()) {
         showProjectToast("请填写工作流负责人。");
         return;
@@ -7761,20 +8489,36 @@
         projectState.adminModal = "add-project";
         projectState.newProjectDraft = structuredClone(projectState.formDrafts?.["add-project"] || createNewProjectDraft());
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         renderProjectAdminModal();
+        return;
+      }
+      if (action === "project-ledger") {
+        projectState.adminModal = "project-ledger";
+        projectState.transitionDraft = null;
+        projectState.editorDraft = null;
+        projectState.newProjectDraft = null;
+        projectState.delayDraft = null;
+        projectState.transitionDraft = null;
+        renderProjectAdminModal();
+        return;
+      }
+      if (action === "manage-project-status") {
+        openProjectTransition(button.getAttribute("data-project-id"));
         return;
       }
       if (action === "register-delay") {
         const workstreamKey = button.getAttribute("data-workstream");
-        if (!canEditProjectWorkstream(workstreamKey)) {
+        const delayProjectId = button.getAttribute("data-project-id");
+        if (!canEditProjectWorkstream(workstreamKey, delayProjectId)) {
           showProjectToast("当前账号没有登记该工作流延期的权限。");
           return;
         }
         projectState.adminModal = "delay";
-        const delayProjectId = button.getAttribute("data-project-id");
         projectState.delayDraft = structuredClone(projectState.formDrafts?.[`delay:${delayProjectId}`] || createProjectDelayDraft(delayProjectId, workstreamKey));
         projectState.newProjectDraft = null;
         projectState.editorDraft = null;
+        projectState.transitionDraft = null;
         renderProjectAdminModal();
         return;
       }
@@ -7789,6 +8533,7 @@
         permissionCloudState = createPermissionCloudState();
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         renderProjectAdminModal();
         loadPermissionCloudMembers();
         return;
@@ -7796,6 +8541,7 @@
       if (action === "edit-workstream") {
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         openProjectWorkstreamEditor(button.getAttribute("data-project-id"), button.getAttribute("data-workstream"));
         return;
       }
@@ -7856,12 +8602,12 @@
     }
 
     function exportProjectPortfolio() {
-      const rows = [["项目ID", "型号", "产品名称", "上市日期", "当前阶段", "项目健康状态", "准备度", "工作流", "工作流状态", "已完成", "必需任务", "最近截止", "负责人", "阻塞原因", "首批月份", "首批销售预测", "首批供应计划", "首批供需差"]];
+      const rows = [["项目ID", "型号", "产品名称", "项目状态", "计划上市日期", "实际上市日期", "当前阶段", "项目健康状态", "准备度", "工作流", "工作流状态", "已完成", "必需任务", "最近截止", "负责人", "阻塞原因", "首批月份", "首批销售预测", "首批供应计划", "首批供需差"]];
       filteredProjects().forEach((project) => {
         const metrics = projectMetrics(project);
         PROJECT_WORKSTREAMS.forEach((meta) => {
           const stream = projectWorkstreamView(project, meta.key);
-          rows.push([project.id, project.model, project.name, project.launchDate, projectStageLabel(project.stage), projectHealthLabel(metrics.health), metrics.readiness + "%", meta.label, projectHealthLabel(stream.health), stream.done, stream.total, stream.dueISO, stream.owner, projectText(stream.blocker), stream.firstBatch?.month || "", stream.firstBatch?.demand ?? "", stream.firstBatch?.supply ?? "", stream.firstBatch?.gap ?? ""]);
+          rows.push([project.id, project.model, project.name, projectLifecycleMeta(project).label, project.launchDate, project.actualLaunchDate || "", projectStageLabel(project.stage), projectHealthLabel(metrics.health), metrics.readiness + "%", meta.label, projectHealthLabel(stream.health), stream.done, stream.total, stream.dueISO, stream.owner, projectText(stream.blocker), stream.firstBatch?.month || "", stream.firstBatch?.demand ?? "", stream.firstBatch?.supply ?? "", stream.firstBatch?.gap ?? ""]);
         });
       });
       const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
@@ -7926,6 +8672,7 @@
         projectState.permissionDraft = null;
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         renderProjectAdminModal();
         return;
       }
@@ -7942,8 +8689,18 @@
         projectState.permissionDraft = null;
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         renderApp();
         renderProjectAdminModal();
+        return;
+      }
+      const projectScopeButton = event.target.closest("[data-project-scope]");
+      if (projectScopeButton) {
+        projectState.portfolioScope = projectScopeButton.getAttribute("data-project-scope") || "current";
+        projectState.selectedProjectId = null;
+        projectState.selectedWorkstream = null;
+        persistProjectState();
+        renderProjectModule();
         return;
       }
       const projectViewButton = event.target.closest("[data-project-view]");
@@ -8636,6 +9393,7 @@
         projectState.permissionDraft = null;
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
+        projectState.transitionDraft = null;
         renderProjectAdminModal();
         return;
       }
