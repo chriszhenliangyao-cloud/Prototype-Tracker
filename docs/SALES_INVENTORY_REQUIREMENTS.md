@@ -34,8 +34,7 @@
   means risk, `FB~` means watch, and `FB✓` means OK. Launched SKUs never show a
   First Batch badge.
 - First Batch Only limits the matrix to New SKUs with a First Batch event.
-  Only Gap limits it to SKUs whose cumulative Net Gap is negative across the
-  selected period. All KPI cards and Trend modules use the same filtered set.
+  Only Gap limits it to SKUs with at least one negative monthly supply gap.
 - Pull History opens read-only Actual Shipment, Actual Supply, and Ending
   Inventory for every available historical month. Beginning Inventory remains
   available to inventory calculations but is not displayed in this table. It
@@ -184,9 +183,6 @@
 
 ## Month Closing test rollback
 
-- A one-time local workspace migration restores legacy Sep-or-later test state
-  to the Aug–Oct 2026 window with History synced through Jul 2026. It preserves
-  the corresponding rolling-plan values and product setup.
 - `Undo Closing` is always visible in Sales & Inventory during testing.
 - Every Month Closing adds a browser-local recovery point instead of replacing
   the previous recovery point.
