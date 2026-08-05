@@ -41,6 +41,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Account and permission management belongs to the application shell, not inside the monthly planning workflow.
 - Exact-email authorization and tool-level account permissions are managed from one unified `权限管理` interface. Login authorization is immediate; tool responsibility changes remain an explicit saved action.
 - The platform uses a grouped left navigation instead of a growing flat top-level module switch. The primary domains are `计划与交付`, `经营管理`, `市场增长`, `协同中心`, and `专业与管理`, with `我的工作台` as the personal default landing page.
+- Child-module navigation is text-first. The repeated square letter/character marks are removed; category labels, active indicators, counts, test badges and risk badges remain.
 - `计划与交付` contains four peer submodules: `项目跟进`, `产销管理`, `预测管理`, and `物流交付`. Forecast owns regional/channel forecast input and consensus versions; Logistics owns shipment, in-transit, customs, ETA, warehouse receipt and delivery exceptions.
 - `经营管理` and `市场增长` are separate navigation categories shown with the same small category-label treatment as `计划与交付`. Their child modules use standard full navigation rows: Business Management contains `经营总览`, `BP达成`, `经营分析`, `Value Chain Simulation`, and `结算台账`; Market Growth contains `新品上市`, `营销活动`, and `营销物料`.
 - Navigation order is `计划与交付`, `市场增长`, `协同中心`, `经营管理`, then `专业与管理`. Business Management places `Value Chain Simulation` and `结算台账` after `经营分析`.
@@ -52,6 +53,8 @@ The standalone reference remains the design and behavior source for the React ap
 - The Prototype Management page is reachable from Function Workspaces and from the Prototype source control in Project Tracking. Viewing opens the project drawer on the prototype workstream; editing reuses the department update workflow and refreshes both surfaces after publish.
 - `营销物料` is a project-row delivery matrix. Its six fixed standard columns are Product Introduction Slides, Packaging Design Final Draft, Product Sheet, Product & Packaging Images & Manual, POSM, and Social Copy & PR Release. All special materials are grouped in one final managed column so adding a type never widens the matrix.
 - Marketing material names use English title case in both interface languages, while recognised abbreviations such as POSM remain uppercase. Saving a material updates the linked project's marketing workstream readiness, tasks, owner, next deadline and blockers.
+- Each of the six standard marketing materials has a bilingual default delivery checklist. Project-specific item dialogs support check/uncheck, add, delete and restore-default actions; completion is calculated from checked items and stored with the material record.
+- Checklist completion can advance ordinary not-started/in-progress work to completed, but review, missing and overdue remain explicit business states. Selecting completed checks every deliverable; reducing a completed checklist reopens it as in progress.
 - Project Tracking is the source of truth for the Marketing Assets project list. Creating a project initializes all six standard assets as `not_started`; active, paused and closeout projects stay visible, while archived/cancelled records are retained but hidden from the current matrix.
 
 ## Current State
@@ -136,6 +139,9 @@ The standalone reference remains the design and behavior source for the React ap
 - At a 1280×720 viewport, the Marketing Assets matrix and its container are both 1040px wide, document width equals viewport width, and all nine headers use static positioning. The complete horizontal matrix is visible without scrolling or sticky-column overlap.
 - Project-to-Marketing-Assets synchronization passes an end-to-end local test: creating `MKT-SYNC-01` in Project Tracking automatically adds the same project to the Marketing Assets project selector and matrix with six standard materials initialized as not started.
 - The project total-progress control opens a complete gap list with direct update actions. The material editor is 700×299px in the tested desktop state, with four compact fields on one row and a short full-width note field.
+- The checklist-enabled material editor passes add/delete/reset, autosave and persistence tests. A five-item material changes from `5/5 · 100%` to `4/5 · 80%`, then to `4/6 · 67%` after adding an item; reopening restores the saved checklist. A review item remains in review at `5/5 · 100%`.
+- Marketing Assets typography is increased to 8px column headers, 9px project-row headers and 8px status values while the 1040px matrix still fits its container without horizontal scrolling.
+- Sidebar module marks compute as `display: none` in Chinese and English; module labels and right-aligned status/count badges remain correctly aligned.
 - JavaScript syntax checks pass for `cloud-app/i18n.js`, `cloud-app/cloud-sync.js`, and the inline application script.
 - The user-locale preference migration is applied to Supabase with RLS. Anonymous table access is revoked; authenticated users receive only select, insert and update privileges, constrained by own-user policies.
 - Vercel production deployment `dpl_D12a4aXTgi75ThZgfMuiUYBHNiFC` is READY and aliased to `https://operations-planning-hub.vercel.app`.
@@ -143,6 +149,8 @@ The standalone reference remains the design and behavior source for the React ap
 - Production browser smoke testing confirms the Google-only login screen has no password input, the Function Workspace opens the independent Prototype Management page, English switching renders the expected navigation and heading, and the 1280px viewport has no document-level horizontal overflow.
 - Vercel production deployment `dpl_8AL1mrmTU6S3j7gdsa9fS43xpa8J` is READY and aliased to `https://operations-planning-hub.vercel.app`. Production root and `/api/config` return HTTP 200.
 - Production Marketing Assets regression confirms the 1040px matrix fits its 1040px container, all nine headers use static positioning, the project selector is present, and WAL101 opens a five-item actionable gap dialog.
+- Vercel production deployment `dpl_7NJmy2be6AUdcbnFM8aivQLXXkid` is READY and aliased to `https://operations-planning-hub.vercel.app`. Production root and `/api/config` return HTTP 200.
+- Production regression confirms no sidebar module marks are visible, matrix header/project/status fonts compute to 8/9/8px without horizontal overflow, and the PX51 image/manual dialog renders five default checklist items with add, remove and restore-default controls.
 - Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.
 
 ## Next Steps

@@ -2248,11 +2248,11 @@
       width: 100%;
       min-height: 24px;
       display: grid;
-      grid-template-columns: 22px minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       margin: 1px 0;
-      padding: 1px 7px 1px 5px;
+      padding: 1px 7px 1px 11px;
       border: 0;
       border-radius: 5px;
       background: transparent;
@@ -2286,17 +2286,7 @@
     }
 
     .platform-nav-mark {
-      width: 21px;
-      height: 21px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid #d7e0ee;
-      border-radius: 4px;
-      background: #fff;
-      color: #627089;
-      font-size: 9px;
-      font-weight: 900;
+      display: none;
     }
 
     .platform-nav-item.active .platform-nav-mark {
@@ -2632,7 +2622,7 @@
 
     .market-assets-matrix th,
     .market-assets-matrix td {
-      height: 66px;
+      height: 70px;
       min-width: 0;
       padding: 4px;
       border-right: 1px solid var(--line);
@@ -2640,12 +2630,12 @@
       background: #fff;
       text-align: left;
       vertical-align: middle;
-      font-size: 7px;
+      font-size: 8px;
       overflow-wrap: anywhere;
     }
 
     .market-assets-matrix th {
-      height: 52px;
+      height: 56px;
       background: #f5f7fb;
       color: #4d5b70;
       font-weight: 900;
@@ -2699,7 +2689,7 @@
 
     .market-assets-project strong {
       color: var(--text);
-      font-size: 8px;
+      font-size: 9px;
       line-height: 1.25;
     }
 
@@ -2717,7 +2707,7 @@
       gap: 3px 6px;
       margin-top: 4px;
       color: var(--muted);
-      font-size: 7px;
+      font-size: 7.5px;
       font-weight: 800;
     }
 
@@ -2726,7 +2716,7 @@
       max-width: 100%;
       margin: 0 auto;
       color: #263247;
-      font-size: 7px;
+      font-size: 8px;
       font-weight: 900;
       line-height: 1.25;
       letter-spacing: 0;
@@ -2738,7 +2728,7 @@
       display: block;
       margin-top: 2px;
       color: var(--muted);
-      font-size: 6px;
+      font-size: 6.5px;
       font-weight: 800;
     }
 
@@ -2755,12 +2745,12 @@
     }
 
     .market-assets-progress strong {
-      font-size: 8px;
+      font-size: 9px;
     }
 
     .market-assets-progress small {
       color: var(--muted);
-      font-size: 6.5px;
+      font-size: 7px;
       font-weight: 800;
       line-height: 1.2;
     }
@@ -2831,7 +2821,7 @@
 
     .market-asset-cell strong {
       color: inherit;
-      font-size: 7px;
+      font-size: 8px;
       line-height: 1.15;
     }
 
@@ -2841,7 +2831,7 @@
 
     .market-asset-cell small {
       color: var(--muted);
-      font-size: 6px;
+      font-size: 6.5px;
       font-weight: 700;
       line-height: 1.15;
     }
@@ -2873,12 +2863,12 @@
     .market-assets-special-item.risk { border-left-color: var(--red); background: #fff3f4; }
     .market-assets-special-item strong {
       min-width: 0;
-      font-size: 6.5px;
+      font-size: 7px;
       line-height: 1.15;
     }
     .market-assets-special-item small {
       color: var(--muted);
-      font-size: 5.5px;
+      font-size: 6px;
       font-weight: 800;
       white-space: nowrap;
     }
@@ -2937,7 +2927,7 @@
     }
 
     .market-asset-modal.compact-item-modal {
-      width: min(700px, calc(100vw - 32px));
+      width: min(760px, calc(100vw - 32px));
     }
 
     .market-asset-modal .modal-head {
@@ -2963,13 +2953,135 @@
       grid-template-columns: minmax(150px, 1.15fr) minmax(90px, .55fr) minmax(120px, .8fr) minmax(130px, .9fr);
     }
 
-    .market-asset-item-form .editor-field:last-child {
-      grid-column: 1 / -1;
-    }
-
     .market-asset-item-form textarea {
       min-height: 62px;
       max-height: 90px;
+    }
+
+    .market-asset-note-field {
+      margin-top: 8px;
+    }
+
+    .market-asset-note-field textarea {
+      min-height: 58px;
+      max-height: 88px;
+    }
+
+    [data-market-asset-progress-output] {
+      background: #f2f6ff !important;
+      color: var(--blue) !important;
+      font-weight: 900;
+    }
+
+    .market-asset-checklist-section {
+      margin-top: 9px;
+      padding-top: 9px;
+      border-top: 1px solid var(--line);
+    }
+
+    .market-asset-checklist-head,
+    .market-asset-checklist-head > div,
+    .market-asset-checklist-add {
+      display: flex;
+      align-items: center;
+    }
+
+    .market-asset-checklist-head {
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .market-asset-checklist-head > div {
+      gap: 8px;
+    }
+
+    .market-asset-checklist-head h3 {
+      margin: 0;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .market-asset-checklist-head span {
+      color: var(--blue);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .market-asset-checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .market-asset-checklist-row {
+      min-width: 0;
+      min-height: 31px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 25px;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 4px 3px 7px;
+      border: 1px solid var(--line);
+      border-left: 3px solid #aab5c5;
+      border-radius: 4px;
+      background: #f8fafc;
+    }
+
+    .market-asset-checklist-row.done {
+      border-left-color: var(--green);
+      background: #f1faf6;
+    }
+
+    .market-asset-checklist-row label {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      font-size: 8px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .market-asset-checklist-row label span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .market-asset-checklist-row input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      accent-color: var(--green);
+      flex: 0 0 auto;
+    }
+
+    .market-asset-checklist-remove {
+      width: 24px;
+      height: 24px;
+      min-height: 24px;
+      border: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .market-asset-checklist-remove:hover {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .market-asset-checklist-add {
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .market-asset-checklist-add input {
+      width: min(300px, 60%);
+      height: 30px;
     }
 
     .market-asset-project-checks {
@@ -3061,13 +3173,17 @@
       .market-assets-progress-col { width: 8%; }
       .market-assets-material-col { width: 10%; }
       .market-assets-custom-col { width: 15%; }
-      .market-assets-category-title { font-size: 6.5px; }
+      .market-assets-category-title { font-size: 7.5px; }
       .market-asset-cell { padding: 4px; }
     }
 
     @media (max-width: 760px) {
       .market-asset-item-form {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .market-asset-checklist-grid {
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .market-assets-summary-row {
@@ -5440,12 +5556,72 @@
     const MARKETING_ASSET_DRAFT_STORAGE_KEY = "marketingAssetsDraft.v1";
     const MARKETING_ASSET_TODAY = "2026-08-05";
     const STANDARD_MARKETING_ASSET_TYPES = [
-      { key: "product-introduction-slides", name: "Product Introduction Slides" },
-      { key: "packaging-design-final-draft", name: "Packaging Design Final Draft" },
-      { key: "product-sheet", name: "Product Sheet" },
-      { key: "product-packaging-images-manual", name: "Product & Packaging Images & Manual" },
-      { key: "posm", name: "POSM" },
-      { key: "social-copy-pr-release", name: "Social Copy & PR Release" }
+      {
+        key: "product-introduction-slides",
+        name: "Product Introduction Slides",
+        checklist: [
+          ["product-overview", "产品概述", "Product overview"],
+          ["key-benefits", "核心卖点", "Key benefits"],
+          ["positioning", "目标用户与产品定位", "Target audience & positioning"],
+          ["technical-specifications", "技术规格", "Technical specifications"],
+          ["launch-information", "价格与上市信息", "Pricing & launch information"]
+        ]
+      },
+      {
+        key: "packaging-design-final-draft",
+        name: "Packaging Design Final Draft",
+        checklist: [
+          ["front-back-artwork", "包装正背面设计", "Front & back artwork"],
+          ["side-panels-icons", "侧面信息与图标", "Side panels & icons"],
+          ["regulatory-copy", "法规与合规文案", "Regulatory copy"],
+          ["barcode-localisation", "条码与本地化信息", "Barcode & localisation"],
+          ["print-ready-files", "印刷终稿文件", "Print-ready final files"]
+        ]
+      },
+      {
+        key: "product-sheet",
+        name: "Product Sheet",
+        checklist: [
+          ["master-specifications", "主规格表", "Master specifications"],
+          ["feature-copy", "功能卖点文案", "Feature copy"],
+          ["claims-certifications", "产品声明与认证", "Claims & certifications"],
+          ["dimensions-pack-list", "尺寸与包装清单", "Dimensions & pack list"],
+          ["channel-version", "渠道本地化版本", "Localised channel version"]
+        ]
+      },
+      {
+        key: "product-packaging-images-manual",
+        name: "Product & Packaging Images & Manual",
+        checklist: [
+          ["hero-images", "产品主图", "Hero product images"],
+          ["detail-images", "产品细节图", "Product detail images"],
+          ["packaging-images", "包装图片", "Packaging images"],
+          ["lifestyle-images", "场景图片", "Lifestyle images"],
+          ["user-manual", "用户手册", "User manual"]
+        ]
+      },
+      {
+        key: "posm",
+        name: "POSM",
+        checklist: [
+          ["key-visual", "主视觉", "Key visual"],
+          ["display-artwork", "陈列物料设计", "Display artwork"],
+          ["shelf-price-card", "货架卡与价格卡", "Shelf & price card"],
+          ["retailer-adaptation", "零售商适配版本", "Retailer adaptation"],
+          ["production-files", "生产终稿文件", "Production-ready files"]
+        ]
+      },
+      {
+        key: "social-copy-pr-release",
+        name: "Social Copy & PR Release",
+        checklist: [
+          ["social-copy", "社交媒体文案", "Social media copy"],
+          ["social-key-visual", "社交媒体主视觉", "Social key visual"],
+          ["pr-release", "新闻稿", "PR release"],
+          ["media-fact-sheet", "媒体信息表", "Media fact sheet"],
+          ["localised-versions", "本地化版本", "Localised versions"]
+        ]
+      }
     ];
 
     const seedMarketingAssets = {
@@ -7789,6 +7965,53 @@
       }));
     }
 
+    function marketingAssetDefaultChecklist(key, special = false) {
+      const template = special
+        ? [
+            ["main-deliverable", "核心交付物", "Main deliverable"],
+            ["review-approval", "审核与确认", "Review & approval"],
+            ["final-files", "最终交付文件", "Final delivery files"]
+          ]
+        : (STANDARD_MARKETING_ASSET_TYPES.find((type) => type.key === key)?.checklist || []);
+      return template.map(([id, titleZh, titleEn]) => ({ id, titleZh, titleEn, title: "", custom: false, done: false }));
+    }
+
+    function marketingAssetChecklistTitle(item) {
+      if (item.custom || item.title) return item.title || item.titleZh || item.titleEn || "--";
+      return activeLocale === "en-GB" ? item.titleEn : item.titleZh;
+    }
+
+    function normalizeMarketingAssetChecklist(item, key, special = false) {
+      if (Array.isArray(item?.checklist) && item.checklist.length) {
+        return item.checklist.map((entry, index) => ({
+          id: entry.id || `deliverable-${index + 1}`,
+          titleZh: entry.titleZh || "",
+          titleEn: entry.titleEn || "",
+          title: entry.title || "",
+          custom: Boolean(entry.custom || entry.title),
+          done: Boolean(entry.done)
+        }));
+      }
+      const checklist = marketingAssetDefaultChecklist(key, special);
+      const completed = item?.status === "done"
+        ? checklist.length
+        : Math.round(checklist.length * Math.max(0, Math.min(100, Number(item?.progress || 0))) / 100);
+      return checklist.map((entry, index) => ({ ...entry, done: index < completed }));
+    }
+
+    function marketingAssetChecklistProgress(checklist) {
+      const items = Array.isArray(checklist) ? checklist : [];
+      return items.length ? Math.round(items.filter((item) => item.done).length / items.length * 100) : 0;
+    }
+
+    function syncMarketingAssetChecklistProgress(draft) {
+      if (!draft) return;
+      draft.progress = marketingAssetChecklistProgress(draft.checklist);
+      if (draft.progress === 100 && ["not_started", "in_progress"].includes(draft.status)) draft.status = "done";
+      else if (draft.status === "done") draft.status = draft.progress ? "in_progress" : "not_started";
+      else if (draft.progress > 0 && draft.status === "not_started") draft.status = "in_progress";
+    }
+
     function createMarketingAssetProject(source) {
       return {
         projectId: source.id,
@@ -7803,7 +8026,8 @@
           progress: 0,
           ddl: "",
           owner: "",
-          note: ""
+          note: "",
+          checklist: marketingAssetDefaultChecklist(type.key, false)
         }])),
         special: Object.fromEntries(marketingAssetsState.specialMaterials.map((type) => [type.id, null]))
       };
@@ -8073,6 +8297,13 @@
       }
     }
 
+    function renderMarketingAssetChecklist(draft, editable) {
+      const checklist = Array.isArray(draft.checklist) ? draft.checklist : [];
+      const done = checklist.filter((item) => item.done).length;
+      const rows = checklist.map((item) => `<div class="market-asset-checklist-row ${item.done ? "done" : ""}"><label><input type="checkbox" data-market-asset-checklist-toggle="${escapeProjectHtml(item.id)}" ${item.done ? "checked" : ""} ${editable ? "" : "disabled"}><span>${escapeProjectHtml(marketingAssetChecklistTitle(item))}</span></label>${editable ? `<button class="icon-btn market-asset-checklist-remove" data-market-asset-action="remove-checklist-item" data-checklist-id="${escapeProjectHtml(item.id)}" aria-label="${marketAssetsText("删除交付项", "Remove deliverable")}" title="${marketAssetsText("删除交付项", "Remove deliverable")}">×</button>` : ""}</div>`).join("");
+      return `<section class="market-asset-checklist-section"><div class="market-asset-checklist-head"><div><h3>${marketAssetsText("交付物料清单", "Delivery checklist")}</h3><span>${done}/${checklist.length} · ${draft.progress}%</span></div>${editable ? `<button class="link-btn" data-market-asset-action="reset-checklist">${marketAssetsText("恢复默认", "Restore defaults")}</button>` : ""}</div><div class="market-asset-checklist-grid">${rows || `<div class="exception-empty">${marketAssetsText("暂无交付项。", "No deliverables configured.")}</div>`}</div>${editable ? `<div class="market-asset-checklist-add"><input data-market-asset-checklist-new value="${escapeProjectHtml(draft.newChecklistTitle || "")}" placeholder="${marketAssetsText("新增交付项名称", "New deliverable name")}"><button class="btn" data-market-asset-action="add-checklist-item">+ ${marketAssetsText("增加", "Add")}</button></div>` : ""}</section>`;
+    }
+
     function openMarketingAssetItemModal(model, key, special = false) {
       const project = marketingAssetsState.projects.find((item) => item.model === model);
       if (!project) return;
@@ -8080,7 +8311,7 @@
       const draftType = `item:${model}:${special ? "special" : "standard"}:${key}`;
       const saved = savedMarketingAssetDraft(draftType);
       marketingAssetsState.modal = draftType;
-      marketingAssetsState.draft = structuredClone(saved || {
+      const defaults = {
         model,
         key,
         special,
@@ -8088,8 +8319,15 @@
         progress: Number(source?.progress || 0),
         ddl: source?.ddl || "",
         owner: source?.owner || currentProjectUser()?.name || "",
-        note: source?.note || ""
-      });
+        note: source?.note || "",
+        checklist: normalizeMarketingAssetChecklist(source, key, special),
+        newChecklistTitle: ""
+      };
+      const baseDraft = saved
+        ? { ...defaults, ...saved, checklist: saved.checklist?.length ? saved.checklist : defaults.checklist }
+        : defaults;
+      marketingAssetsState.draft = structuredClone(baseDraft);
+      if (!saved?.checklist?.length) syncMarketingAssetChecklistProgress(marketingAssetsState.draft);
       renderMarketingAssetModal();
     }
 
@@ -8202,7 +8440,9 @@
           const meta = marketingAssetStatusMeta(entry.item.status);
           const status = activeLocale === "en-GB" ? meta.en : meta.zh;
           const material = marketingAssetMaterialName(entry.key, entry.special);
-          return `<div class="market-assets-summary-row ${meta.tone}"><div><strong data-preserve-language>${escapeProjectHtml(material)}</strong><small>${status}${entry.special ? ` · ${marketAssetsText("特殊物料", "Special material")}` : ""}${entry.item.note ? ` · ${escapeProjectHtml(entry.item.note)}` : ""}</small></div><span>DDL<br><strong>${marketingAssetDateLabel(entry.item.ddl)}</strong></span><span>${marketAssetsText("负责人", "Owner")}<br><strong>${escapeProjectHtml(entry.item.owner || "--")}</strong></span><button class="btn" data-market-asset-action="edit-item" data-model="${project.model}" data-material-key="${entry.key}" data-special="${entry.special}">${editable ? marketAssetsText("处理", "Update") : marketAssetsText("查看", "View")}</button></div>`;
+          const checklist = normalizeMarketingAssetChecklist(entry.item, entry.key, entry.special);
+          const checklistDone = checklist.filter((item) => item.done).length;
+          return `<div class="market-assets-summary-row ${meta.tone}"><div><strong data-preserve-language>${escapeProjectHtml(material)}</strong><small>${status} · ${checklistDone}/${checklist.length}${entry.special ? ` · ${marketAssetsText("特殊物料", "Special material")}` : ""}${entry.item.note ? ` · ${escapeProjectHtml(entry.item.note)}` : ""}</small></div><span>DDL<br><strong>${marketingAssetDateLabel(entry.item.ddl)}</strong></span><span>${marketAssetsText("负责人", "Owner")}<br><strong>${escapeProjectHtml(entry.item.owner || "--")}</strong></span><button class="btn" data-market-asset-action="edit-item" data-model="${project.model}" data-material-key="${entry.key}" data-special="${entry.special}">${editable ? marketAssetsText("处理", "Update") : marketAssetsText("查看", "View")}</button></div>`;
         }).join("");
         body = `<div class="market-asset-readonly-context"><div class="market-asset-context-item"><span>${marketAssetsText("上市日期", "Launch date")}</span><strong>${marketingAssetDateLabel(project.launchDate, true)}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("缺失 / 逾期", "Missing / Overdue")}</span><strong class="${metrics.missing || metrics.overdue ? "number-negative" : ""}">${metrics.missing} / ${metrics.overdue}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("待推进", "Open items")}</span><strong>${metrics.attention + metrics.notStarted}</strong></div></div><div class="market-assets-summary-list">${rows || `<div class="exception-empty">${marketAssetsText("该项目全部物料已完成。", "All materials for this project are complete.")}</div>`}</div>`;
       } else if (isSpecialManager) {
@@ -8225,7 +8465,7 @@
         subtitle = marketAssetsText("保存后同步营销物料矩阵和项目跟进", "Saves to the material matrix and Project Tracking");
         saveAction = "save-item";
         const statusOptions = ["not_started", "in_progress", "review", "done", "missing", "overdue"];
-        body = `<div class="market-asset-readonly-context"><div class="market-asset-context-item"><span>${marketAssetsText("项目", "Project")}</span><strong>${project?.model || draft.model} · ${escapeProjectHtml(project?.name || "")}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("物料", "Material")}</span><strong data-preserve-language>${escapeProjectHtml(marketingAssetMaterialName(draft.key, draft.special))}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("上市", "Launch")}</span><strong>${marketingAssetDateLabel(project?.launchDate, true)}</strong></div></div><div class="market-asset-form-grid market-asset-item-form"><div class="editor-field"><label>${marketAssetsText("交付状态", "Delivery status")}</label><select data-market-asset-draft-field="status" ${editable ? "" : "disabled"}>${statusOptions.map((status) => { const meta = marketingAssetStatusMeta(status); return `<option value="${status}" ${draft.status === status ? "selected" : ""}>${activeLocale === "en-GB" ? meta.en : meta.zh}</option>`; }).join("")}</select></div><div class="editor-field"><label>${marketAssetsText("完成比例", "Completion")}</label><input type="number" min="0" max="100" step="5" data-market-asset-draft-field="progress" value="${draft.progress}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>${marketAssetsText("负责人", "Owner")}</label><input data-market-asset-draft-field="owner" value="${escapeProjectHtml(draft.owner)}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>DDL</label><input type="date" data-market-asset-draft-field="ddl" value="${draft.ddl}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>${marketAssetsText("交付说明 / 卡点", "Delivery note / Blocker")}</label><textarea data-market-asset-draft-field="note" placeholder="${marketAssetsText("说明当前交付、缺失原因或下一步", "Describe delivery status, missing reason or next action")}" ${editable ? "" : "disabled"}>${escapeProjectHtml(draft.note)}</textarea></div></div>`;
+        body = `<div class="market-asset-readonly-context"><div class="market-asset-context-item"><span>${marketAssetsText("项目", "Project")}</span><strong>${project?.model || draft.model} · ${escapeProjectHtml(project?.name || "")}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("物料", "Material")}</span><strong data-preserve-language>${escapeProjectHtml(marketingAssetMaterialName(draft.key, draft.special))}</strong></div><div class="market-asset-context-item"><span>${marketAssetsText("上市", "Launch")}</span><strong>${marketingAssetDateLabel(project?.launchDate, true)}</strong></div></div><div class="market-asset-form-grid market-asset-item-form"><div class="editor-field"><label>${marketAssetsText("交付状态", "Delivery status")}</label><select data-market-asset-draft-field="status" ${editable ? "" : "disabled"}>${statusOptions.map((status) => { const meta = marketingAssetStatusMeta(status); return `<option value="${status}" ${draft.status === status ? "selected" : ""}>${activeLocale === "en-GB" ? meta.en : meta.zh}</option>`; }).join("")}</select></div><div class="editor-field"><label>${marketAssetsText("完成比例（自动）", "Completion (auto)")}</label><input data-market-asset-progress-output value="${draft.progress}%" readonly aria-readonly="true"></div><div class="editor-field"><label>${marketAssetsText("负责人", "Owner")}</label><input data-market-asset-draft-field="owner" value="${escapeProjectHtml(draft.owner)}" ${editable ? "" : "disabled"}></div><div class="editor-field"><label>DDL</label><input type="date" data-market-asset-draft-field="ddl" value="${draft.ddl}" ${editable ? "" : "disabled"}></div></div>${renderMarketingAssetChecklist(draft, editable)}<div class="editor-field market-asset-note-field"><label>${marketAssetsText("交付说明 / 卡点", "Delivery note / Blocker")}</label><textarea data-market-asset-draft-field="note" placeholder="${marketAssetsText("说明当前交付、缺失原因或下一步", "Describe delivery status, missing reason or next action")}" ${editable ? "" : "disabled"}>${escapeProjectHtml(draft.note)}</textarea></div>`;
       }
 
       const footerStatus = tracksDraft
@@ -8278,15 +8518,26 @@
         showProjectToast(marketAssetsText("请填写负责人和DDL。", "Enter an owner and DDL."));
         return;
       }
+      if (!Array.isArray(draft.checklist) || !draft.checklist.length) {
+        showProjectToast(marketAssetsText("请至少保留一个交付项，或恢复默认清单。", "Keep at least one deliverable or restore the default checklist."));
+        return;
+      }
+      syncMarketingAssetChecklistProgress(draft);
       const item = {
         status: draft.status,
         progress: Math.max(0, Math.min(100, Number(draft.progress || 0))),
         ddl: draft.ddl,
         owner: draft.owner.trim(),
-        note: draft.note.trim()
+        note: draft.note.trim(),
+        checklist: draft.checklist.map((entry) => ({
+          id: entry.id,
+          titleZh: entry.titleZh || "",
+          titleEn: entry.titleEn || "",
+          title: entry.title || "",
+          custom: Boolean(entry.custom),
+          done: Boolean(entry.done)
+        }))
       };
-      if (item.status === "done") item.progress = 100;
-      if (["not_started", "missing"].includes(item.status) && item.progress < 0) item.progress = 0;
       if (draft.special) {
         project.special = project.special || {};
         project.special[draft.key] = item;
@@ -8337,7 +8588,7 @@
       activeMarketingAssetProjects().forEach((project) => {
         project.special = project.special || {};
         if (draft.projectIds.includes(project.model)) {
-          project.special[id] = project.special[id] || { status: "not_started", progress: 0, ddl: draft.ddl, owner: draft.owner.trim(), note: "" };
+          project.special[id] = project.special[id] || { status: "not_started", progress: 0, ddl: draft.ddl, owner: draft.owner.trim(), note: "", checklist: marketingAssetDefaultChecklist(id, true) };
           if (draft.specialId && draft.specialId !== id) delete project.special[draft.specialId];
         } else {
           project.special[id] = null;
@@ -8363,12 +8614,14 @@
         STANDARD_MARKETING_ASSET_TYPES.forEach((type) => {
           const item = project.assets?.[type.key];
           const meta = marketingAssetStatusMeta(item?.status || "not_configured");
-          values.push(`${activeLocale === "en-GB" ? meta.en : meta.zh} | DDL ${item?.ddl || "--"} | ${item?.owner || "--"}`);
+          const checklist = item ? normalizeMarketingAssetChecklist(item, type.key, false) : [];
+          values.push(`${activeLocale === "en-GB" ? meta.en : meta.zh} | ${item?.progress || 0}% | ${checklist.filter((entry) => entry.done).length}/${checklist.length} | DDL ${item?.ddl || "--"} | ${item?.owner || "--"}`);
         });
         marketingAssetsState.specialMaterials.forEach((type) => {
           const item = project.special?.[type.id];
           const meta = marketingAssetStatusMeta(item?.status || "not_configured");
-          values.push(`${activeLocale === "en-GB" ? meta.en : meta.zh} | DDL ${item?.ddl || "--"} | ${item?.owner || "--"}`);
+          const checklist = item ? normalizeMarketingAssetChecklist(item, type.id, true) : [];
+          values.push(`${activeLocale === "en-GB" ? meta.en : meta.zh} | ${item?.progress || 0}% | ${checklist.filter((entry) => entry.done).length}/${checklist.length} | DDL ${item?.ddl || "--"} | ${item?.owner || "--"}`);
         });
         rows.push(values);
       });
@@ -8391,6 +8644,41 @@
       if (action === "project-summary") openMarketingAssetProjectSummary(button.getAttribute("data-model"));
       if (action === "manage-specials") openMarketingAssetSpecialManager();
       if (action === "export") exportMarketingAssets();
+      if (action === "add-checklist-item" && marketingAssetsState.draft) {
+        const title = String(marketingAssetsState.draft.newChecklistTitle || "").trim();
+        if (!title) {
+          showProjectToast(marketAssetsText("请输入交付项名称。", "Enter a deliverable name."));
+          return true;
+        }
+        const duplicate = (marketingAssetsState.draft.checklist || []).some((item) => marketingAssetChecklistTitle(item).trim().toLowerCase() === title.toLowerCase());
+        if (duplicate) {
+          showProjectToast(marketAssetsText("该交付项已存在。", "This deliverable already exists."));
+          return true;
+        }
+        marketingAssetsState.draft.checklist = marketingAssetsState.draft.checklist || [];
+        marketingAssetsState.draft.checklist.push({ id: `custom-${Date.now()}`, titleZh: "", titleEn: "", title, custom: true, done: false });
+        marketingAssetsState.draft.newChecklistTitle = "";
+        syncMarketingAssetChecklistProgress(marketingAssetsState.draft);
+        scheduleMarketingAssetDraftAutosave();
+        renderMarketingAssetModal();
+      }
+      if (action === "remove-checklist-item" && marketingAssetsState.draft) {
+        const id = button.getAttribute("data-checklist-id");
+        marketingAssetsState.draft.checklist = (marketingAssetsState.draft.checklist || []).filter((item) => item.id !== id);
+        syncMarketingAssetChecklistProgress(marketingAssetsState.draft);
+        scheduleMarketingAssetDraftAutosave();
+        renderMarketingAssetModal();
+      }
+      if (action === "reset-checklist" && marketingAssetsState.draft) {
+        const draft = marketingAssetsState.draft;
+        const progress = draft.progress;
+        draft.checklist = marketingAssetDefaultChecklist(draft.key, draft.special);
+        const completed = Math.round(draft.checklist.length * progress / 100);
+        draft.checklist.forEach((item, index) => { item.done = index < completed; });
+        syncMarketingAssetChecklistProgress(draft);
+        scheduleMarketingAssetDraftAutosave();
+        renderMarketingAssetModal();
+      }
       if (action === "reset-filters") {
         marketingAssetsState.filters = { search: "", launchMonth: "All", stage: "All", owner: "All", health: "All" };
         persistMarketingAssets();
@@ -8420,10 +8708,28 @@
         }
         return true;
       }
+      const checklistId = target.getAttribute("data-market-asset-checklist-toggle");
+      if (checklistId && marketingAssetsState.draft) {
+        const item = (marketingAssetsState.draft.checklist || []).find((entry) => entry.id === checklistId);
+        if (item) item.done = target.checked;
+        syncMarketingAssetChecklistProgress(marketingAssetsState.draft);
+        scheduleMarketingAssetDraftAutosave();
+        renderMarketingAssetModal();
+        return true;
+      }
+      if (target.hasAttribute("data-market-asset-checklist-new") && marketingAssetsState.draft) {
+        marketingAssetsState.draft.newChecklistTitle = target.value;
+        scheduleMarketingAssetDraftAutosave();
+        return true;
+      }
       const field = target.getAttribute("data-market-asset-draft-field");
       if (field && marketingAssetsState.draft) {
         marketingAssetsState.draft[field] = field === "progress" ? Number(target.value || 0) : target.value;
-        if (field === "status" && target.value === "done") marketingAssetsState.draft.progress = 100;
+        if (field === "status" && target.value === "done") {
+          (marketingAssetsState.draft.checklist || []).forEach((item) => { item.done = true; });
+          syncMarketingAssetChecklistProgress(marketingAssetsState.draft);
+          renderMarketingAssetModal();
+        }
         scheduleMarketingAssetDraftAutosave();
         return true;
       }
