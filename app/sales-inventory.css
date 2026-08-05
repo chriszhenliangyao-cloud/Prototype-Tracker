@@ -334,10 +334,10 @@
   position: relative;
   order: 2;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  min-height: 500px;
-  padding: 44px 20px 14px 56px;
+  min-height: 468px;
+  padding: 32px 20px 12px 56px;
   border: 0;
-  background: repeating-linear-gradient(to bottom, transparent 0 82px, rgba(207, 218, 230, .62) 83px);
+  background: none;
 }
 .sip-v2-main > .sip-trend .sip-bars::before,
 .sip-v2-main > .sip-trend .sip-bars::after {
@@ -346,22 +346,25 @@
   z-index: 2;
   background: #8392a7;
 }
-.sip-v2-main > .sip-trend .sip-bars::before { top: 30px; bottom: 92px; left: 54px; width: 1px; }
-.sip-v2-main > .sip-trend .sip-bars::after { right: 20px; bottom: 174px; left: 54px; height: 1px; }
+.sip-v2-main > .sip-trend .sip-bars::before { top: 32px; left: 54px; width: 1px; height: 360px; }
+.sip-v2-main > .sip-trend .sip-bars::after { top: 212px; right: 20px; left: 54px; height: 1px; }
 .sip-v2-main > .sip-trend .sip-bar-y-axis {
   position: absolute;
-  inset: 28px auto 92px 8px;
+  top: 25px;
+  bottom: auto;
+  left: 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   width: 40px;
+  height: 374px;
   color: var(--sip-muted);
   font-size: 9px;
   text-align: right;
 }
 .sip-v2-main > .sip-trend .sip-bar-month {
   position: relative;
-  grid-template-rows: 326px 32px 32px;
+  grid-template-rows: 360px 28px 32px;
   z-index: 3;
 }
 .sip-v2-main > .sip-trend .sip-bar-plot {
@@ -370,18 +373,19 @@
   align-items: start;
   justify-content: center;
   gap: 8px;
-  height: 326px;
+  height: 360px;
 }
-.sip-v2-main > .sip-trend .sip-bar-positive { height: 245px; gap: 12px; }
-.sip-v2-main > .sip-trend .sip-bar-positive i { width: 42px; }
+.sip-v2-main > .sip-trend .sip-bar-positive { height: 180px; gap: 12px; }
+.sip-v2-main > .sip-trend .sip-bar-positive i { width: 42px; min-height: 0; }
 .sip-v2-main > .sip-trend .sip-gap-bar {
-  height: 81px;
-  padding-top: 245px;
+  box-sizing: border-box;
+  height: 360px;
+  padding-top: 180px;
 }
-.sip-v2-main > .sip-trend .sip-gap-bar i { width: 38px; margin: 0; }
+.sip-v2-main > .sip-trend .sip-gap-bar i { width: 38px; min-height: 0; margin: 0; }
 .sip-v2-main > .sip-trend .sip-zero-line {
   position: absolute;
-  top: 245px;
+  top: 180px;
   right: 0;
   left: 0;
   z-index: 4;

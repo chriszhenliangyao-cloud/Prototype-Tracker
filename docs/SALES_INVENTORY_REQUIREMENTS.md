@@ -85,9 +85,12 @@
 - Monthly Demand vs Supply displays blue Demand, green Supply, and red Net Gap
   bars as one ordered group per month. Net Gap sits immediately to the right of
   Supply and is labelled `Net Gap (S − D)`. The chart includes compact legends,
-  visible X/Y axes, value labels, guides, and a clear zero line.
-  New-product First Batch events appear below the corresponding month as
-  compact red `FB!`, orange `FB~`, or green `FB✓` badges.
+  visible X/Y axes, value labels, guides, and a clear zero line. Its Y axis is
+  fixed from `20K` to `−20K`, with ticks at `20K`, `10K`, `0`, `−10K`, and
+  `−20K`. Demand and Supply grow upward from the zero baseline; negative Net Gap
+  grows downward from that same baseline, so no bar floats within the plot.
+  Month labels and New-product First Batch events sit below the complete plot;
+  events use compact red `FB!`, orange `FB~`, or green `FB✓` badges.
 - SKU Gap Heatmap uses rows for filtered SKUs and columns for the rolling months.
   Its header contains `Gap (S − D)` plus the Severe, Warning, Healthy, and No
   Data colour legend; explanatory legends are not repeated below the table.
