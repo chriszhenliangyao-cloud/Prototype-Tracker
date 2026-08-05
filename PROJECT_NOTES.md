@@ -50,6 +50,8 @@ The standalone reference remains the design and behavior source for the React ap
 - Department workspaces are source-of-truth maintenance surfaces. Project Tracking monitors project impact, the collaboration center aggregates decisions and actions, and System Management owns permissions, master data, integrations and audit.
 - `样机管理` is an independent Function Workspace backed by each project's `prototype` workstream. Its ledger, readiness, owners, deadlines, tasks, blockers and next actions read and write the same project records; it does not maintain a duplicate sample dataset.
 - The Prototype Management page is reachable from Function Workspaces and from the Prototype source control in Project Tracking. Viewing opens the project drawer on the prototype workstream; editing reuses the department update workflow and refreshes both surfaces after publish.
+- `营销物料` is a project-row delivery matrix. Its six fixed standard columns are Product Introduction Slides, Packaging Design Final Draft, Product Sheet, Product & Packaging Images & Manual, POSM, and Social Copy & PR Release; additional special materials appear as managed columns with project applicability, owner, status and DDL.
+- Marketing material names use English title case in both interface languages, while recognised abbreviations such as POSM remain uppercase. Saving a material updates the linked project's marketing workstream readiness, tasks, owner, next deadline and blockers.
 
 ## Current State
 
@@ -68,8 +70,10 @@ The standalone reference remains the design and behavior source for the React ap
 - Access Management now uses a four-layer RBAC model: platform role, one or more functional roles, data scopes and approval limits/authorities. The fixed tabs are Member Accounts, Role Templates, Data Scopes and Approval Access.
 - The local permission workflow includes 16 reusable role templates, default-deny scope selection, independent publish/month-close/archive authorities, approval amount and validity limits, autosaved drafts and explicit apply with an immutable local audit entry.
 - A bilingual Prototype Management workspace provides live project filters, portfolio metrics, a compact project prototype ledger, a seven-day task queue, CSV export and bidirectional Project Tracking links.
+- A bilingual Marketing Asset Delivery Matrix provides project, launch-month, stage, owner and health filters; per-project and per-material totals; missing and overdue visibility; CSV export; autosaved edit drafts; and a controlled Add Special Material workflow.
 - User-entered project reasons, blockers, mitigation notes, handover details and other source-language content are marked as canonical user content and are not changed by UI language switching.
 - The latest platform-shell, bilingual, permission, settlement and Prototype Management changes are published to the production Vercel application.
+- The Marketing Asset Delivery Matrix and its shared cloud document are published to the production Vercel application.
 
 ## Key Decisions
 
@@ -126,9 +130,10 @@ The standalone reference remains the design and behavior source for the React ap
 - Account-switch testing confirms that different local accounts restore their own language preference. Switching back to `zh-CN` restores the original Chinese UI and browser title without changing user-authored content.
 - The four Access Management tabs keep the same 1240 × 662 px dialog footprint at a 1280 × 720 viewport. Role-template assignment, mutually exclusive data scopes, approval authorities, amount editing and autosave have passed local interaction checks.
 - Prototype Management passes local tests for Function Workspace entry, search/reset filters, project drawer opening, department editor launch, publish-and-refresh behavior, reverse source navigation, prototype-owner permissions and Chinese/English rendering at 1280 × 720 without document or table overflow.
+- Marketing Assets passes local Chinese and English browser tests for all six standard columns, title-case rendering, special-material creation and validation, item editing, matrix totals, internal horizontal scrolling without document overflow, and synchronization back to the Project Tracking marketing workstream.
 - JavaScript syntax checks pass for `cloud-app/i18n.js`, `cloud-app/cloud-sync.js`, and the inline application script.
 - The user-locale preference migration is applied to Supabase with RLS. Anonymous table access is revoked; authenticated users receive only select, insert and update privileges, constrained by own-user policies.
-- Vercel production deployment `dpl_GEZ6EG1Mehm73W4UC3orcx47m4g2` is READY and aliased to `https://operations-planning-hub.vercel.app`.
+- Vercel production deployment `dpl_D12a4aXTgi75ThZgfMuiUYBHNiFC` is READY and aliased to `https://operations-planning-hub.vercel.app`.
 - Production root and `/api/config` return HTTP 200. Release markers for Prototype Management and Settlement Ledger are present in the deployed HTML.
 - Production browser smoke testing confirms the Google-only login screen has no password input, the Function Workspace opens the independent Prototype Management page, English switching renders the expected navigation and heading, and the 1280px viewport has no document-level horizontal overflow.
 - Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.

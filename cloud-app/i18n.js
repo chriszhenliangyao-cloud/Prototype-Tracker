@@ -136,6 +136,7 @@
     "新品上市计划与跨职能准备度": "Launch plans and cross-functional readiness",
     "营销活动计划、预算、执行与效果": "Campaign planning, budget, execution and performance",
     "多市场、多渠道物料制作与交付": "Multi-market, multi-channel asset production and delivery",
+    "按项目跟进物料准备、交付与缺失": "Project-based asset readiness, delivery and gap tracking",
     "按月汇总促销计划、利润影响与审批状态": "Monthly promotion plans, margin impact and approval status",
     "项目、供应、预测和物流等非促销审批": "Non-promotion approvals for projects, supply, forecasts and logistics",
     "按责任人聚合全部执行事项": "All execution items grouped by owner",

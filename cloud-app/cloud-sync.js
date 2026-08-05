@@ -5,7 +5,8 @@
     "projectTrackingData.v1",
     "projectTrackingDrafts.v1",
     "projectTrackingAccess.v1",
-    "projectTrackingFormDrafts.v1"
+    "projectTrackingFormDrafts.v1",
+    "marketingAssets.v1"
   ]);
   const offline = new URLSearchParams(window.location.search).get("offline") === "1";
 
