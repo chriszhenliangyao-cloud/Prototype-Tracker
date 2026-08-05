@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Use this repository as the implementation source for the operations-planning tool discussed in the active Codex conversation. The product has two peer modules: `产销管理` and `项目跟进`.
+Maintain and extend the published bilingual operations collaboration platform. Preserve the existing workflows, support account-level `zh-CN` / `en-GB` switching across all modules and key dialogs, keep user-authored business content in its original language, and keep Supabase, Vercel and the GitHub conversation branch aligned.
 
 ## Repository Context
 
@@ -40,6 +40,16 @@ The standalone reference remains the design and behavior source for the React ap
 - Sales & Inventory first-batch Forecast and Supply values feed the Project Supply workstream as read-only data.
 - Account and permission management belongs to the application shell, not inside the monthly planning workflow.
 - Exact-email authorization and tool-level account permissions are managed from one unified `权限管理` interface. Login authorization is immediate; tool responsibility changes remain an explicit saved action.
+- The platform uses a grouped left navigation instead of a growing flat top-level module switch. The primary domains are `计划与交付`, `经营管理`, `市场增长`, `协同中心`, and `专业与管理`, with `我的工作台` as the personal default landing page.
+- `计划与交付` contains four peer submodules: `项目跟进`, `产销管理`, `预测管理`, and `物流交付`. Forecast owns regional/channel forecast input and consensus versions; Logistics owns shipment, in-transit, customs, ETA, warehouse receipt and delivery exceptions.
+- `经营管理` and `市场增长` are separate navigation categories shown with the same small category-label treatment as `计划与交付`. Their child modules use standard full navigation rows: Business Management contains `经营总览`, `BP达成`, `经营分析`, `Value Chain Simulation`, and `结算台账`; Market Growth contains `新品上市`, `营销活动`, and `营销物料`.
+- Navigation order is `计划与交付`, `市场增长`, `协同中心`, `经营管理`, then `专业与管理`. Business Management places `Value Chain Simulation` and `结算台账` after `经营分析`.
+- `结算台账` is the customer settlement control surface. It summarises amounts due, received, outstanding, overdue and pending allocation, and tracks billing period, deductions, reconciliation, collections, payment allocation and archive status by customer.
+- Collaboration Center separates approvals into `月度促销审批` and `其他审批`. Monthly promotion approval connects promotion plans with value-chain margin, Sales & Inventory supply risk, and campaign readiness; non-promotion approvals retain project, forecast, supply and logistics decisions.
+- The bilingual architecture is per-user `zh-CN` / `en-GB`, with one UI language displayed at a time. Stable codes and source-language user content remain canonical; translated views never overwrite originals. The shared terminology glossary and locale-aware date/number helpers are exposed through `cloud-app/i18n.js`.
+- Department workspaces are source-of-truth maintenance surfaces. Project Tracking monitors project impact, the collaboration center aggregates decisions and actions, and System Management owns permissions, master data, integrations and audit.
+- `样机管理` is an independent Function Workspace backed by each project's `prototype` workstream. Its ledger, readiness, owners, deadlines, tasks, blockers and next actions read and write the same project records; it does not maintain a duplicate sample dataset.
+- The Prototype Management page is reachable from Function Workspaces and from the Prototype source control in Project Tracking. Viewing opens the project drawer on the prototype workstream; editing reuses the department update workflow and refreshes both surfaces after publish.
 
 ## Current State
 
@@ -52,6 +62,14 @@ The standalone reference remains the design and behavior source for the React ap
 - Google OAuth frontend and database support are deployed in production. Supabase reports the Google Provider as enabled.
 - The existing React Sales route is still an earlier implementation and does not yet contain the full Chinese collaboration workflow from the standalone tool.
 - The production Vercel cloud app includes the Project Ledger and project lifecycle management workflow described below.
+- A local information-architecture test is implemented in `cloud-app/index.html`. It adds the grouped platform shell, a cross-module home workspace, complete forecast and logistics prototype pages, separate Business Management and Market Growth first-level domains with three submodules each, and structural pages for approvals, tasks, exceptions, function workspaces and system administration.
+- The platform supports complete Simplified Chinese and British English UI switching from the application header. The selected locale is retained per account locally and synchronized to Supabase for authenticated accounts.
+- Business Management includes a `结算台账` prototype with customer and market filters, five financial summary metrics, a compact settlement ledger and a complete reconciliation-to-archive workflow.
+- Access Management now uses a four-layer RBAC model: platform role, one or more functional roles, data scopes and approval limits/authorities. The fixed tabs are Member Accounts, Role Templates, Data Scopes and Approval Access.
+- The local permission workflow includes 16 reusable role templates, default-deny scope selection, independent publish/month-close/archive authorities, approval amount and validity limits, autosaved drafts and explicit apply with an immutable local audit entry.
+- A bilingual Prototype Management workspace provides live project filters, portfolio metrics, a compact project prototype ledger, a seven-day task queue, CSV export and bidirectional Project Tracking links.
+- User-entered project reasons, blockers, mitigation notes, handover details and other source-language content are marked as canonical user content and are not changed by UI language switching.
+- The latest platform-shell, bilingual, permission, settlement and Prototype Management changes are published to the production Vercel application.
 
 ## Key Decisions
 
@@ -61,10 +79,13 @@ The standalone reference remains the design and behavior source for the React ap
 - Implement and verify on the conversation branch; merge through a pull request rather than pushing directly to `main`.
 - Keep the Vercel cloud app independent until the React implementation reaches feature parity.
 - Use exact-email authorization with Google OAuth. Supabase roles control workspace-level access; in-app account permissions control department/workstream scope.
+- Calculate effective business access from `platform role + functional roles + data scopes + approval access`. New members receive only sign-in and Workspace access until business roles are assigned.
+- Keep access records recoverable: disable or revoke accounts instead of hard-deleting them, and preserve every applied permission change for audit.
 
 ## Changed Files
 
 - `cloud-app/index.html`
+- `cloud-app/i18n.js`
 - `cloud-app/cloud-sync.js`
 - `cloud-app/api/config.mjs`
 - `cloud-app/package.json`
@@ -94,13 +115,28 @@ The standalone reference remains the design and behavior source for the React ap
 - Supabase performance advisor reports only unused-index informational notices on the newly created, nearly empty database.
 - Production root and `/api/config` return HTTP 200; browser smoke testing finds the cloud login screen without console errors.
 - Local browser tests passed for project pause, cancel-to-history, restore, launched-closeout, archive, History scope filtering, Project Ledger rendering, and linked Sales & Inventory lifecycle updates. No browser warnings or errors were reported.
+- Local browser regression passed for all 12 platform navigation destinations at a 1280px viewport. Each destination renders the correct context and heading without document-level horizontal overflow.
+- Forecast Management and Logistics Delivery render their filters, summary metrics, dense operational tables, workflow status and clickable test actions. Existing Sales and Project pages remain reachable under `计划与交付`.
+- Platform permission boundaries pass locally: a super administrator sees `系统管理` and `权限管理`; switching to a department editor hides both and routes away from the restricted system page.
+- Business Management and Market Growth navigation regression passes locally. All six child pages render the correct active state, platform context and page heading at 1280x720 without document-level horizontal overflow. The compact sidebar shows every navigation domain at 720px height without scrolling.
+- Local verification passes for the reordered navigation, split approval pages and Value Chain Simulation. The simulator recalculates unit contribution and margin on input and preset changes; all navigation categories fit exactly within the 720px viewport without a sidebar scrollbar.
+- Bilingual regression passes for all 19 platform destinations in English at 1280x720. No Chinese system strings remain outside the deliberate `中文` language option, no page has document-level horizontal overflow, and the compact sidebar fits without scrolling.
+- The new Settlement Ledger passes Chinese and English checks at 1280x720. Its eight-column compact table, five summary metrics and workflow panel fit without table, document or sidebar overflow.
+- English audits pass for Add Project, Access Management, all four monthly planning tabs, Project Drawer tabs, Delay registration, Project Ledger, Project Status Management and Department Update dialogs.
+- Account-switch testing confirms that different local accounts restore their own language preference. Switching back to `zh-CN` restores the original Chinese UI and browser title without changing user-authored content.
+- The four Access Management tabs keep the same 1240 × 662 px dialog footprint at a 1280 × 720 viewport. Role-template assignment, mutually exclusive data scopes, approval authorities, amount editing and autosave have passed local interaction checks.
+- Prototype Management passes local tests for Function Workspace entry, search/reset filters, project drawer opening, department editor launch, publish-and-refresh behavior, reverse source navigation, prototype-owner permissions and Chinese/English rendering at 1280 × 720 without document or table overflow.
+- JavaScript syntax checks pass for `cloud-app/i18n.js`, `cloud-app/cloud-sync.js`, and the inline application script.
+- The user-locale preference migration is applied to Supabase with RLS. Anonymous table access is revoked; authenticated users receive only select, insert and update privileges, constrained by own-user policies.
+- Vercel production deployment `dpl_GEZ6EG1Mehm73W4UC3orcx47m4g2` is READY and aliased to `https://operations-planning-hub.vercel.app`.
+- Production root and `/api/config` return HTTP 200. Release markers for Prototype Management and Settlement Ledger are present in the deployed HTML.
+- Production browser smoke testing confirms the Google-only login screen has no password input, the Function Workspace opens the independent Prototype Management page, English switching renders the expected navigation and heading, and the 1280px viewport has no document-level horizontal overflow.
+- Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.
 
 ## Next Steps
 
-1. Sign in with the first authorized administrator email, authorize one editor and one viewer, then verify cross-browser Realtime updates and access restrictions with real sessions.
-2. Install and authenticate GitHub CLI, then push `codex/operations-planning-updates` and open a draft pull request. The current HTTPS credential is rejected by GitHub.
-3. Port the current Chinese Sales & Inventory collaboration workflow from the standalone reference into `app/routes/sales-inventory.tsx` and focused components.
-4. Replace shared JSON documents with normalized domain tables when field-level multi-user editing becomes the priority.
+1. Define a separate translation-service contract for optional user-content translations while keeping original text canonical.
+2. Define normalized API contracts for Forecast versions, Forecast lines, Shipment plans, Shipment milestones, Exceptions, Tasks and Approvals before enabling multi-user editing.
 
 ## Resume Instructions
 

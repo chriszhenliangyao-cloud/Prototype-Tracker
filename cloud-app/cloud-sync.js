@@ -183,8 +183,21 @@
       email: session.user.email || "",
       role: membership.role,
       workspaceId,
-      workspaceName: membership.workspaces?.name || "运营计划"
+      workspaceName: membership.workspaces?.name || "运营计划",
+      locale: ""
     };
+    let preferencesAvailable = true;
+    const preferenceResponse = await supabase.from("user_preferences")
+      .select("locale, timezone")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+    if (preferenceResponse.error) {
+      preferencesAvailable = false;
+      console.warn("User preferences are not available yet", preferenceResponse.error.message);
+    } else if (preferenceResponse.data) {
+      identity.locale = preferenceResponse.data.locale || "";
+      identity.timezone = preferenceResponse.data.timezone || "Europe/Madrid";
+    }
     const statusNode = addStatus(identity);
     statusNode.querySelector(".cloud-logout").addEventListener("click", async () => {
       await supabase.auth.signOut();
@@ -313,11 +326,30 @@
       }
     };
 
+    const preferenceApi = {
+      available: preferencesAvailable,
+      async setLocale(locale) {
+        if (!preferencesAvailable) return null;
+        const normalizedLocale = locale === "en-GB" ? "en-GB" : "zh-CN";
+        const response = await supabase.from("user_preferences").upsert({
+          user_id: session.user.id,
+          locale: normalizedLocale,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Madrid",
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" }).select("locale, timezone").single();
+        if (response.error) throw response.error;
+        identity.locale = response.data.locale;
+        identity.timezone = response.data.timezone;
+        return response.data;
+      }
+    };
+
     window.cloudStore = {
       enabled: true,
       supabase,
       identity,
       permissions: permissionApi,
+      preferences: preferenceApi,
       hasDocument(key) { return versions.has(key); },
       queuePayload,
       captureAll() {

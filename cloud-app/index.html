@@ -1056,7 +1056,7 @@
     }
 
     .planner-context .meta-box {
-      padding: 5px 7px;
+      padding: 3px 7px;
     }
 
     .planner-context .tabs {
@@ -2071,6 +2071,15 @@
       font-weight: 800;
     }
 
+    .tool-locale-select {
+      width: 82px;
+      min-height: 28px;
+      padding: 3px 22px 3px 7px;
+      border-radius: 5px;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
     .suite-access .btn {
       min-height: 28px;
       padding: 0 8px;
@@ -2149,6 +2158,657 @@
       background: var(--red-soft);
       color: var(--red);
       font-size: 9px;
+    }
+
+    .platform-shell {
+      min-width: 1180px;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 196px minmax(0, 1fr);
+      background: var(--bg);
+    }
+
+    html[lang="en-GB"] .platform-shell {
+      grid-template-columns: 214px minmax(0, 1fr);
+    }
+
+    html[lang="en-GB"] .platform-nav-item {
+      font-size: 9px;
+    }
+
+    html[lang="en-GB"] .platform-nav-item > span:nth-child(2) {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .platform-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background: #f9fbfe;
+    }
+
+    .platform-brand {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .platform-brand strong,
+    .platform-brand small {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .platform-brand strong {
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .platform-brand small {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .platform-nav {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 5px 7px;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+
+    .platform-nav-group {
+      margin-top: 2px;
+      padding-top: 2px;
+      border-top: 1px solid var(--line);
+    }
+
+    .platform-nav-label {
+      padding: 0 7px 3px;
+      color: var(--soft);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .platform-nav-item {
+      position: relative;
+      width: 100%;
+      min-height: 24px;
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      margin: 1px 0;
+      padding: 1px 7px 1px 5px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: #46546a;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .platform-nav-item::before {
+      content: "";
+      position: absolute;
+      inset: 5px auto 5px 0;
+      width: 2px;
+      border-radius: 2px;
+      background: transparent;
+    }
+
+    .platform-nav-item:hover {
+      background: #f0f4fa;
+      color: var(--text);
+    }
+
+    .platform-nav-item.active {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .platform-nav-item.active::before {
+      background: var(--blue);
+    }
+
+    .platform-nav-mark {
+      width: 21px;
+      height: 21px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d7e0ee;
+      border-radius: 4px;
+      background: #fff;
+      color: #627089;
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .platform-nav-item.active .platform-nav-mark {
+      border-color: #b8caff;
+      color: var(--blue);
+    }
+
+    .nav-state,
+    .nav-count {
+      min-width: 17px;
+      min-height: 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: #e8edf5;
+      color: var(--muted);
+      font-size: 7px;
+      font-weight: 900;
+    }
+
+    .nav-state.ready {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .nav-count.danger {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .platform-sidebar-foot {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .platform-main {
+      min-width: 0;
+    }
+
+    .platform-header {
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.97);
+    }
+
+    .platform-context {
+      min-width: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+    }
+
+    .platform-context strong {
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .platform-context span {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .platform-main > .app {
+      min-width: 980px;
+      padding: 10px 12px 14px;
+    }
+
+    .workspace-page {
+      display: grid;
+      gap: 8px;
+    }
+
+    .workspace-page .topbar {
+      min-height: 39px;
+    }
+
+    .workspace-eyebrow {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--blue);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .workspace-summary-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .workspace-summary-item {
+      min-height: 58px;
+      padding: 8px 10px;
+      border-right: 1px solid var(--line);
+    }
+
+    .workspace-summary-item:last-child {
+      border-right: 0;
+    }
+
+    .workspace-summary-label {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .workspace-summary-value {
+      margin-top: 3px;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .workspace-summary-foot {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, .75fr);
+      gap: 8px;
+      align-items: start;
+    }
+
+    .workspace-grid.settlement-grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(280px, .55fr);
+    }
+
+    .workspace-panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .workspace-panel-head {
+      min-height: 39px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .workspace-panel-head h2 {
+      margin: 0;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .workspace-panel-head span {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .workspace-table-wrap {
+      max-width: 100%;
+      overflow: auto;
+    }
+
+    .workspace-table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+    }
+
+    .workspace-table th,
+    .workspace-table td {
+      padding: 7px 8px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 9px;
+    }
+
+    .workspace-table th {
+      background: #f7f9fc;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .workspace-table th:last-child,
+    .workspace-table td:last-child {
+      border-right: 0;
+    }
+
+    .workspace-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .workspace-table strong,
+    .workspace-table small {
+      display: block;
+    }
+
+    .workspace-table small {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .workspace-status {
+      min-height: 21px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #f6f8fb;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .workspace-status.green { border-color: #a9ddcb; background: var(--green-soft); color: var(--green); }
+    .workspace-status.amber { border-color: #ffd09a; background: var(--orange-soft); color: #985200; }
+    .workspace-status.red { border-color: #ffc7c8; background: var(--red-soft); color: var(--red); }
+    .workspace-status.blue { border-color: #b8caff; background: var(--blue-soft); color: var(--blue); }
+
+    .workflow-line {
+      display: grid;
+      gap: 0;
+      padding: 3px 10px 8px;
+    }
+
+    .workflow-step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 46px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .workflow-step:last-child { border-bottom: 0; }
+
+    .workflow-step-index {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .workflow-step.active .workflow-step-index { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .workflow-step.done .workflow-step-index { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+
+    .workflow-step strong,
+    .workflow-step small {
+      display: block;
+    }
+
+    .workflow-step strong { font-size: 9px; }
+    .workflow-step small { margin-top: 2px; color: var(--muted); font-size: 8px; }
+
+    .workspace-list {
+      display: grid;
+    }
+
+    .workspace-list-row {
+      min-height: 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .workspace-list-row:last-child { border-bottom: 0; }
+
+    .workspace-list-row strong,
+    .workspace-list-row small { display: block; }
+    .workspace-list-row strong { font-size: 9px; }
+    .workspace-list-row small { margin-top: 3px; color: var(--muted); font-size: 8px; line-height: 1.35; }
+
+    .prototype-filter-bar {
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: minmax(180px, 1.4fr) repeat(3, minmax(120px, .7fr)) auto;
+      align-items: end;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+    }
+
+    .prototype-filter-field {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .prototype-filter-field label {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .prototype-filter-field input,
+    .prototype-filter-field select {
+      width: 100%;
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .prototype-workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(250px, .55fr);
+      gap: 8px;
+      align-items: start;
+    }
+
+    .prototype-table {
+      min-width: 760px;
+      table-layout: fixed;
+    }
+
+    .prototype-table th { white-space: normal; }
+    .prototype-table th:nth-child(1) { width: 14%; }
+    .prototype-table th:nth-child(2) { width: 11%; }
+    .prototype-table th:nth-child(3) { width: 10%; }
+    .prototype-table th:nth-child(4) { width: 9%; }
+    .prototype-table th:nth-child(5) { width: 15%; }
+    .prototype-table th:nth-child(6) { width: 11%; }
+    .prototype-table th:nth-child(7) { width: 19%; }
+    .prototype-table th:nth-child(8) { width: 11%; }
+    .prototype-table td { overflow-wrap: anywhere; }
+
+    .prototype-readiness {
+      min-width: 92px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prototype-progress {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 3px;
+      background: #e6ebf3;
+    }
+
+    .prototype-progress > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .prototype-task-list {
+      display: grid;
+    }
+
+    .prototype-task-row {
+      min-height: 61px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .prototype-task-row:last-child { border-bottom: 0; }
+    .prototype-task-row strong,
+    .prototype-task-row small { display: block; }
+    .prototype-task-row strong { font-size: 9px; }
+    .prototype-task-row small { margin-top: 3px; color: var(--muted); font-size: 8px; line-height: 1.35; }
+
+    .prototype-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .module-registry-table .workspace-status {
+      min-width: 54px;
+      justify-content: center;
+    }
+
+    .value-chain-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .value-chain-control {
+      display: grid;
+      gap: 4px;
+    }
+
+    .value-chain-control label {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .value-chain-control input,
+    .value-chain-control select {
+      width: 100%;
+      min-height: 30px;
+      padding: 4px 7px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .value-chain-presets {
+      display: flex;
+      gap: 5px;
+      padding: 0 10px 10px;
+      flex-wrap: wrap;
+    }
+
+    .value-chain-table td:nth-child(2),
+    .value-chain-table td:nth-child(3) {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .value-chain-table tr.value-chain-total td {
+      background: #f3f7ff;
+      font-weight: 900;
+    }
+
+    .value-chain-note {
+      padding: 8px 10px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.45;
+    }
+
+    .settlement-table {
+      min-width: 720px;
+      table-layout: fixed;
+    }
+
+    .settlement-table th {
+      white-space: normal;
+      line-height: 1.25;
+    }
+
+    .settlement-table th:nth-child(1) { width: 18%; }
+    .settlement-table th:nth-child(2) { width: 11%; }
+    .settlement-table th:nth-child(3) { width: 10%; }
+    .settlement-table th:nth-child(4) { width: 10%; }
+    .settlement-table th:nth-child(5) { width: 16%; }
+    .settlement-table th:nth-child(6) { width: 8%; }
+    .settlement-table th:nth-child(7) { width: 18%; }
+    .settlement-table th:nth-child(8) { width: 9%; }
+
+    .settlement-table .workspace-status {
+      white-space: normal;
+      text-align: center;
+      line-height: 1.15;
     }
 
     .project-filterbar {
@@ -3288,7 +3948,7 @@
 
     .permission-summary {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       margin-bottom: 10px;
       border: 1px solid var(--line);
       border-radius: 6px;
@@ -3317,6 +3977,232 @@
       margin-top: 2px;
       font-size: 12px;
       font-weight: 900;
+    }
+
+    .permission-tabs {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 9px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .permission-tab {
+      min-height: 32px;
+      padding: 5px 11px;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .permission-tab.active {
+      border-bottom-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .permission-tab-panel {
+      min-height: 420px;
+    }
+
+    .permission-control-bar {
+      display: grid;
+      grid-template-columns: minmax(190px, .8fr) minmax(230px, 1fr) 120px auto;
+      align-items: end;
+      gap: 8px;
+      padding: 9px;
+      margin-bottom: 9px;
+      border: 1px solid #bfd0ff;
+      border-radius: 6px;
+      background: var(--blue-soft);
+    }
+
+    .permission-control-bar.compact {
+      grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+    }
+
+    .permission-control-field {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .permission-control-field label {
+      color: #3d557c;
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .permission-control-field input,
+    .permission-control-field select {
+      width: 100%;
+      min-height: 31px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      padding: 5px 7px;
+    }
+
+    .permission-role-chips {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .permission-role-chip {
+      min-height: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 6px;
+      border: 1px solid #b8caff;
+      border-radius: 4px;
+      background: #fff;
+      color: var(--blue);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .permission-role-chip button {
+      width: 14px;
+      height: 14px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .permission-template-table {
+      min-width: 1040px !important;
+    }
+
+    .permission-template-table td:nth-child(1) { width: 12%; }
+    .permission-template-table td:nth-child(2) { width: 17%; }
+    .permission-template-table td:nth-child(3) { width: 28%; }
+    .permission-template-table td:nth-child(4) { width: 31%; }
+    .permission-template-table td:nth-child(5) { width: 12%; }
+
+    .permission-scope-layout {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 9px;
+    }
+
+    .permission-member-list {
+      max-height: 430px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcff;
+    }
+
+    .permission-member-option {
+      width: 100%;
+      min-height: 48px;
+      display: grid;
+      gap: 2px;
+      padding: 7px 9px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .permission-member-option:last-child { border-bottom: 0; }
+    .permission-member-option.active { background: var(--blue-soft); color: var(--blue); }
+    .permission-member-option strong { font-size: 9px; }
+    .permission-member-option small { color: var(--muted); font-size: 8px; }
+
+    .permission-scope-groups,
+    .permission-approval-groups {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .permission-scope-group {
+      min-width: 0;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .permission-scope-group h4 {
+      margin: 0 0 3px;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .permission-scope-group > small {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .permission-check-grid {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .permission-check {
+      min-height: 25px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .permission-check:has(input:checked) {
+      border-color: #9fb9ff;
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .permission-check input {
+      width: 13px;
+      height: 13px;
+      margin: 0;
+      accent-color: var(--blue);
+    }
+
+    .permission-approval-fields {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcff;
+    }
+
+    .permission-audit-list {
+      display: grid;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .permission-audit-item {
+      display: grid;
+      grid-template-columns: 125px 120px minmax(0, 1fr);
+      gap: 8px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fff;
+      font-size: 8px;
     }
 
     .permission-invite-bar {
@@ -3662,47 +4548,87 @@
   </style>
 </head>
 <body>
-  <div class="app">
-    <nav class="module-nav" aria-label="主模块">
-      <div class="suite-brand">
+  <div class="platform-shell">
+    <aside class="platform-sidebar" aria-label="平台模块导航">
+      <div class="platform-brand">
         <span class="suite-mark">OP</span>
-        <span class="suite-name">运营计划</span>
+        <span><strong>运营协同平台</strong><small>欧洲业务运营</small></span>
       </div>
-      <div class="module-switch">
-        <button class="module-tab active" data-module="sales" aria-pressed="true">
-          <span class="module-icon" aria-hidden="true"></span>产销管理
-        </button>
-        <button class="module-tab" data-module="projects" aria-pressed="false">
-          <span class="module-icon project-icon" aria-hidden="true"></span>项目跟进
-          <span class="module-alert" id="projectAlertCount">0</span>
-        </button>
-      </div>
-      <div class="suite-access" id="suiteAccess" aria-label="工具账号与权限">
-        <div class="tool-access-core" id="toolAccessCore"></div>
-        <div class="cloud-status-mount" id="cloudStatusMount"></div>
-      </div>
-    </nav>
+      <nav class="platform-nav">
+        <button class="platform-nav-item active" data-module="home" aria-pressed="true"><span class="platform-nav-mark">工</span><span>我的工作台</span></button>
 
-    <section id="salesModule">
-      <header class="topbar">
-        <div class="brand">
-          <h1>产销管理</h1>
-          <span class="status-pill"><span class="dot"></span><span id="periodBadge">2026年8月 - 10月</span></span>
+        <div class="platform-nav-group">
+          <div class="platform-nav-label">计划与交付</div>
+          <button class="platform-nav-item" data-module="projects" aria-pressed="false"><span class="platform-nav-mark">项</span><span>项目跟进</span><span class="module-alert" id="projectAlertCount">0</span></button>
+          <button class="platform-nav-item" data-module="sales" aria-pressed="false"><span class="platform-nav-mark">产</span><span>产销管理</span></button>
+          <button class="platform-nav-item" data-module="forecast" aria-pressed="false"><span class="platform-nav-mark">预</span><span>预测管理</span><span class="nav-state ready">测试</span></button>
+          <button class="platform-nav-item" data-module="logistics" aria-pressed="false"><span class="platform-nav-mark">交</span><span>物流交付</span><span class="nav-state ready">测试</span></button>
         </div>
-        <div class="header-actions">
-          <span class="status-pill" id="historyBadge"><span class="dot"></span>历史数据：2026年7月</span>
-          <div class="toolbar" id="primaryActions"></div>
+
+        <div class="platform-nav-group">
+          <div class="platform-nav-label">市场增长</div>
+          <button class="platform-nav-item" data-module="market-launch" aria-pressed="false"><span class="platform-nav-mark">新</span><span>新品上市</span></button>
+          <button class="platform-nav-item" data-module="market-campaign" aria-pressed="false"><span class="platform-nav-mark">活</span><span>营销活动</span></button>
+          <button class="platform-nav-item" data-module="market-assets" aria-pressed="false"><span class="platform-nav-mark">物</span><span>营销物料</span></button>
+        </div>
+
+        <div class="platform-nav-group">
+          <div class="platform-nav-label">协同中心</div>
+          <button class="platform-nav-item" data-module="promo-approvals" aria-pressed="false"><span class="platform-nav-mark">促</span><span>月度促销审批</span><span class="nav-count">2</span></button>
+          <button class="platform-nav-item" data-module="other-approvals" aria-pressed="false"><span class="platform-nav-mark">审</span><span>其他审批</span><span class="nav-count">3</span></button>
+          <button class="platform-nav-item" data-module="tasks" aria-pressed="false"><span class="platform-nav-mark">待</span><span>我的待办</span><span class="nav-count">9</span></button>
+          <button class="platform-nav-item" data-module="exceptions" aria-pressed="false"><span class="platform-nav-mark">异</span><span>异常中心</span><span class="nav-count danger">12</span></button>
+        </div>
+
+        <div class="platform-nav-group">
+          <div class="platform-nav-label">经营管理</div>
+          <button class="platform-nav-item" data-module="business-overview" aria-pressed="false"><span class="platform-nav-mark">总</span><span>经营总览</span></button>
+          <button class="platform-nav-item" data-module="business-bp" aria-pressed="false"><span class="platform-nav-mark">BP</span><span>BP达成</span></button>
+          <button class="platform-nav-item" data-module="business-analysis" aria-pressed="false"><span class="platform-nav-mark">析</span><span>经营分析</span></button>
+          <button class="platform-nav-item" data-module="value-chain" aria-pressed="false"><span class="platform-nav-mark">VC</span><span>Value Chain Simulation</span></button>
+          <button class="platform-nav-item" data-module="settlements" aria-pressed="false"><span class="platform-nav-mark">结</span><span>结算台账</span></button>
+        </div>
+
+        <div class="platform-nav-group">
+          <div class="platform-nav-label">专业与管理</div>
+          <button class="platform-nav-item" data-module="functions" aria-pressed="false"><span class="platform-nav-mark">职</span><span>职能工作台</span></button>
+          <button class="platform-nav-item admin-only" data-module="system" aria-pressed="false"><span class="platform-nav-mark">管</span><span>系统管理</span></button>
+        </div>
+      </nav>
+      <div class="platform-sidebar-foot"><span class="dot"></span><span>本地信息架构测试版</span></div>
+    </aside>
+
+    <div class="platform-main">
+      <header class="platform-header">
+        <div class="platform-context" id="platformContext"><strong>我的工作台</strong><span>跨模块待办与异常</span></div>
+        <div class="suite-access" id="suiteAccess" aria-label="工具账号与权限">
+          <div class="tool-access-core" id="toolAccessCore"></div>
+          <div class="cloud-status-mount" id="cloudStatusMount"></div>
         </div>
       </header>
 
-      <section class="filterbar" id="filterToolbar" aria-label="产销计划筛选和视图控制"></section>
+      <div class="app">
+        <section id="salesModule" hidden>
+          <header class="topbar">
+            <div class="brand">
+              <h1>产销管理</h1>
+              <span class="status-pill"><span class="dot"></span><span id="periodBadge">2026年8月 - 10月</span></span>
+            </div>
+            <div class="header-actions">
+              <span class="status-pill" id="historyBadge"><span class="dot"></span>历史数据：2026年7月</span>
+              <div class="toolbar" id="primaryActions"></div>
+            </div>
+          </header>
 
-      <section class="kpis" id="kpiGrid" aria-label="三个月产销计划摘要"></section>
+          <section class="filterbar" id="filterToolbar" aria-label="产销计划筛选和视图控制"></section>
+          <section class="kpis" id="kpiGrid" aria-label="三个月产销计划摘要"></section>
+          <main id="mainView"></main>
+        </section>
 
-      <main id="mainView"></main>
-    </section>
-
-    <section id="projectModule" hidden></section>
+        <section id="projectModule" hidden></section>
+        <section id="workspaceModule"></section>
+      </div>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="modalRoot" aria-hidden="true"></div>
@@ -3710,6 +4636,7 @@
   <div class="modal-backdrop project-editor-backdrop" id="projectEditorRoot" aria-hidden="true"></div>
   <div id="toastRoot"></div>
 
+  <script src="/i18n.js"></script>
   <script src="/cloud-sync.js"></script>
   <script>
     (async function startOperationsPlanningApp() {
@@ -3948,6 +4875,7 @@
     const PROJECT_STORAGE_KEY = "projectTrackingTool.v1";
     const PROJECT_DATA_STORAGE_KEY = "projectTrackingData.v1";
     const PROJECT_ACCESS_STORAGE_KEY = "projectTrackingAccess.v1";
+    const PERMISSION_AUDIT_STORAGE_KEY = "projectPermissionAudit.v1";
     const PROJECT_DRAFT_STORAGE_KEY = "projectTrackingDrafts.v1";
     const PROJECT_FORM_DRAFT_STORAGE_KEY = "projectTrackingFormDrafts.v1";
 
@@ -4137,14 +5065,17 @@
     };
 
     function projectText(value) {
+      if (activeLocale === "en-GB") return value;
       return PROJECT_TEXT_ZH[value] || value;
     }
 
     function projectHealthLabel(health) {
+      if (activeLocale === "en-GB") return { red: "At risk", amber: "Warning", green: "On track", grey: "Inactive" }[health] || health;
       return { red: "风险", amber: "预警", green: "正常", grey: "未启用" }[health] || health;
     }
 
     function projectStatusLabel(status) {
+      if (activeLocale === "en-GB") return status;
       return {
         "Not Started": "未开始",
         "In Progress": "进行中",
@@ -4156,6 +5087,7 @@
     }
 
     function projectStageLabel(stage) {
+      if (activeLocale === "en-GB") return { Confirm: "Project Initiation", DVT1: "DVT1", DVT2: "DVT2", Trial: "Trial Production", MP: "Mass Production", Launch: "Launch" }[stage] || stage;
       return { Confirm: "项目立项", DVT1: "DVT1", DVT2: "DVT2", Trial: "试产", MP: "量产", Launch: "上市" }[stage] || stage;
     }
 
@@ -4165,7 +5097,9 @@
 
     function projectLifecycleMeta(projectOrStatus) {
       const status = typeof projectOrStatus === "string" ? projectOrStatus : projectLifecycleStatus(projectOrStatus);
-      return PROJECT_LIFECYCLE[status] || PROJECT_LIFECYCLE.active;
+      const meta = PROJECT_LIFECYCLE[status] || PROJECT_LIFECYCLE.active;
+      if (activeLocale !== "en-GB") return meta;
+      return { ...meta, label: { active: "Active", paused: "Paused", closeout: "Launched closeout", archived: "Archived", cancelled: "Cancelled" }[status] || meta.label };
     }
 
     function normalizeProjectLifecycle(project) {
@@ -4191,6 +5125,7 @@
     }
 
     function projectDateLabel(value) {
+      if (activeLocale === "en-GB") return String(value || "");
       const months = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
       const match = String(value || "").match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{2})$/);
       if (match) return `${months[match[1]]}月${Number(match[2])}日`;
@@ -4198,10 +5133,12 @@
     }
 
     function projectTimeLabel(value) {
+      if (activeLocale === "en-GB") return String(value || "");
       return projectDateLabel(String(value || "").replace(/^Today/, "今天").replace(/^Yesterday$/, "昨天"));
     }
 
     function projectSourceLabel(value) {
+      if (activeLocale === "en-GB") return value;
       return {
         "Engineering Readiness": "研发准备",
         "Prototype Management": "样机管理",
@@ -4220,6 +5157,16 @@
       if (salesConnected) {
         return `<button class="btn" data-project-action="open-source" data-project-id="${project.id}" data-workstream="${workstreamKey}">进入产销管理</button>`;
       }
+      if (workstreamKey === "prototype" && stream?.sourceModule === "Prototype Management") {
+        return canAccessModuleForUser("prototype-management")
+          ? `<button class="btn" data-project-action="open-source" data-project-id="${project.id}" data-workstream="${workstreamKey}">进入样机管理</button>`
+          : `<span class="source-connection current">来源：<strong>${sourceLabel}</strong> · 已连接</span>`;
+      }
+      if (workstreamKey === "marketing" && stream?.sourceModule === "Product Material Management") {
+        return canAccessModuleForUser("market-assets")
+          ? `<button class="btn" data-project-action="open-source" data-project-id="${project.id}" data-workstream="${workstreamKey}">进入营销物料</button>`
+          : `<span class="source-connection current">来源：<strong>${sourceLabel}</strong> · 已连接</span>`;
+      }
       if (stream?.sourceModule === "Project Tracking") {
         return `<span class="source-connection current" title="该职能当前直接在项目跟进中维护">来源：<strong>${sourceLabel}</strong> · 当前维护</span>`;
       }
@@ -4227,7 +5174,7 @@
     }
 
     function projectOptionLabel(name, value) {
-      if (value === "All") return "全部";
+      if (value === "All") return activeLocale === "en-GB" ? "All" : "全部";
       if (name === "health") return projectHealthLabel(value.toLowerCase());
       if (name === "stage") return projectStageLabel(value);
       return value;
@@ -4247,6 +5194,12 @@
 
     function escapeProjectHtml(value) {
       return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+    }
+
+    function renderProjectUserContent(value) {
+      const source = String(value ?? "");
+      const language = /[\u3400-\u9fff]/.test(source) ? "zh-CN" : "en";
+      return `<span data-user-content lang="${language}">${escapeProjectHtml(source)}</span>`;
     }
 
     function workstream(health, done, total, due, dueISO, owner, blocker, tasks, sourceModule) {
@@ -4648,6 +5601,177 @@
 
     applySeedTimelineExamples(seedProjects);
 
+    const PLATFORM_ROLE_DEFINITIONS = [
+      { key: "super_admin", zh: "超级管理员", en: "Super Admin" },
+      { key: "permission_admin", zh: "权限管理员", en: "Access Admin" },
+      { key: "member", zh: "普通成员", en: "Member" },
+      { key: "auditor", zh: "审计只读", en: "Audit Viewer" },
+      { key: "external", zh: "外部协作", en: "External Collaborator" }
+    ];
+
+    const FUNCTIONAL_ROLE_DEFINITIONS = [
+      { key: "management", zh: "管理层 / 经营负责人", en: "Management", modules: ["business-overview", "business-bp", "business-analysis", "value-chain", "settlements", "promo-approvals", "other-approvals", "tasks", "exceptions", "projects", "sales", "forecast", "logistics", "market-launch", "market-campaign", "market-assets", "prototype-management"] },
+      { key: "plan_admin", zh: "计划管理员", en: "Planning Admin", modules: ["sales", "forecast", "logistics", "projects", "promo-approvals", "other-approvals", "tasks", "exceptions"] },
+      { key: "pmo", zh: "PMO / 项目经理", en: "PMO / Project Manager", modules: ["projects", "prototype-management", "market-launch", "other-approvals", "tasks", "exceptions", "functions"] },
+      { key: "sales_forecast", zh: "销售预测负责人", en: "Sales Forecast Owner", modules: ["forecast", "sales", "projects", "market-launch", "tasks", "exceptions"] },
+      { key: "supply_planner", zh: "供应计划负责人", en: "Supply Planner", modules: ["sales", "logistics", "projects", "other-approvals", "tasks", "exceptions"] },
+      { key: "logistics", zh: "物流交付负责人", en: "Logistics Owner", modules: ["logistics", "sales", "projects", "tasks", "exceptions"] },
+      { key: "business_planning", zh: "经营分析 / BP负责人", en: "Business Planning", modules: ["business-overview", "business-bp", "business-analysis", "value-chain", "settlements", "promo-approvals", "other-approvals", "tasks", "exceptions"] },
+      { key: "settlement_specialist", zh: "财务结算专员", en: "Settlement Specialist", modules: ["settlements", "business-overview", "business-analysis", "other-approvals", "tasks", "exceptions"] },
+      { key: "settlement_manager", zh: "财务结算经理", en: "Settlement Manager", modules: ["settlements", "business-overview", "business-bp", "business-analysis", "value-chain", "other-approvals", "tasks", "exceptions"] },
+      { key: "marketing_growth", zh: "市场增长负责人", en: "Market Growth Owner", modules: ["market-launch", "market-campaign", "market-assets", "promo-approvals", "projects", "tasks", "exceptions"] },
+      { key: "department_contributor", zh: "职能部门编辑", en: "Function Contributor", modules: ["projects", "functions", "tasks", "exceptions"] },
+      { key: "approver", zh: "专项审批人", en: "Specialist Approver", modules: ["promo-approvals", "other-approvals", "tasks", "exceptions", "business-overview", "projects", "sales"] }
+    ];
+
+    const PERMISSION_ROLE_TEMPLATES = [
+      { key: "super_admin", categoryZh: "平台", categoryEn: "Platform", zh: "超级管理员", en: "Super Admin", platformRole: "super_admin", functionalRoles: ["management", "plan_admin", "pmo", "business_planning", "settlement_manager", "approver"], modulesZh: "全部模块", modulesEn: "All modules", actionsZh: "全部操作、权限配置、发布与归档", actionsEn: "All actions, access configuration, publishing and archiving" },
+      { key: "permission_admin", categoryZh: "平台", categoryEn: "Platform", zh: "权限管理员", en: "Access Admin", platformRole: "permission_admin", functionalRoles: [], modulesZh: "系统管理、我的待办", modulesEn: "System Management and My Tasks", actionsZh: "邮箱授权、角色、范围和审批权限配置", actionsEn: "Email access, roles, scopes and approval access" },
+      { key: "management", categoryZh: "经营", categoryEn: "Business", zh: "管理层 / 经营负责人", en: "Management", platformRole: "member", functionalRoles: ["management", "approver"], modulesZh: "经营管理、审批中心及全局看板", modulesEn: "Business, approvals and global dashboards", actionsZh: "经营复核、重大事项审批", actionsEn: "Business review and major approvals", approvalTypes: ["monthly_promo", "other", "bp", "major_project"] },
+      { key: "plan_admin", categoryZh: "计划交付", categoryEn: "Planning", zh: "计划管理员", en: "Planning Admin", platformRole: "member", functionalRoles: ["plan_admin"], modulesZh: "产销、预测、物流、项目及审批", modulesEn: "Sales & Inventory, Forecast, Logistics, Projects and approvals", actionsZh: "联合复核、重开、计划发布与月结", actionsEn: "Joint review, reopen, plan publish and month close", authorities: ["plan_publish", "month_close"] },
+      { key: "pmo", categoryZh: "计划交付", categoryEn: "Planning", zh: "PMO / 项目经理", en: "PMO / Project Manager", platformRole: "member", functionalRoles: ["pmo"], modulesZh: "项目跟进、样机管理、新品上市、异常中心", modulesEn: "Project Tracking, Prototype Management, New Product Launch and Exceptions", actionsZh: "新增项目、时间线、延期和生命周期管理", actionsEn: "Project creation, timeline, delay and lifecycle management", authorities: ["project_archive"] },
+      { key: "sales_forecast", categoryZh: "计划交付", categoryEn: "Planning", zh: "销售预测负责人", en: "Sales Forecast Owner", platformRole: "member", functionalRoles: ["sales_forecast"], modulesZh: "预测、产销需求、销售准备", modulesEn: "Forecast, Sales & Inventory demand and sales readiness", actionsZh: "预测录入与提交", actionsEn: "Forecast entry and submission" },
+      { key: "supply_planner", categoryZh: "计划交付", categoryEn: "Planning", zh: "供应计划负责人", en: "Supply Planner", platformRole: "member", functionalRoles: ["supply_planner"], modulesZh: "产销供应、物流、供应工作流", modulesEn: "Supply plan, Logistics and supply workstream", actionsZh: "供应计划、首批与供应响应提交", actionsEn: "Supply plan, First Batch and supply response submission" },
+      { key: "logistics", categoryZh: "计划交付", categoryEn: "Planning", zh: "物流交付负责人", en: "Logistics Owner", platformRole: "member", functionalRoles: ["logistics"], modulesZh: "物流交付、异常中心", modulesEn: "Logistics Delivery and Exceptions", actionsZh: "出运、ETA、清关和签收维护", actionsEn: "Shipment, ETA, customs and receipt maintenance" },
+      { key: "business_planning", categoryZh: "经营", categoryEn: "Business", zh: "经营分析 / BP负责人", en: "Business Planning", platformRole: "member", functionalRoles: ["business_planning"], modulesZh: "经营总览、BP、分析和价值链", modulesEn: "Business Overview, BP, Analysis and Value Chain", actionsZh: "BP更新、经营分析和情景测算", actionsEn: "BP updates, business analysis and scenario simulation" },
+      { key: "settlement_specialist", categoryZh: "经营", categoryEn: "Business", zh: "财务结算专员", en: "Settlement Specialist", platformRole: "member", functionalRoles: ["settlement_specialist"], modulesZh: "结算台账", modulesEn: "Settlement Ledger", actionsZh: "账单、扣款、回款和核销录入", actionsEn: "Statement, deduction, receipt and allocation entry" },
+      { key: "settlement_manager", categoryZh: "经营", categoryEn: "Business", zh: "财务结算经理", en: "Settlement Manager", platformRole: "member", functionalRoles: ["settlement_manager", "approver"], modulesZh: "结算台账、经营管理和审批", modulesEn: "Settlement, Business Management and approvals", actionsZh: "差异审批、核销确认和结算归档", actionsEn: "Variance approval, allocation confirmation and settlement archive", approvalTypes: ["settlement_variance", "write_off"], authorities: ["settlement_archive"] },
+      { key: "marketing_growth", categoryZh: "市场", categoryEn: "Growth", zh: "市场增长负责人", en: "Market Growth Owner", platformRole: "member", functionalRoles: ["marketing_growth"], modulesZh: "新品上市、活动和物料", modulesEn: "Launch, campaigns and assets", actionsZh: "市场计划、预算和物料提交", actionsEn: "Marketing plan, budget and asset submission" },
+      { key: "department_contributor", categoryZh: "职能", categoryEn: "Function", zh: "职能部门编辑", en: "Function Contributor", platformRole: "member", functionalRoles: ["department_contributor"], modulesZh: "指定职能工作台和项目工作流", modulesEn: "Assigned function workspace and project workstream", actionsZh: "更新本职能任务、状态和卡点", actionsEn: "Update assigned function tasks, status and blockers" },
+      { key: "approver", categoryZh: "协同", categoryEn: "Collaboration", zh: "专项审批人", en: "Specialist Approver", platformRole: "member", functionalRoles: ["approver"], modulesZh: "审批中心、待办和关联只读数据", modulesEn: "Approvals, tasks and linked read-only data", actionsZh: "仅处理分配给本人的审批", actionsEn: "Process assigned approvals only" },
+      { key: "auditor", categoryZh: "平台", categoryEn: "Platform", zh: "审计 / 只读用户", en: "Audit Viewer", platformRole: "auditor", functionalRoles: [], modulesZh: "授权范围内全部业务模块", modulesEn: "All authorised business modules", actionsZh: "查看版本、归档和审计记录", actionsEn: "View versions, archives and audit records" },
+      { key: "external", categoryZh: "外部", categoryEn: "External", zh: "外部协作用户", en: "External Collaborator", platformRole: "external", functionalRoles: [], modulesZh: "指定项目或客户", modulesEn: "Assigned projects or customers", actionsZh: "查看或更新明确授权字段", actionsEn: "View or update explicitly assigned fields" }
+    ];
+
+    const PERMISSION_SCOPE_DEFINITIONS = [
+      { key: "markets", zh: "市场范围", en: "Markets", noteZh: "控制国家与区域数据", noteEn: "Controls country and regional data", options: [["all", "全部市场", "All markets"], ["DE", "德国", "Germany"], ["FR", "法国", "France"], ["IT", "意大利", "Italy"], ["ES", "西班牙", "Spain"], ["EU", "欧洲汇总", "Europe aggregate"]] },
+      { key: "customers", zh: "客户与渠道", en: "Customers & channels", noteZh: "限制客户和渠道台账", noteEn: "Limits customer and channel records", options: [["all", "全部客户", "All customers"], ["Amazon", "Amazon", "Amazon"], ["MediaMarkt", "MediaMarkt", "MediaMarkt"], ["Fnac", "Fnac Darty", "Fnac Darty"], ["Unieuro", "Unieuro", "Unieuro"], ["DTC", "DTC", "DTC"]] },
+      { key: "products", zh: "产品范围", en: "Products", noteZh: "按品类或产品线控制", noteEn: "Controls categories or product lines", options: [["all", "全部产品", "All products"], ["power_bank", "移动电源", "Power Bank"], ["charger", "充电器", "Charger"], ["wireless", "无线充电器", "Wireless Charger"]] },
+      { key: "projects", zh: "项目范围", en: "Projects", noteZh: "控制项目数据可见范围", noteEn: "Controls project visibility", options: [["all", "全部项目", "All projects"], ["owned", "负责项目", "Owned projects"], ["selected", "指定项目", "Selected projects"]] },
+      { key: "workstreams", zh: "职能范围", en: "Functions", noteZh: "控制可编辑工作流", noteEn: "Controls editable workstreams", options: [["all", "全部职能", "All functions"], ["engineering", "研发", "Engineering"], ["prototype", "样机", "Prototype"], ["quality", "质量", "Quality"], ["certification", "认证", "Certification"], ["supply", "供应", "Supply"], ["marketing", "营销", "Marketing"], ["sales", "销售", "Sales"]] },
+      { key: "entities", zh: "财务主体", en: "Legal entities", noteZh: "控制法人、币种与结算账户", noteEn: "Controls legal entity, currency and settlement account", options: [["all", "全部主体", "All entities"], ["INIU-EU", "INIU Europe", "INIU Europe"], ["INIU-DE", "INIU Germany", "INIU Germany"], ["INIU-FR", "INIU France", "INIU France"]] }
+    ];
+
+    const PERMISSION_APPROVAL_DEFINITIONS = [
+      ["monthly_promo", "月度促销审批", "Monthly promotion approval"],
+      ["other", "其他业务审批", "Other business approvals"],
+      ["major_project", "重大项目与上市日期", "Major project and launch date"],
+      ["bp", "BP与经营审批", "BP and business approval"],
+      ["settlement_variance", "结算差异审批", "Settlement variance approval"],
+      ["write_off", "坏账与核销审批", "Write-off approval"]
+    ];
+
+    const PERMISSION_AUTHORITY_DEFINITIONS = [
+      ["plan_publish", "发布正式计划", "Publish official plan"],
+      ["month_close", "月度关账", "Month close"],
+      ["project_archive", "项目归档", "Project archive"],
+      ["settlement_archive", "结算归档", "Settlement archive"]
+    ];
+
+    function permissionDefinitionLabel(item) {
+      return activeLocale === "en-GB" ? item.en : item.zh;
+    }
+
+    function platformRoleLabel(role) {
+      const item = PLATFORM_ROLE_DEFINITIONS.find((entry) => entry.key === role);
+      return item ? permissionDefinitionLabel(item) : role;
+    }
+
+    function functionalRoleLabel(role) {
+      const item = FUNCTIONAL_ROLE_DEFINITIONS.find((entry) => entry.key === role);
+      return item ? permissionDefinitionLabel(item) : role;
+    }
+
+    function normalizePermissionArray(value, fallback = []) {
+      return Array.isArray(value) && value.length ? Array.from(new Set(value)) : [...fallback];
+    }
+
+    function normalizePermissionScopeArray(value, fallback = []) {
+      return Array.isArray(value) ? Array.from(new Set(value)) : [...fallback];
+    }
+
+    function inferredFunctionalRoles(user) {
+      if (user.role === "super_admin") return ["management", "plan_admin", "pmo", "business_planning", "settlement_manager", "approver"];
+      if (user.role === "project_owner") return ["pmo"];
+      if (user.workstream === "sales") return ["sales_forecast"];
+      if (user.workstream === "supply") return ["supply_planner"];
+      if (user.workstream === "marketing") return ["marketing_growth"];
+      if (user.role === "department_editor") return ["department_contributor"];
+      return [];
+    }
+
+    function permissionLegacyRole(user) {
+      if (user.platformRole === "super_admin") return "super_admin";
+      if (user.functionalRoles?.includes("pmo")) return "project_owner";
+      if (user.functionalRoles?.some((role) => ["plan_admin", "sales_forecast", "supply_planner", "logistics", "business_planning", "settlement_specialist", "settlement_manager", "marketing_growth", "department_contributor"].includes(role))) return "department_editor";
+      return "viewer";
+    }
+
+    function normalizePermissionUser(user) {
+      const platformRole = user.platformRole || (user.role === "super_admin" ? "super_admin" : user.role === "viewer" ? "member" : "member");
+      const functionalRoles = normalizePermissionArray(user.functionalRoles, inferredFunctionalRoles(user));
+      const workstreamScope = user.workstream && user.workstream !== "all" ? [user.workstream] : ["all"];
+      const projectScope = user.scope && user.scope !== "all" ? [user.scope] : ["all"];
+      const normalized = {
+        ...user,
+        platformRole,
+        functionalRoles,
+        dataScopes: {
+          markets: normalizePermissionScopeArray(user.dataScopes?.markets, ["all"]),
+          customers: normalizePermissionScopeArray(user.dataScopes?.customers, ["all"]),
+          products: normalizePermissionScopeArray(user.dataScopes?.products, ["all"]),
+          projects: normalizePermissionScopeArray(user.dataScopes?.projects, projectScope),
+          workstreams: normalizePermissionScopeArray(user.dataScopes?.workstreams, workstreamScope),
+          entities: normalizePermissionScopeArray(user.dataScopes?.entities, ["all"])
+        },
+        approval: {
+          types: normalizePermissionArray(user.approval?.types, []),
+          limit: Number(user.approval?.limit || 0),
+          currency: user.approval?.currency || "EUR",
+          substitute: user.approval?.substitute || "",
+          validFrom: user.approval?.validFrom || "",
+          validTo: user.approval?.validTo || "",
+          authorities: normalizePermissionArray(user.approval?.authorities, [])
+        }
+      };
+      normalized.role = permissionLegacyRole(normalized);
+      normalized.scope = normalized.dataScopes.projects.includes("all") ? "all" : normalized.dataScopes.projects[0] || "selected";
+      normalized.workstream = normalized.dataScopes.workstreams.includes("all") ? "all" : normalized.dataScopes.workstreams[0] || "all";
+      return normalized;
+    }
+
+    function userHasFunctionalRole(user, ...roles) {
+      return Boolean(user?.functionalRoles?.some((role) => roles.includes(role)));
+    }
+
+    function canManagePermissionsForUser(user = currentProjectUser()) {
+      return user?.status === "active" && ["super_admin", "permission_admin"].includes(user.platformRole);
+    }
+
+    function canAccessSystemManagement(user = currentProjectUser()) {
+      return canManagePermissionsForUser(user);
+    }
+
+    function canCreateProjects(user = currentProjectUser()) {
+      return user?.status === "active" && (user.platformRole === "super_admin" || userHasFunctionalRole(user, "pmo"));
+    }
+
+    function canAccessModuleForUser(moduleKey, user = currentProjectUser()) {
+      if (!user || user.status !== "active") return false;
+      if (moduleKey === "home") return true;
+      if (user.platformRole === "super_admin") return true;
+      if (moduleKey === "system") return user.platformRole === "permission_admin";
+      if (user.platformRole === "permission_admin") return ["tasks", "system"].includes(moduleKey);
+      if (user.platformRole === "auditor") return moduleKey !== "system";
+      if (user.platformRole === "external") return ["projects", "tasks"].includes(moduleKey);
+      const modules = new Set(user.functionalRoles.flatMap((role) => FUNCTIONAL_ROLE_DEFINITIONS.find((item) => item.key === role)?.modules || []));
+      if (moduleKey === "prototype-management" && userHasFunctionalRole(user, "department_contributor")) {
+        const workstreams = user.dataScopes?.workstreams || [];
+        return workstreams.includes("all") || workstreams.includes("prototype");
+      }
+      return modules.has(moduleKey);
+    }
+
     const seedProjectUsers = [
       { id: "USR-001", name: "Ivy", department: "项目管理", workstream: "all", role: "super_admin", scope: "all", status: "active", lastLogin: "今天 09:48" },
       { id: "USR-002", name: "Leo", department: "研发", workstream: "engineering", role: "department_editor", scope: "all", status: "active", lastLogin: "今天 09:16" },
@@ -4657,13 +5781,41 @@
       { id: "USR-006", name: "Owen", department: "供应链", workstream: "supply", role: "department_editor", scope: "all", status: "active", lastLogin: "今天 10:03" },
       { id: "USR-007", name: "Sara", department: "营销", workstream: "marketing", role: "department_editor", scope: "all", status: "active", lastLogin: "今天 09:30" },
       { id: "USR-008", name: "David", department: "销售", workstream: "sales", role: "department_editor", scope: "all", status: "active", lastLogin: "今天 08:55" }
-    ];
+    ].map(normalizePermissionUser);
 
-    let activeModule = "sales";
+    const PLATFORM_MODULES = {
+      home: { group: "工作台", label: "我的工作台", subtitle: "跨模块待办、审批与异常" },
+      projects: { group: "计划与交付", label: "项目跟进", subtitle: "跨职能项目控制塔" },
+      sales: { group: "计划与交付", label: "产销管理", subtitle: "需求、供应与库存协同" },
+      forecast: { group: "计划与交付", label: "预测管理", subtitle: "销售预测输入、共识与版本管理" },
+      logistics: { group: "计划与交付", label: "物流交付", subtitle: "出运、在途、清关与到仓跟进" },
+      "business-overview": { group: "经营管理", label: "经营总览", subtitle: "经营目标、收入、利润与关键风险" },
+      "business-bp": { group: "经营管理", label: "BP达成", subtitle: "业务计划目标、滚动预测与达成差异" },
+      "business-analysis": { group: "经营管理", label: "经营分析", subtitle: "经营差异、原因、行动与复盘" },
+      "value-chain": { group: "经营管理", label: "Value Chain Simulation", subtitle: "价格、渠道、成本与贡献利润情景模拟" },
+      settlements: { group: "经营管理", label: "结算台账", subtitle: "客户对账、回款、差异与结算归档" },
+      "market-launch": { group: "市场增长", label: "新品上市", subtitle: "新品上市计划与跨职能准备度" },
+      "market-campaign": { group: "市场增长", label: "营销活动", subtitle: "营销活动计划、预算、执行与效果" },
+      "market-assets": { group: "市场增长", label: "营销物料", subtitle: "多市场、多渠道物料制作与交付" },
+      "promo-approvals": { group: "协同中心", label: "月度促销审批", subtitle: "按月汇总促销计划、利润影响与审批状态" },
+      "other-approvals": { group: "协同中心", label: "其他审批", subtitle: "项目、供应、预测和物流等非促销审批" },
+      tasks: { group: "协同中心", label: "我的待办", subtitle: "按责任人聚合全部执行事项" },
+      exceptions: { group: "协同中心", label: "异常中心", subtitle: "跨模块风险、阻塞与升级" },
+      functions: { group: "专业与管理", label: "职能工作台", subtitle: "各职能专业数据的维护入口" },
+      "prototype-management": { group: "专业与管理", label: "样机管理", subtitle: "样机任务、寄送节点与项目准备度联动" },
+      system: { group: "专业与管理", label: "系统管理", subtitle: "权限、模块、主数据与审计" }
+    };
+
+    const LOCALE_PREFERENCES_KEY = "operationsPlatform.locale.users.v1";
+
+    let activeModule = "home";
     let cloudIdentityNeedsSync = false;
     let projectState = loadProjectState();
     let permissionCloudState = createPermissionCloudState();
+    let permissionUiState = createPermissionUiState();
     applyCloudUserIdentity();
+    let activeLocale = loadLocaleForCurrentUser();
+    window.operationsI18n?.setLocale(activeLocale);
 
     function createPermissionCloudState() {
       return {
@@ -4677,8 +5829,58 @@
       };
     }
 
+    function createPermissionUiState() {
+      return {
+        activeTab: "members",
+        selectedUserId: "",
+        templateKey: "",
+        applyMode: "merge"
+      };
+    }
+
     function normalizePermissionEmail(value) {
       return String(value || "").trim().toLowerCase();
+    }
+
+    function localeIdentityKey() {
+      const cloudEmail = normalizePermissionEmail(window.cloudStore?.identity?.email);
+      if (cloudEmail) return `cloud:${cloudEmail}`;
+      return `local:${currentProjectUser()?.id || "default"}`;
+    }
+
+    function loadLocalePreferences() {
+      try {
+        return JSON.parse(localStorage.getItem(LOCALE_PREFERENCES_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function loadLocaleForCurrentUser() {
+      const cloudLocale = window.cloudStore?.identity?.locale;
+      if (["zh-CN", "en-GB"].includes(cloudLocale)) return cloudLocale;
+      const preferences = loadLocalePreferences();
+      return ["zh-CN", "en-GB"].includes(preferences[localeIdentityKey()])
+        ? preferences[localeIdentityKey()]
+        : window.operationsI18n?.getLocale?.() || "zh-CN";
+    }
+
+    function setActiveLocale(locale, persist = true) {
+      activeLocale = locale === "en-GB" ? "en-GB" : "zh-CN";
+      if (persist) {
+        const preferences = loadLocalePreferences();
+        preferences[localeIdentityKey()] = activeLocale;
+        localStorage.setItem(LOCALE_PREFERENCES_KEY, JSON.stringify(preferences));
+        localStorage.setItem("operationsPlatform.locale.default", activeLocale);
+        window.cloudStore?.preferences?.setLocale(activeLocale).catch((error) => {
+          console.warn("Locale preference cloud save failed", error);
+        });
+      }
+      window.operationsI18n?.setLocale(activeLocale, { persistDefault: persist });
+      renderApp();
+      if (projectState.selectedProjectId) renderProjectDrawer(projectState.selectedProjectId);
+      if (projectState.adminModal) renderProjectAdminModal();
+      window.operationsI18n?.apply(document.body);
     }
 
     function applyCloudUserIdentity() {
@@ -4689,7 +5891,7 @@
       let user = projectState.users.find((item) => item.id === userId)
         || projectState.users.find((item) => normalizePermissionEmail(item.email) === identityEmail);
       if (!user) {
-        user = {
+        user = normalizePermissionUser({
           id: userId,
           name: identity.email.split("@")[0] || "协同成员",
           email: identity.email,
@@ -4699,7 +5901,7 @@
           scope: "all",
           status: "active",
           lastLogin: "刚刚"
-        };
+        });
         projectState.users.push(user);
         cloudIdentityNeedsSync = true;
       } else {
@@ -4709,7 +5911,8 @@
         }
         user.email = identity.email;
         user.lastLogin = "刚刚";
-        if (identity.role === "admin") user.role = "super_admin";
+        if (identity.role === "admin") user.platformRole = "super_admin";
+        Object.assign(user, normalizePermissionUser(user));
       }
       projectState.activeUserId = userId;
     }
@@ -4720,9 +5923,11 @@
         users: loadProjectUsers(),
         drafts: loadProjectDrafts(),
         formDrafts: loadProjectFormDrafts(),
+        permissionAudit: loadPermissionAudit(),
         view: "matrix",
         portfolioScope: "current",
         filters: { search: "", health: "All", stage: "All", owner: "All", onlyCritical: false },
+        prototypeFilters: { search: "", health: "All", stage: "All", owner: "All" },
         selectedProjectId: null,
         selectedWorkstream: null,
         drawerTab: "overview",
@@ -4758,9 +5963,18 @@
 
     function loadProjectUsers() {
       try {
-        return JSON.parse(localStorage.getItem(PROJECT_ACCESS_STORAGE_KEY) || "null") || structuredClone(seedProjectUsers);
+        const users = JSON.parse(localStorage.getItem(PROJECT_ACCESS_STORAGE_KEY) || "null") || structuredClone(seedProjectUsers);
+        return users.map(normalizePermissionUser);
       } catch (error) {
         return structuredClone(seedProjectUsers);
+      }
+    }
+
+    function loadPermissionAudit() {
+      try {
+        return JSON.parse(localStorage.getItem(PERMISSION_AUDIT_STORAGE_KEY) || "[]");
+      } catch (error) {
+        return [];
       }
     }
 
@@ -4786,6 +6000,10 @@
 
     function persistProjectUsers() {
       localStorage.setItem(PROJECT_ACCESS_STORAGE_KEY, JSON.stringify(projectState.users));
+    }
+
+    function persistPermissionAudit() {
+      localStorage.setItem(PERMISSION_AUDIT_STORAGE_KEY, JSON.stringify(projectState.permissionAudit || []));
     }
 
     function persistProjectDrafts() {
@@ -4838,16 +6056,16 @@
 
     function currentProjectUser() {
       return projectState.users.find((user) => user.id === projectState.activeUserId && user.status === "active")
-        || projectState.users.find((user) => user.role === "super_admin" && user.status === "active")
+        || projectState.users.find((user) => user.platformRole === "super_admin" && user.status === "active")
         || projectState.users.find((user) => user.status === "active")
         || projectState.users[0];
     }
 
     function collaborationRoleForUser(user = currentProjectUser()) {
       if (!user || user.status !== "active") return "viewer";
-      if (user.role === "super_admin") return "admin";
-      if (user.workstream === "sales") return "sales";
-      if (user.workstream === "supply") return "supply";
+      if (user.platformRole === "super_admin" || userHasFunctionalRole(user, "plan_admin")) return "admin";
+      if (userHasFunctionalRole(user, "sales_forecast")) return "sales";
+      if (userHasFunctionalRole(user, "supply_planner")) return "supply";
       return "viewer";
     }
 
@@ -4861,34 +6079,49 @@
       if (!root || !user) return;
       const cloudIdentity = window.cloudStore?.identity;
       const visibleUsers = cloudIdentity ? [user] : projectState.users.filter((item) => item.status === "active");
-      const canManagePermissions = user.role === "super_admin" && (!cloudIdentity || cloudIdentity.role === "admin");
+      const canManagePermissions = canManagePermissionsForUser(user) && (!cloudIdentity || cloudIdentity.role === "admin");
       root.innerHTML = `
         <span class="tool-account-label">当前账号</span>
         <select class="tool-account-select" data-tool-user aria-label="当前账号" ${cloudIdentity ? "disabled" : ""}>
-          ${visibleUsers.map((item) => `<option value="${item.id}" ${item.id === user.id ? "selected" : ""}>${item.name} · ${projectRoleLabel(item.role)}</option>`).join("")}
+          ${visibleUsers.map((item) => `<option value="${item.id}" ${item.id === user.id ? "selected" : ""}>${item.name} · ${platformRoleLabel(item.platformRole)}</option>`).join("")}
+        </select>
+        <select class="tool-locale-select" data-tool-locale aria-label="界面语言" title="界面语言">
+          <option value="zh-CN" ${activeLocale === "zh-CN" ? "selected" : ""}>中文</option>
+          <option value="en-GB" ${activeLocale === "en-GB" ? "selected" : ""}>English</option>
         </select>
         ${canManagePermissions ? `<button class="btn" data-project-action="permissions">权限管理</button>` : ""}
       `;
+      window.operationsI18n?.apply(root);
     }
 
     function projectRoleLabel(role) {
+      if (activeLocale === "en-GB") return { super_admin: "Super Admin", project_owner: "Project Owner", department_editor: "Department Editor", viewer: "Viewer" }[role] || role;
       return { super_admin: "总管理员", project_owner: "项目负责人", department_editor: "部门编辑", viewer: "只读用户" }[role] || role;
     }
 
     function projectWorkstreamLabel(key) {
-      if (key === "all") return "全部工作流";
-      return PROJECT_WORKSTREAMS.find((item) => item.key === key)?.label || key;
+      if (key === "all") return activeLocale === "en-GB" ? "All workstreams" : "全部工作流";
+      const item = PROJECT_WORKSTREAMS.find((entry) => entry.key === key);
+      if (activeLocale === "en-GB") return { engineering: "Engineering Readiness", prototype: "Prototype Management", quality: "Quality Validation", certification: "Certification & Compliance", supply: "Supply Execution", marketing: "Marketing Assets", sales: "Sales Readiness" }[key] || item?.label || key;
+      return item?.label || key;
     }
 
     function canEditProjectWorkstream(workstreamKey, projectId = null) {
       const user = currentProjectUser();
       const project = projectId ? projectState.projects.find((item) => item.id === projectId) : null;
       if (project && projectIsReadOnly(project)) return false;
-      return user?.status === "active" && (user.role === "super_admin" || user.role === "project_owner" || user.role === "department_editor" && user.workstream === workstreamKey);
+      if (user?.status !== "active") return false;
+      if (user.platformRole === "super_admin" || userHasFunctionalRole(user, "pmo")) return true;
+      const allowedWorkstreams = user.dataScopes?.workstreams || [];
+      if (userHasFunctionalRole(user, "sales_forecast") && workstreamKey === "sales") return true;
+      if (userHasFunctionalRole(user, "supply_planner") && workstreamKey === "supply") return true;
+      if (userHasFunctionalRole(user, "marketing_growth") && workstreamKey === "marketing") return true;
+      return userHasFunctionalRole(user, "department_contributor") && (allowedWorkstreams.includes("all") || allowedWorkstreams.includes(workstreamKey));
     }
 
     function canManageProjectLifecycle() {
-      return currentProjectUser()?.status === "active" && currentProjectUser()?.role === "super_admin";
+      const user = currentProjectUser();
+      return user?.status === "active" && (user.platformRole === "super_admin" || userHasFunctionalRole(user, "pmo"));
     }
 
     function projectDraftKey(projectId, workstreamKey) {
@@ -5041,6 +6274,19 @@
     }
 
     function delayCategoryLabel(value) {
+      if (activeLocale === "en-GB") {
+        return {
+          technical: "Technical issue",
+          prototype: "Prototype issue",
+          quality: "Quality issue",
+          compliance: "Certification & compliance",
+          supply: "Supply issue",
+          resource: "Resource conflict",
+          decision: "Decision pending",
+          external: "External factor",
+          other: "Other"
+        }[value] || value;
+      }
       return {
         technical: "技术问题",
         prototype: "样机问题",
@@ -5055,6 +6301,7 @@
     }
 
     function delayPropagationLabel(value) {
+      if (activeLocale === "en-GB") return { all_downstream: "Shift all downstream dates", milestones_only: "Shift milestones only", anchor_only: "Adjust current item only" }[value] || value;
       return { all_downstream: "全链路顺延", milestones_only: "仅顺延里程碑", anchor_only: "仅调整当前节点" }[value] || value;
     }
 
@@ -5090,6 +6337,38 @@
     }
 
     function projectTransitionReasonOptions(targetStatus) {
+      if (activeLocale === "en-GB") {
+        return {
+          active: [
+            ["resume", "Resume project tracking"],
+            ["restart", "Restart project"],
+            ["scope_confirmed", "Scope reconfirmed"]
+          ],
+          paused: [
+            ["resource", "Resource conflict"],
+            ["technical", "Technical issue"],
+            ["supply", "Supply issue"],
+            ["market", "Market strategy change"],
+            ["decision", "Awaiting management decision"]
+          ],
+          closeout: [
+            ["launched_on_plan", "Launched on plan"],
+            ["launched_early", "Launched early"],
+            ["launched_delayed", "Launched after delay"]
+          ],
+          archived: [
+            ["closeout_complete", "Launch closeout complete"],
+            ["admin_confirmed", "Administrator confirmed archive"]
+          ],
+          cancelled: [
+            ["demand_cancelled", "Demand cancelled"],
+            ["project_merged", "Project merged"],
+            ["market_withdrawn", "Market withdrawn"],
+            ["duplicate", "Duplicate project"],
+            ["business_decision", "Business decision"]
+          ]
+        }[targetStatus] || [["other", "Other"]];
+      }
       return {
         active: [
           ["resume", "恢复项目跟进"],
@@ -5204,6 +6483,7 @@
         view: projectState.view,
         portfolioScope: projectState.portfolioScope,
         filters: projectState.filters,
+        prototypeFilters: projectState.prototypeFilters,
         syncedAt: projectState.syncedAt,
         activeUserId: projectState.activeUserId
       };
@@ -5339,6 +6619,18 @@
     }
 
     function salesText(value) {
+      if (activeLocale === "en-GB") {
+        return {
+          "New": "New product",
+          "High": "High risk",
+          "1st Batch Risk": "First Batch risk",
+          "1st Batch Watch": "First Batch watch",
+          "1st Batch OK": "First Batch on track",
+          "Baseline before Aug planning window": "Previous month's official version, used as the comparison point for the August rolling plan",
+          "Current rolling plan draft": "Current rolling plan draft",
+          "Saved rolling 3-month plan draft": "Saved rolling 3-month plan draft"
+        }[value] || value;
+      }
       return {
         "All Models": "全部型号",
         "All Categories": "全部类别",
@@ -5547,29 +6839,474 @@
       renderModal();
     }
 
+    function renderWorkspaceHeader(eyebrow, title, subtitle, actions = "") {
+      return `
+        <header class="topbar">
+          <div class="brand"><div><span class="workspace-eyebrow">${eyebrow}</span><h1>${title}</h1></div><span class="status-pill"><span class="dot"></span>${subtitle}</span></div>
+          ${actions ? `<div class="toolbar">${actions}</div>` : ""}
+        </header>
+      `;
+    }
+
+    function renderWorkspaceSummary(items) {
+      return `<section class="workspace-summary-strip" aria-label="模块摘要">${items.map((item) => `<div class="workspace-summary-item"><div class="workspace-summary-label">${item.label}</div><div class="workspace-summary-value ${item.tone || ""}">${item.value}</div><div class="workspace-summary-foot">${item.foot}</div></div>`).join("")}</section>`;
+    }
+
+    function renderWorkspacePanel(title, note, body, extraClass = "") {
+      return `<section class="workspace-panel ${extraClass}"><div class="workspace-panel-head"><h2>${title}</h2><span>${note}</span></div>${body}</section>`;
+    }
+
+    function renderWorkspaceStatus(label, tone = "") {
+      return `<span class="workspace-status ${tone}">${label}</span>`;
+    }
+
+    function renderHomeWorkspace() {
+      const actions = `<button class="btn" data-module="tasks">查看全部待办</button><button class="btn" data-module="other-approvals">其他审批</button><button class="btn primary" data-module="promo-approvals">月促审批</button>`;
+      const taskRows = [
+        ["8月销售预测更新", "预测管理 · 欧洲销售", "今天 18:00", "Ivy", "待提交", "amber", "forecast"],
+        ["PX51 跌落测试 CAPA", "项目跟进 · 质量验证", "8月8日", "Marta", "阻塞", "red", "projects"],
+        ["SHP-EU-260812 到仓风险", "物流交付 · 波兰仓", "8月12日", "Owen", "需处理", "red", "logistics"],
+        ["WAL101 上市物料确认", "市场增长 · 新品上市", "8月9日", "Sara", "审核中", "blue", "market-launch"],
+        ["8月供应计划共识", "产销管理 · 供应链", "8月7日", "Owen", "待开始", "", "sales"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>事项</th><th>来源模块</th><th>截止时间</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${taskRows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${renderWorkspaceStatus(row[4], row[5])}</td><td><button class="btn" data-module="${row[6]}">进入</button></td></tr>`).join("")}</tbody></table></div>`;
+      const updates = [
+        ["月促审批待处理", "德国和意大利9月促销计划等待审批。", "promo-approvals", "查看"],
+        ["项目关键风险", "PX51质量验证和WAL101认证仍在关键路径上。", "projects", "定位"],
+        ["物流到仓异常", "波兰仓一票海运ETA较计划晚3天。", "logistics", "处理"],
+        ["预测协同", "德国和法国已提交，意大利区域仍未完成。", "forecast", "跟进"]
+      ];
+      const list = `<div class="workspace-list">${updates.map((item) => `<div class="workspace-list-row"><div><strong>${item[0]}</strong><small>${item[1]}</small></div><button class="btn" data-module="${item[2]}">${item[3]}</button></div>`).join("")}</div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("MY WORKSPACE", "我的工作台", "2026年8月5日", actions)}${renderWorkspaceSummary([
+        { label: "我的待办", value: "9", foot: "今天到期 3项" },
+        { label: "待我审批", value: "5", foot: "月促 2项 · 其他 3项", tone: "number-negative" },
+        { label: "跨模块异常", value: "12", foot: "重大风险 4项", tone: "number-negative" },
+        { label: "未来7天到期", value: "18", foot: "项目与交付事项" },
+        { label: "模块同步", value: "12/18", foot: "6个来源待接入" }
+      ])}<div class="workspace-grid">${renderWorkspacePanel("优先事项", "按截止时间与风险排序", table)}${renderWorkspacePanel("协同提醒", "跨模块聚合", list)}</div></div>`;
+    }
+
+    function renderForecastWorkspace() {
+      const actions = `<button class="btn" data-platform-action="notice" data-message="预测模板已准备下载。">导出模板</button><button class="btn" data-platform-action="notice" data-message="已打开预测导入检查流程。">导入预测</button><button class="btn primary" data-platform-action="notice" data-message="已创建9月滚动预测协同草稿。">发起滚动预测</button>`;
+      const filters = `<section class="filterbar" aria-label="预测管理筛选"><div class="control"><label>预测周期</label><select><option>2026年8月滚动预测</option></select></div><div class="control"><label>区域</label><select><option>全部区域</option><option>德国</option><option>法国</option><option>意大利</option><option>西班牙</option></select></div><div class="control"><label>渠道</label><select><option>全部渠道</option><option>Amazon</option><option>Retail</option><option>DTC</option></select></div><div class="control"><label>版本</label><select><option>当前协同草稿 v4</option><option>7月正式版 v3</option></select></div><button class="toggle active" aria-pressed="true"><span class="switch"></span><span>仅看有变化</span></button></section>`;
+      const rows = [
+        ["德国 · Amazon", "P61L-P2", "1,800", "2,000", "1,400", "+8%", "Ivy", "已提交", "green"],
+        ["法国 · Retail", "PX51", "1,800", "900", "900", "+22%", "Claire", "待复核", "amber"],
+        ["意大利 · Amazon", "WAL101", "150", "180", "120", "-4%", "Luca", "未提交", "red"],
+        ["西班牙 · Retail", "WM321", "300", "600", "300", "+11%", "Ana", "已提交", "green"],
+        ["欧洲 · DTC", "PM61-Black", "800", "1,200", "1,200", "0%", "Ivy", "已确认", "blue"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>区域 / 渠道</th><th>SKU</th><th>8月</th><th>9月</th><th>10月</th><th>较上版</th><th>负责人</th><th>协同状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td class="${row[5].startsWith("-") ? "number-negative" : row[5] !== "0%" ? "number-positive" : ""}">${row[5]}</td><td>${row[6]}</td><td>${renderWorkspaceStatus(row[7], row[8])}</td><td><button class="btn" data-platform-action="notice" data-message="已进入${row[0]}预测录入。">录入</button></td></tr>`).join("")}</tbody></table></div>`;
+      const workflow = `<div class="workflow-line"><div class="workflow-step done"><span class="workflow-step-index">1</span><div><strong>区域销售输入</strong><small>德国、法国、西班牙已提交</small></div>${renderWorkspaceStatus("3/4", "green")}</div><div class="workflow-step active"><span class="workflow-step-index">2</span><div><strong>区域负责人复核</strong><small>意大利待提交，法国有较大变化</small></div>${renderWorkspaceStatus("进行中", "blue")}</div><div class="workflow-step"><span class="workflow-step-index">3</span><div><strong>产销共识</strong><small>与供应计划和库存风险对齐</small></div>${renderWorkspaceStatus("待开始")}</div><div class="workflow-step"><span class="workflow-step-index">4</span><div><strong>管理审批</strong><small>通过审批中心完成确认</small></div>${renderWorkspaceStatus("待开始")}</div><div class="workflow-step"><span class="workflow-step-index">5</span><div><strong>正式发布</strong><small>生成预测版本并同步产销管理</small></div>${renderWorkspaceStatus("待开始")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("PLANNING & DELIVERY", "预测管理", "2026年8月协同周期", actions)}${filters}${renderWorkspaceSummary([
+        { label: "未来3个月预测", value: "18K", foot: "全部区域与渠道" },
+        { label: "较上版变化", value: "+6.3%", foot: "净增 1.1K", tone: "number-positive" },
+        { label: "有变化SKU", value: "8", foot: "需要复核原因" },
+        { label: "待提交区域", value: "1", foot: "意大利", tone: "number-negative" },
+        { label: "近3月预测准确率", value: "82%", foot: "目标 85%" }
+      ])}<div class="workspace-grid">${renderWorkspacePanel("区域与渠道预测", "单位：件", table)}${renderWorkspacePanel("本期协同流程", "8月3日 - 8月8日", workflow)}</div></div>`;
+    }
+
+    function renderLogisticsWorkspace() {
+      const actions = `<button class="btn" data-platform-action="notice" data-message="物流交付数据已刷新。">刷新物流状态</button><button class="btn" data-platform-action="notice" data-message="已打开批量导入在途数据流程。">导入在途数据</button><button class="btn primary" data-platform-action="notice" data-message="新建出运计划草稿已创建。">+ 新建出运计划</button>`;
+      const filters = `<section class="filterbar" aria-label="物流交付筛选"><div class="control"><label>交付状态</label><select><option>全部状态</option><option>待提货</option><option>在途</option><option>清关</option><option>已到仓</option></select></div><div class="control"><label>目的仓</label><select><option>全部仓库</option><option>DE-FRA</option><option>PL-WRO</option><option>FR-CDG</option><option>ES-MAD</option></select></div><div class="control"><label>运输方式</label><select><option>全部方式</option><option>海运</option><option>铁路</option><option>空运</option><option>卡航</option></select></div><div class="control"><label>预计到仓</label><select><option>未来30天</option></select></div><button class="toggle active" aria-pressed="true"><span class="switch"></span><span>仅看异常</span></button></section>`;
+      const rows = [
+        ["SHP-EU-260812", "PX51 · 1,600件", "深圳 → PL-WRO", "海运", "8月12日", "8月15日", "+3天", "Owen", "到仓风险", "red"],
+        ["SHP-EU-260819", "WAL101 · 1,200件", "东莞 → DE-FRA", "铁路", "8月19日", "8月19日", "0天", "Nina", "在途", "blue"],
+        ["SHP-EU-260824", "P61L-P2 · 2,400件", "深圳 → FR-CDG", "海运", "8月24日", "8月26日", "+2天", "Owen", "清关关注", "amber"],
+        ["SHP-EU-260829", "PM61-Black · 1,400件", "香港 → ES-MAD", "空运", "8月29日", "8月29日", "0天", "Marco", "待提货", ""],
+        ["SHP-EU-260805", "P51L-P2 · 700件", "DE-FRA → PL-WRO", "卡航", "8月5日", "8月5日", "0天", "Owen", "已到仓", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>交付单</th><th>货物</th><th>路线</th><th>方式</th><th>计划到仓</th><th>当前ETA</th><th>偏差</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td class="${row[6].startsWith("+") ? "number-negative" : ""}">${row[6]}</td><td>${row[7]}</td><td>${renderWorkspaceStatus(row[8], row[9])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}交付详情。">查看</button></td></tr>`).join("")}</tbody></table></div>`;
+      const workflow = `<div class="workflow-line"><div class="workflow-step done"><span class="workflow-step-index">1</span><div><strong>订单与备货确认</strong><small>数量、批次和目的仓已锁定</small></div>${renderWorkspaceStatus("已完成", "green")}</div><div class="workflow-step done"><span class="workflow-step-index">2</span><div><strong>仓库放行</strong><small>装箱资料和提货指令齐全</small></div>${renderWorkspaceStatus("已完成", "green")}</div><div class="workflow-step active"><span class="workflow-step-index">3</span><div><strong>运输与在途跟进</strong><small>3票在途，1票发生ETA偏差</small></div>${renderWorkspaceStatus("进行中", "blue")}</div><div class="workflow-step"><span class="workflow-step-index">4</span><div><strong>清关与预约</strong><small>同步报关文件和仓库预约</small></div>${renderWorkspaceStatus("1票关注", "amber")}</div><div class="workflow-step"><span class="workflow-step-index">5</span><div><strong>签收与差异关闭</strong><small>到仓数量和破损差异回写</small></div>${renderWorkspaceStatus("待完成")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("PLANNING & DELIVERY", "物流交付", "未来30天交付窗口", actions)}${filters}${renderWorkspaceSummary([
+        { label: "计划交付", value: "7.3K", foot: "未来30天" },
+        { label: "在途交付", value: "5票", foot: "共6.6K件" },
+        { label: "准时交付率", value: "91%", foot: "目标 95%" },
+        { label: "交付风险", value: "2票", foot: "影响 4K件", tone: "number-negative" },
+        { label: "已到仓待关闭", value: "1票", foot: "等待签收确认" }
+      ])}<div class="workspace-grid">${renderWorkspacePanel("物流交付清单", "计划日期与当前ETA", table)}${renderWorkspacePanel("交付执行流程", "从备货到签收", workflow)}</div></div>`;
+    }
+
+    function renderBusinessWorkspace() {
+      const rows = [
+        ["德国", "EUR 2.8M", "EUR 2.6M", "-7.1%", "31.4%", "收入承压", "red"],
+        ["法国", "EUR 1.9M", "EUR 2.0M", "+5.3%", "33.8%", "正常", "green"],
+        ["意大利", "EUR 1.2M", "EUR 1.1M", "-8.3%", "28.6%", "毛利关注", "amber"],
+        ["西班牙", "EUR 1.0M", "EUR 1.1M", "+10.0%", "32.1%", "正常", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>市场</th><th>收入目标</th><th>滚动预测</th><th>目标差异</th><th>预测毛利率</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td class="${row[3].startsWith("-") ? "number-negative" : "number-positive"}">${row[3]}</td><td>${row[4]}</td><td>${renderWorkspaceStatus(row[5], row[6])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}经营分析。">分析</button></td></tr>`).join("")}</tbody></table></div>`;
+      const sources = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>销售预测</strong><small>来自预测管理，用于收入与目标差异测算</small></div>${renderWorkspaceStatus("已同步", "green")}</div><div class="workspace-list-row"><div><strong>供应与库存</strong><small>来自产销管理，用于缺货与库存资金识别</small></div>${renderWorkspaceStatus("已同步", "green")}</div><div class="workspace-list-row"><div><strong>费用与利润</strong><small>等待财务经营数据接口</small></div>${renderWorkspaceStatus("待接入", "amber")}</div><div class="workspace-list-row"><div><strong>市场投入</strong><small>等待市场增长模块形成正式版本</small></div>${renderWorkspaceStatus("规划中")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("BUSINESS MANAGEMENT", "经营总览", "欧洲业务经营视图", `<button class="btn primary" data-platform-action="notice" data-message="经营复盘草稿已创建。">发起经营复盘</button>`)}${renderWorkspaceSummary([{ label: "收入目标", value: "EUR 6.9M", foot: "欧洲本期" }, { label: "滚动预测", value: "EUR 6.8M", foot: "达成率 98.6%" }, { label: "预测毛利率", value: "31.5%", foot: "目标 32.0%" }, { label: "经营异常", value: "3", foot: "需负责人解释", tone: "number-negative" }, { label: "数据完整度", value: "76%", foot: "财务接口待接入" }])}<div class="workspace-grid">${renderWorkspacePanel("市场经营差异", "示例数据", table)}${renderWorkspacePanel("数据来源", "按业务模块连接", sources)}</div></div>`;
+    }
+
+    function renderBusinessBpWorkspace() {
+      const rows = [
+        ["德国", "EUR 2.8M", "EUR 2.6M", "92.9%", "-EUR 200K", "Ivy", "承压", "red"],
+        ["法国", "EUR 1.9M", "EUR 2.0M", "105.3%", "+EUR 100K", "Claire", "达成", "green"],
+        ["意大利", "EUR 1.2M", "EUR 1.1M", "91.7%", "-EUR 100K", "Luca", "关注", "amber"],
+        ["西班牙", "EUR 1.0M", "EUR 1.1M", "110.0%", "+EUR 100K", "Ana", "达成", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>市场</th><th>年度BP</th><th>滚动预计</th><th>预计达成率</th><th>差额</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td class="${Number.parseFloat(row[3]) < 100 ? "number-negative" : "number-positive"}">${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${renderWorkspaceStatus(row[6], row[7])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}BP达成明细。">查看</button></td></tr>`).join("")}</tbody></table></div>`;
+      const cadence = `<div class="workflow-line"><div class="workflow-step done"><span class="workflow-step-index">1</span><div><strong>BP目标锁定</strong><small>年度目标与分市场目标已确认</small></div>${renderWorkspaceStatus("已完成", "green")}</div><div class="workflow-step done"><span class="workflow-step-index">2</span><div><strong>实际数据回写</strong><small>收入与毛利实际数据更新至7月</small></div>${renderWorkspaceStatus("已完成", "green")}</div><div class="workflow-step active"><span class="workflow-step-index">3</span><div><strong>滚动预计更新</strong><small>结合预测、供应与市场投入更新</small></div>${renderWorkspaceStatus("进行中", "blue")}</div><div class="workflow-step"><span class="workflow-step-index">4</span><div><strong>差异说明</strong><small>未达成市场提交原因和行动</small></div>${renderWorkspaceStatus("2项待补", "amber")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("BUSINESS MANAGEMENT", "BP达成", "2026年度业务计划", `<button class="btn primary" data-platform-action="notice" data-message="8月BP达成更新已发起。">发起月度更新</button>`)}${renderWorkspaceSummary([{ label: "年度BP", value: "EUR 6.9M", foot: "欧洲业务" }, { label: "滚动预计", value: "EUR 6.8M", foot: "预计达成 98.6%" }, { label: "实际达成", value: "57.2%", foot: "截至7月" }, { label: "预计缺口", value: "EUR 100K", foot: "德国与意大利", tone: "number-negative" }, { label: "待说明市场", value: "2", foot: "本周内完成" }])}<div class="workspace-grid">${renderWorkspacePanel("分市场BP达成", "目标、实际与滚动预计", table)}${renderWorkspacePanel("月度更新流程", "目标保持只读", cadence)}</div></div>`;
+    }
+
+    function renderBusinessAnalysisWorkspace() {
+      const rows = [
+        ["收入", "德国 Amazon", "-EUR 180K", "新品供货晚2周", "调整9月促销与补货节奏", "Ivy", "处理中", "red"],
+        ["毛利", "意大利 Retail", "-2.4pp", "渠道折扣高于BP", "重谈返利并收紧低毛利活动", "Luca", "待确认", "amber"],
+        ["库存", "PX51", "+42天", "首批预测高于当前消化", "转配法国并下调后续供应", "Owen", "进行中", "blue"],
+        ["费用", "IFA Launch", "+EUR 35K", "展位与媒体追加投入", "建立增量ROI追踪", "Sara", "已批准", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>指标</th><th>分析对象</th><th>差异</th><th>主要原因</th><th>纠偏行动</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td class="number-negative">${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${renderWorkspaceStatus(row[6], row[7])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[1]}经营分析记录。">分析</button></td></tr>`).join("")}</tbody></table></div>`;
+      const focus = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>本月核心判断</strong><small>收入缺口主要来自德国新品供货，而非终端需求下降。</small></div>${renderWorkspaceStatus("结论", "blue")}</div><div class="workspace-list-row"><div><strong>优先纠偏</strong><small>先解决PX51供货和跨市场库存调配，再追加营销投入。</small></div>${renderWorkspaceStatus("行动", "amber")}</div><div class="workspace-list-row"><div><strong>下次复盘</strong><small>8月12日更新实际销量、ETA和转配结果。</small></div>${renderWorkspaceStatus("7天后")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("BUSINESS MANAGEMENT", "经营分析", "差异、原因与纠偏行动", `<button class="btn" data-platform-action="notice" data-message="经营分析报告已准备导出。">导出分析</button><button class="btn primary" data-platform-action="notice" data-message="新的经营分析议题已创建。">+ 新增分析</button>`)}${renderWorkspaceSummary([{ label: "收入差异", value: "-1.4%", foot: "较BP", tone: "number-negative" }, { label: "毛利差异", value: "-0.5pp", foot: "较目标", tone: "number-negative" }, { label: "库存资金", value: "EUR 1.8M", foot: "高于目标 6%" }, { label: "开放行动", value: "7", foot: "本周到期 3项" }, { label: "重大经营议题", value: "2", foot: "需管理层决策" }])}<div class="workspace-grid">${renderWorkspacePanel("经营差异分析", "问题必须关联行动", table)}${renderWorkspacePanel("管理层摘要", "当前判断", focus)}</div></div>`;
+    }
+
+    function renderValueChainWorkspace() {
+      const summary = `<section class="workspace-summary-strip" aria-label="价值链模拟结果"><div class="workspace-summary-item"><div class="workspace-summary-label">消费者成交价</div><div class="workspace-summary-value" data-vc-output="consumer-price">--</div><div class="workspace-summary-foot">含税、促销后</div></div><div class="workspace-summary-item"><div class="workspace-summary-label">品牌净收入</div><div class="workspace-summary-value" data-vc-output="net-revenue">--</div><div class="workspace-summary-foot">扣税与渠道费用</div></div><div class="workspace-summary-item"><div class="workspace-summary-label">单位变动成本</div><div class="workspace-summary-value" data-vc-output="variable-cost">--</div><div class="workspace-summary-foot">产品、物流、售后、营销</div></div><div class="workspace-summary-item"><div class="workspace-summary-label">单位贡献利润</div><div class="workspace-summary-value" data-vc-output="contribution">--</div><div class="workspace-summary-foot">净收入减变动成本</div></div><div class="workspace-summary-item"><div class="workspace-summary-label">贡献利润率</div><div class="workspace-summary-value" data-vc-output="margin">--</div><div class="workspace-summary-foot">基于品牌净收入</div></div></section>`;
+      const controls = `<div class="value-chain-controls"><div class="value-chain-control"><label>产品</label><select><option>PX51 · MagPro Neo 10K</option><option>WAL101 · Fold Charger 100W</option><option>WM321 · 3-in-1 Station</option></select></div><div class="value-chain-control"><label>市场</label><select><option>德国</option><option>法国</option><option>意大利</option><option>西班牙</option></select></div><div class="value-chain-control"><label>建议零售价 EUR</label><input type="number" step="0.01" value="59.99" data-vc-input="rrp"></div><div class="value-chain-control"><label>促销折扣 %</label><input type="number" step="1" value="20" data-vc-input="discount"></div><div class="value-chain-control"><label>增值税 %</label><input type="number" step="0.1" value="19" data-vc-input="vat"></div><div class="value-chain-control"><label>渠道扣点 %</label><input type="number" step="0.1" value="15" data-vc-input="channel"></div><div class="value-chain-control"><label>产品成本 EUR</label><input type="number" step="0.01" value="12" data-vc-input="product"></div><div class="value-chain-control"><label>物流与关税 EUR</label><input type="number" step="0.01" value="3.2" data-vc-input="logistics"></div><div class="value-chain-control"><label>售后预提 EUR</label><input type="number" step="0.01" value="1.2" data-vc-input="warranty"></div><div class="value-chain-control"><label>单位营销投入 EUR</label><input type="number" step="0.01" value="4" data-vc-input="marketing"></div></div><div class="value-chain-presets"><button class="btn" data-vc-preset="base">BP基准</button><button class="btn" data-vc-preset="promo">促销方案</button><button class="btn" data-vc-preset="retail">零售渠道</button></div><div class="value-chain-note">所有结果按单件测算。正式接口建议从产品主数据读取成本，从市场主数据读取VAT，并从渠道协议读取扣点，手工输入只用于情景假设。</div>`;
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table value-chain-table"><thead><tr><th>价值链环节</th><th>单位金额</th><th>占品牌净收入</th><th>计算逻辑</th></tr></thead><tbody><tr><td><strong>建议零售价</strong></td><td data-vc-output="rrp">--</td><td>--</td><td>消费者标价，含VAT</td></tr><tr><td>促销折扣</td><td class="number-negative" data-vc-output="discount-value">--</td><td data-vc-output="discount-share">--</td><td>建议零售价 × 折扣率</td></tr><tr><td>增值税</td><td class="number-negative" data-vc-output="vat-value">--</td><td data-vc-output="vat-share">--</td><td>成交价中的VAT</td></tr><tr><td><strong>不含税消费者销售额</strong></td><td data-vc-output="net-consumer">--</td><td data-vc-output="net-consumer-share">--</td><td>成交价 ÷ (1 + VAT)</td></tr><tr><td>渠道扣点</td><td class="number-negative" data-vc-output="channel-value">--</td><td data-vc-output="channel-share">--</td><td>不含税销售额 × 渠道扣点</td></tr><tr class="value-chain-total"><td>品牌净收入</td><td data-vc-output="net-revenue">--</td><td>100.0%</td><td>不含税销售额 - 渠道扣点</td></tr><tr><td>产品成本</td><td class="number-negative" data-vc-output="product-value">--</td><td data-vc-output="product-share">--</td><td>采购或制造单位成本</td></tr><tr><td>物流与关税</td><td class="number-negative" data-vc-output="logistics-value">--</td><td data-vc-output="logistics-share">--</td><td>头程、关税、入仓与履约</td></tr><tr><td>售后预提</td><td class="number-negative" data-vc-output="warranty-value">--</td><td data-vc-output="warranty-share">--</td><td>退货、保修与损耗预提</td></tr><tr><td>营销投入</td><td class="number-negative" data-vc-output="marketing-value">--</td><td data-vc-output="marketing-share">--</td><td>单位分摊的活动与投放费用</td></tr><tr class="value-chain-total"><td>单位贡献利润</td><td data-vc-output="contribution">--</td><td data-vc-output="margin">--</td><td>品牌净收入 - 全部变动成本</td></tr></tbody></table></div>`;
+      const actions = `<button class="btn" data-platform-action="notice" data-message="情景对比视图已准备。">对比场景</button><button class="btn primary" data-platform-action="notice" data-message="当前价值链情景已保存为草稿。">保存场景</button>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("BUSINESS MANAGEMENT", "Value Chain Simulation", "单位经济性情景模拟", actions)}${summary}<div class="workspace-grid">${renderWorkspacePanel("价值链拆解", "EUR / unit", table)}${renderWorkspacePanel("情景参数", "修改后实时计算", controls)}</div></div>`;
+    }
+
+    function renderSettlementsWorkspace() {
+      const actions = `<button class="btn" data-platform-action="notice" data-message="客户结算台账已准备导出。">导出台账</button><button class="btn" data-platform-action="notice" data-message="已打开银行流水导入与匹配流程。">导入银行流水</button><button class="btn primary" data-platform-action="notice" data-message="新的客户结算记录草稿已创建。">+ 新建结算记录</button>`;
+      const filters = `<section class="filterbar" aria-label="客户结算台账筛选"><div class="control"><label>结算周期</label><select><option>2026年7月结算</option><option>2026年6月结算</option><option>2026年5月结算</option></select></div><div class="control"><label>客户</label><select><option>全部客户</option><option>Amazon EU Services</option><option>MediaMarkt</option><option>Fnac Darty</option><option>Unieuro</option></select></div><div class="control"><label>市场</label><select><option>全部市场</option><option>德国</option><option>法国</option><option>意大利</option><option>西班牙</option></select></div><div class="control"><label>结算状态</label><select><option>全部状态</option><option>待客户确认</option><option>待收款</option><option>待核销</option><option>结算完成</option><option>已逾期</option></select></div><div class="control"><label>账龄</label><select><option>全部账龄</option><option>未到期</option><option>1-30天</option><option>31-60天</option><option>60天以上</option></select></div></section>`;
+      const rows = [
+        ["STL-2026-0801", "MediaMarkt DE", "德国", "2026年7月", "EUR 428,600", "EUR 18,400", "EUR 410,200", "EUR 0", "8月15日", "对账完成", "blue"],
+        ["STL-2026-0802", "Amazon EU Services", "欧洲", "2026年7月", "EUR 612,800", "EUR 42,300", "EUR 500,000", "EUR 70,500", "8月20日", "待核销", "amber"],
+        ["STL-2026-0803", "Fnac Darty", "法国", "2026年7月", "EUR 286,400", "EUR 8,600", "EUR 277,800", "EUR 0", "8月12日", "结算完成", "green"],
+        ["STL-2026-0708", "Unieuro", "意大利", "2026年6月", "EUR 194,600", "EUR 21,500", "EUR 155,000", "EUR 18,100", "7月31日", "已逾期", "red"],
+        ["STL-2026-0804", "MediaMarkt ES", "西班牙", "2026年7月", "EUR 168,900", "EUR 6,200", "EUR 0", "EUR 162,700", "8月25日", "待客户确认", "amber"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table settlement-table"><thead><tr><th>结算单 / 客户</th><th>市场 / 账期</th><th>应结金额</th><th>扣款 / 差异</th><th>回款 / 未结</th><th>到期日</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong><small>${row[1]}</small></td><td><strong>${row[2]}</strong><small>${row[3]}</small></td><td>${row[4]}</td><td class="${row[5] !== "EUR 0" ? "number-negative" : ""}">${row[5]}</td><td><strong><span>已收</span> ${row[6]}</strong><small class="${row[7] !== "EUR 0" ? "number-negative" : "number-positive"}"><span>未结</span> ${row[7]}</small></td><td>${row[8]}</td><td>${renderWorkspaceStatus(row[9], row[10])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}结算详情。">查看</button></td></tr>`).join("")}</tbody></table></div>`;
+      const workflow = `<div class="workflow-line"><div class="workflow-step done"><span class="workflow-step-index">1</span><div><strong>账单生成</strong><small>按客户协议汇总出货、退货、返点与费用</small></div>${renderWorkspaceStatus("已完成", "green")}</div><div class="workflow-step active"><span class="workflow-step-index">2</span><div><strong>客户对账</strong><small>3个客户已确认，2个客户存在待处理差异</small></div>${renderWorkspaceStatus("进行中", "blue")}</div><div class="workflow-step"><span class="workflow-step-index">3</span><div><strong>差异确认</strong><small>扣款、返利和费用需关联依据与负责人</small></div>${renderWorkspaceStatus("2项待处理", "amber")}</div><div class="workflow-step"><span class="workflow-step-index">4</span><div><strong>回款核销</strong><small>银行流水按客户、币种和结算单自动匹配</small></div>${renderWorkspaceStatus("EUR 70.5K待核销", "amber")}</div><div class="workflow-step"><span class="workflow-step-index">5</span><div><strong>结算归档</strong><small>结算单、客户确认与差异依据统一留档</small></div>${renderWorkspaceStatus("待完成")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("BUSINESS MANAGEMENT", "结算台账", "客户结算与回款管理", actions)}${filters}${renderWorkspaceSummary([{ label: "本期应结", value: "EUR 1.69M", foot: "2026年7月账期" }, { label: "已收金额", value: "EUR 1.34M", foot: "到账率 79.5%", tone: "number-positive" }, { label: "未结金额", value: "EUR 251.3K", foot: "2个客户待结" }, { label: "逾期金额", value: "EUR 18.1K", foot: "Unieuro · 5天", tone: "number-negative" }, { label: "待核销", value: "EUR 70.5K", foot: "银行流水已到账" }])}<div class="workspace-grid settlement-grid">${renderWorkspacePanel("客户结算台账", "按应收账期和对账状态管理", table)}${renderWorkspacePanel("对账与结算流程", "从账单到归档", workflow)}</div></div>`;
+    }
+
+    function setValueChainOutput(key, value) {
+      document.querySelectorAll(`[data-vc-output="${key}"]`).forEach((node) => { node.textContent = value; });
+    }
+
+    function calculateValueChainFromDom() {
+      const inputs = Array.from(document.querySelectorAll("[data-vc-input]"));
+      if (!inputs.length) return;
+      const values = Object.fromEntries(inputs.map((input) => [input.getAttribute("data-vc-input"), Number(input.value || 0)]));
+      const rrp = Math.max(0, values.rrp);
+      const discountRate = Math.min(100, Math.max(0, values.discount)) / 100;
+      const vatRate = Math.max(0, values.vat) / 100;
+      const channelRate = Math.min(100, Math.max(0, values.channel)) / 100;
+      const consumerPrice = rrp * (1 - discountRate);
+      const discountValue = rrp - consumerPrice;
+      const netConsumer = consumerPrice / (1 + vatRate);
+      const vatValue = consumerPrice - netConsumer;
+      const channelValue = netConsumer * channelRate;
+      const netRevenue = netConsumer - channelValue;
+      const product = Math.max(0, values.product);
+      const logistics = Math.max(0, values.logistics);
+      const warranty = Math.max(0, values.warranty);
+      const marketing = Math.max(0, values.marketing);
+      const variableCost = product + logistics + warranty + marketing;
+      const contribution = netRevenue - variableCost;
+      const margin = netRevenue ? contribution / netRevenue * 100 : 0;
+      const money = (value) => `${value < 0 ? "-" : ""}EUR ${Math.abs(value).toFixed(2)}`;
+      const cost = (value) => `-EUR ${Math.abs(value).toFixed(2)}`;
+      const share = (value) => `${(netRevenue ? value / netRevenue * 100 : 0).toFixed(1)}%`;
+      setValueChainOutput("consumer-price", money(consumerPrice));
+      setValueChainOutput("variable-cost", money(variableCost));
+      setValueChainOutput("rrp", money(rrp));
+      setValueChainOutput("discount-value", cost(discountValue));
+      setValueChainOutput("discount-share", share(discountValue));
+      setValueChainOutput("vat-value", cost(vatValue));
+      setValueChainOutput("vat-share", share(vatValue));
+      setValueChainOutput("net-consumer", money(netConsumer));
+      setValueChainOutput("net-consumer-share", share(netConsumer));
+      setValueChainOutput("channel-value", cost(channelValue));
+      setValueChainOutput("channel-share", share(channelValue));
+      setValueChainOutput("net-revenue", money(netRevenue));
+      setValueChainOutput("product-value", cost(product));
+      setValueChainOutput("product-share", share(product));
+      setValueChainOutput("logistics-value", cost(logistics));
+      setValueChainOutput("logistics-share", share(logistics));
+      setValueChainOutput("warranty-value", cost(warranty));
+      setValueChainOutput("warranty-share", share(warranty));
+      setValueChainOutput("marketing-value", cost(marketing));
+      setValueChainOutput("marketing-share", share(marketing));
+      setValueChainOutput("contribution", money(contribution));
+      setValueChainOutput("margin", `${margin.toFixed(1)}%`);
+      document.querySelectorAll('[data-vc-output="contribution"], [data-vc-output="margin"]').forEach((node) => {
+        node.classList.toggle("number-negative", contribution < 0);
+        node.classList.toggle("number-positive", contribution >= 0);
+      });
+    }
+
+    function applyValueChainPreset(name) {
+      const presets = {
+        base: { rrp: 59.99, discount: 0, vat: 19, channel: 15, product: 12, logistics: 3.2, warranty: 1.2, marketing: 2.5 },
+        promo: { rrp: 59.99, discount: 20, vat: 19, channel: 15, product: 12, logistics: 3.2, warranty: 1.2, marketing: 4 },
+        retail: { rrp: 59.99, discount: 15, vat: 19, channel: 28, product: 12, logistics: 4.1, warranty: 1.5, marketing: 2 }
+      };
+      const preset = presets[name];
+      if (!preset) return;
+      Object.entries(preset).forEach(([key, value]) => {
+        const input = document.querySelector(`[data-vc-input="${key}"]`);
+        if (input) input.value = String(value);
+      });
+      calculateValueChainFromDom();
+    }
+
+    function renderMarketWorkspace() {
+      const rows = [
+        ["PX51 欧洲上市", "新品上市", "8月22日", "73%", "产品页待终审", "Sara", "风险", "red"],
+        ["WAL101 首批传播", "上市传播", "9月15日", "56%", "德语素材晚3天", "Lena", "预警", "amber"],
+        ["WM321 IFA 预热", "整合营销", "10月1日", "39%", "媒体名单确认中", "Sara", "正常", "green"],
+        ["Back to School", "零售促销", "8月18日", "92%", "门店素材已交付", "Lena", "正常", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>计划</th><th>类型</th><th>关键日期</th><th>准备度</th><th>当前事项</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${renderWorkspaceStatus(row[6], row[7])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}执行工作台。">打开</button></td></tr>`).join("")}</tbody></table></div>`;
+      const links = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>项目跟进</strong><small>接收上市日期、项目阶段与延期变化</small></div><button class="btn" data-module="projects">查看项目</button></div><div class="workspace-list-row"><div><strong>营销物料职能工作台</strong><small>维护文案、图片、视频与渠道交付状态</small></div><button class="btn" data-module="functions">进入职能页</button></div><div class="workspace-list-row"><div><strong>其他审批</strong><small>上市日期、首发预算和非月促事项统一审批</small></div><button class="btn" data-module="other-approvals">查看审批</button></div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("MARKET GROWTH", "新品上市", "新品上市与市场准备度", `<button class="btn primary" data-platform-action="notice" data-message="新品上市计划草稿已创建。">+ 新建上市计划</button>`)}${renderWorkspaceSummary([{ label: "进行中上市", value: "3", foot: "未来90天" }, { label: "未来30天上市", value: "1", foot: "PX51" }, { label: "平均准备度", value: "56%", foot: "跨职能汇总" }, { label: "上市阻塞", value: "2", foot: "质量与物料", tone: "number-negative" }, { label: "待审批", value: "2", foot: "日期与首发预算" }])}<div class="workspace-grid">${renderWorkspacePanel("新品上市组合", "项目日期与市场执行联动", table)}${renderWorkspacePanel("模块连接", "专业维护与项目监控分离", links)}</div></div>`;
+    }
+
+    function renderMarketCampaignWorkspace() {
+      const rows = [
+        ["Back to School", "DE / FR", "Retail", "8月10日 - 9月5日", "EUR 120K", "EUR 76K", "2.8", "Lena", "执行中", "blue"],
+        ["IFA新品预热", "欧洲", "PR / Social", "8月20日 - 9月8日", "EUR 85K", "EUR 32K", "--", "Sara", "准备中", "amber"],
+        ["Prime Fall Deal", "DE / IT / ES", "Amazon", "9月15日 - 9月22日", "EUR 160K", "EUR 0", "--", "Ivy", "待审批", "red"],
+        ["Qi2教育内容", "FR / ES", "DTC", "8月1日 - 8月31日", "EUR 42K", "EUR 31K", "3.4", "Claire", "正常", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>活动</th><th>市场</th><th>渠道</th><th>周期</th><th>预算</th><th>已花费</th><th>ROAS</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td><td>${renderWorkspaceStatus(row[8], row[9])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}活动工作台。">打开</button></td></tr>`).join("")}</tbody></table></div>`;
+      const flow = `<div class="workflow-line"><div class="workflow-step done"><span class="workflow-step-index">1</span><div><strong>活动立项</strong><small>目标、市场、产品和渠道确认</small></div>${renderWorkspaceStatus("已完成", "green")}</div><div class="workflow-step active"><span class="workflow-step-index">2</span><div><strong>方案与预算</strong><small>Prime Fall Deal等待审批</small></div>${renderWorkspaceStatus("进行中", "blue")}</div><div class="workflow-step"><span class="workflow-step-index">3</span><div><strong>物料与排期</strong><small>关联营销物料交付进度</small></div>${renderWorkspaceStatus("2项风险", "amber")}</div><div class="workflow-step"><span class="workflow-step-index">4</span><div><strong>上线与监测</strong><small>按市场和渠道回写实际效果</small></div>${renderWorkspaceStatus("2项执行")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("MARKET GROWTH", "营销活动", "活动计划、预算与效果", `<button class="btn primary" data-platform-action="notice" data-message="营销活动草稿已创建。">+ 新建营销活动</button>`)}${renderWorkspaceSummary([{ label: "进行中活动", value: "4", foot: "覆盖4个市场" }, { label: "活动总预算", value: "EUR 407K", foot: "本季度" }, { label: "预算使用", value: "34%", foot: "已花费 EUR 139K" }, { label: "平均ROAS", value: "3.1", foot: "已上线活动" }, { label: "待审批活动", value: "1", foot: "影响9月排期", tone: "number-negative" }])}<div class="workspace-grid">${renderWorkspacePanel("营销活动组合", "计划与实际效果", table)}${renderWorkspacePanel("活动执行流程", "从立项到复盘", flow)}</div></div>`;
+    }
+
+    function renderMarketAssetsWorkspace() {
+      const rows = [
+        ["PX51 首发物料包", "PX51", "Amazon / Retail", "DE / FR / IT / ES", "18/24", "8月12日", "Lena", "风险", "red"],
+        ["WAL101 产品页", "WAL101", "DTC / Retail", "DE / FR", "9/12", "8月18日", "Sara", "预警", "amber"],
+        ["WM321 IFA媒体包", "WM321", "PR / Social", "EN / DE", "7/10", "9月5日", "Lena", "制作中", "blue"],
+        ["Back to School门店包", "多SKU", "Retail", "DE / FR / ES", "30/30", "8月7日", "Claire", "已交付", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>物料包</th><th>关联产品</th><th>渠道</th><th>语言 / 市场</th><th>完成项</th><th>交付日期</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${renderWorkspaceStatus(row[7], row[8])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}物料明细。">打开</button></td></tr>`).join("")}</tbody></table></div>`;
+      const bottlenecks = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>PX51 德语视频</strong><small>等待质量声明最终版本，影响Amazon首发。</small></div>${renderWorkspaceStatus("晚3天", "red")}</div><div class="workspace-list-row"><div><strong>WAL101 法语A+页面</strong><small>本地化审核尚未完成。</small></div>${renderWorkspaceStatus("8月9日", "amber")}</div><div class="workspace-list-row"><div><strong>WM321 媒体样片</strong><small>样机将在8月14日送达拍摄团队。</small></div>${renderWorkspaceStatus("按计划", "green")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("MARKET GROWTH", "营销物料", "多语言、多渠道制作与交付", `<button class="btn" data-platform-action="notice" data-message="物料交付模板已准备导出。">导出清单</button><button class="btn primary" data-platform-action="notice" data-message="营销物料包草稿已创建。">+ 新建物料包</button>`)}${renderWorkspaceSummary([{ label: "开放物料包", value: "4", foot: "共76项物料" }, { label: "整体完成率", value: "84%", foot: "64/76项" }, { label: "未来7天交付", value: "18", foot: "涉及3个项目" }, { label: "已逾期", value: "3", foot: "影响PX51首发", tone: "number-negative" }, { label: "待审核", value: "7", foot: "本地化与合规" }])}<div class="workspace-grid">${renderWorkspacePanel("营销物料交付", "按物料包管理", table)}${renderWorkspacePanel("当前卡点", "影响上市与活动", bottlenecks)}</div></div>`;
+    }
+
+    function renderPromoApprovalsWorkspace() {
+      const rows = [
+        ["PROMO-2026-09-DE", "德国9月月促", "DE", "EUR 420K", "18%", "34.2%", "3.1", "Ivy", "待我审批", "red"],
+        ["PROMO-2026-09-FR", "法国9月月促", "FR", "EUR 280K", "15%", "36.8%", "3.4", "Claire", "会签中", "amber"],
+        ["PROMO-2026-09-IT", "意大利9月月促", "IT", "EUR 170K", "22%", "29.1%", "2.2", "Luca", "待补充", "red"],
+        ["PROMO-2026-09-ES", "西班牙9月月促", "ES", "EUR 150K", "16%", "33.7%", "2.9", "Ana", "已通过", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>审批单</th><th>月度促销计划</th><th>市场</th><th>预测收入</th><th>平均折扣</th><th>贡献利润率</th><th>预计ROAS</th><th>申请人</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row[0]}</td><td><strong>${row[1]}</strong></td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td class="${Number.parseFloat(row[5]) < 30 ? "number-negative" : ""}">${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td><td>${renderWorkspaceStatus(row[8], row[9])}</td><td><button class="btn primary" data-platform-action="notice" data-message="已打开${row[1]}审批详情。">处理</button></td></tr>`).join("")}</tbody></table></div>`;
+      const checks = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>价格与折扣</strong><small>检查渠道成交价、历史最低价和价格体系影响。</small></div>${renderWorkspaceStatus("自动校验", "green")}</div><div class="workspace-list-row"><div><strong>价值链与利润</strong><small>调用Value Chain Simulation验证贡献利润率。</small></div><button class="btn" data-module="value-chain">模拟</button></div><div class="workspace-list-row"><div><strong>供应与库存</strong><small>检查活动需求、可售库存和物流交付风险。</small></div><button class="btn" data-module="sales">查看产销</button></div><div class="workspace-list-row"><div><strong>活动与物料</strong><small>确认活动排期和物料交付准备度。</small></div><button class="btn" data-module="market-campaign">查看活动</button></div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("COLLABORATION CENTER", "月度促销审批", "2026年9月促销审批周期", `<button class="btn" data-platform-action="notice" data-message="月度促销审批汇总已准备导出。">导出审批汇总</button>`)}${renderWorkspaceSummary([{ label: "待我审批", value: "2", foot: "德国与意大利" }, { label: "本月申请", value: "4", foot: "覆盖4个市场" }, { label: "预测收入", value: "EUR 1.02M", foot: "全部月促计划" }, { label: "利润率风险", value: "1", foot: "意大利低于30%", tone: "number-negative" }, { label: "最晚完成", value: "8月10日", foot: "活动排期锁定前" }])}<div class="workspace-grid">${renderWorkspacePanel("月度促销审批单", "按市场汇总", table)}${renderWorkspacePanel("审批检查项", "跨模块自动关联", checks)}</div></div>`;
+    }
+
+    function renderOtherApprovalsWorkspace() {
+      const rows = [
+        ["APR-260805-04", "8月滚动预测共识", "预测管理", "Ivy", "今天 16:00", "高", "待我审批", "red"],
+        ["APR-260805-03", "PX51 供应计划临时调整", "产销管理", "Owen", "今天 18:00", "高", "待我审批", "red"],
+        ["APR-260804-12", "WAL101 上市日期变更", "项目跟进", "Ivy", "8月6日", "中", "会签中", "amber"],
+        ["APR-260804-08", "波兰仓加急空运", "物流交付", "Nina", "8月7日", "中", "待我审批", "blue"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>审批编号</th><th>事项</th><th>来源</th><th>申请人</th><th>截止</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row[0]}</td><td><strong>${row[1]}</strong></td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${renderWorkspaceStatus(row[6], row[7])}</td><td><button class="btn primary" data-platform-action="notice" data-message="已打开${row[0]}审批详情。">处理</button></td></tr>`).join("")}</tbody></table></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("COLLABORATION CENTER", "其他审批", "非促销类跨模块审批")}${renderWorkspaceSummary([{ label: "待我审批", value: "3", foot: "高优先级 2项" }, { label: "即将超时", value: "1", foot: "剩余 3小时", tone: "number-negative" }, { label: "本周已处理", value: "12", foot: "平均 6.2小时" }, { label: "会签中", value: "3", foot: "等待其他审批人" }])}${renderWorkspacePanel("其他审批队列", "按优先级与截止时间排序", table)}</div>`;
+    }
+
+    function renderTasksWorkspace() {
+      const rows = [
+        ["更新8月销售预测", "预测管理", "销售", "今天 18:00", "进行中", "blue", "forecast"],
+        ["复核PX51测试整改", "项目跟进", "质量", "8月8日", "阻塞", "red", "projects"],
+        ["确认SHP-EU-260812新ETA", "物流交付", "供应链", "今天 16:00", "待处理", "amber", "logistics"],
+        ["批准供应计划临时调整", "其他审批", "管理", "今天 18:00", "待审批", "red", "other-approvals"],
+        ["关闭WAL101德语物料差异", "市场增长 · 营销物料", "营销", "8月9日", "待处理", "amber", "market-assets"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>待办事项</th><th>来源模块</th><th>责任职能</th><th>截止时间</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${renderWorkspaceStatus(row[4], row[5])}</td><td><button class="btn" data-module="${row[6]}">进入处理</button></td></tr>`).join("")}</tbody></table></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("COLLABORATION CENTER", "我的待办", "跨模块个人执行清单")}${renderWorkspaceSummary([{ label: "全部待办", value: "9", foot: "来自 6个模块" }, { label: "今天到期", value: "3", foot: "1项高优先级", tone: "number-negative" }, { label: "已阻塞", value: "1", foot: "等待质量整改" }, { label: "本周完成", value: "11", foot: "按时完成率 91%" }])}${renderWorkspacePanel("我的执行队列", "按截止时间排序", table)}</div>`;
+    }
+
+    function renderExceptionsWorkspace() {
+      const rows = [
+        ["EX-260805-12", "项目跟进", "PX51 质量验证阻塞", "影响试产与上市日期", "Marta", "重大", "red", "projects"],
+        ["EX-260805-09", "产销管理", "PX51 8月EOH为负", "首批供应低于预测1.6K", "Owen", "重大", "red", "sales"],
+        ["EX-260805-07", "物流交付", "波兰仓ETA晚3天", "可能影响首批上架", "Nina", "高", "amber", "logistics"],
+        ["EX-260804-18", "营销物料", "WAL101德语素材延迟", "发布排期晚3天", "Lena", "高", "amber", "market-assets"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>异常编号</th><th>来源</th><th>异常</th><th>业务影响</th><th>负责人</th><th>等级</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row[0]}</td><td>${row[1]}</td><td><strong>${row[2]}</strong></td><td>${row[3]}</td><td>${row[4]}</td><td>${renderWorkspaceStatus(row[5], row[6])}</td><td><button class="btn" data-module="${row[7]}">定位</button></td></tr>`).join("")}</tbody></table></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("COLLABORATION CENTER", "异常中心", "跨模块风险与升级入口", `<button class="btn" data-platform-action="notice" data-message="异常周报已准备导出。">导出异常周报</button>`)}${renderWorkspaceSummary([{ label: "开放异常", value: "12", foot: "跨 5个模块" }, { label: "重大风险", value: "4", foot: "需今日决策", tone: "number-negative" }, { label: "已超时", value: "2", foot: "超过承诺时间", tone: "number-negative" }, { label: "本周关闭", value: "7", foot: "平均 2.3天" }])}${renderWorkspacePanel("异常队列", "按业务影响排序", table)}</div>`;
+    }
+
+    function prototypeWorkspaceProjects() {
+      const filters = { search: "", health: "All", stage: "All", owner: "All", ...(projectState.prototypeFilters || {}) };
+      projectState.prototypeFilters = filters;
+      const keyword = String(filters.search || "").trim().toLowerCase();
+      return projectState.projects
+        .filter((project) => projectMatchesPortfolioScope(project, "current"))
+        .filter((project) => {
+          const stream = projectWorkstreamView(project, "prototype");
+          if (!stream) return false;
+          if (keyword && !`${project.model} ${project.name} ${stream.owner} ${projectText(stream.blocker)}`.toLowerCase().includes(keyword)) return false;
+          if (filters.health !== "All" && stream.health !== filters.health.toLowerCase()) return false;
+          if (filters.stage !== "All" && project.stage !== filters.stage) return false;
+          if (filters.owner !== "All" && stream.owner !== filters.owner) return false;
+          return true;
+        })
+        .sort((a, b) => healthRank(projectWorkstreamView(a, "prototype").health) - healthRank(projectWorkstreamView(b, "prototype").health));
+    }
+
+    function prototypeCurrentTask(stream) {
+      const tasks = stream?.tasks || [];
+      return tasks.find((task) => task.status === "Blocked")
+        || tasks.find((task) => task.status === "In Progress")
+        || tasks.find((task) => task.status === "In Review")
+        || tasks.find((task) => task.status !== "Completed")
+        || tasks[tasks.length - 1]
+        || null;
+    }
+
+    function prototypeTaskTone(status) {
+      return status === "Blocked" ? "red" : status === "Completed" ? "green" : status === "In Progress" || status === "In Review" ? "blue" : "amber";
+    }
+
+    function renderPrototypeManagementWorkspace() {
+      const allProjects = projectState.projects.filter((project) => projectMatchesPortfolioScope(project, "current") && project.workstreams?.prototype);
+      const projects = prototypeWorkspaceProjects();
+      const filters = { search: "", health: "All", stage: "All", owner: "All", ...(projectState.prototypeFilters || {}) };
+      projectState.prototypeFilters = filters;
+      const stages = ["All", ...Array.from(new Set(allProjects.map((project) => project.stage)))];
+      const owners = ["All", ...Array.from(new Set(allProjects.map((project) => projectWorkstreamView(project, "prototype").owner)))];
+      const tasks = allProjects.flatMap((project) => (projectWorkstreamView(project, "prototype").tasks || []).map((task) => ({ ...task, project })));
+      const openTasks = tasks.filter((task) => task.status !== "Completed");
+      const blockedTasks = tasks.filter((task) => task.status === "Blocked");
+      const riskProjects = allProjects.filter((project) => ["red", "amber"].includes(projectWorkstreamView(project, "prototype").health));
+      const ready = allProjects.reduce((sum, project) => sum + Number(projectWorkstreamView(project, "prototype").done || 0), 0);
+      const required = allProjects.reduce((sum, project) => sum + Number(projectWorkstreamView(project, "prototype").total || 0), 0);
+      const readiness = required ? Math.round(ready / required * 100) : 0;
+      const referenceDate = new Date("2026-08-05T00:00:00");
+      const upcoming = openTasks.filter((task) => {
+        const dueValue = task.dueISO || projectDueToISO(task.due);
+        const due = new Date(`${dueValue}T00:00:00`);
+        const days = Math.ceil((due - referenceDate) / 86400000);
+        return days >= 0 && days <= 7;
+      }).sort((a, b) => String(a.dueISO || projectDueToISO(a.due)).localeCompare(String(b.dueISO || projectDueToISO(b.due))));
+
+      const actions = `<button class="btn" data-module="functions">返回职能工作台</button><button class="btn" data-project-action="export-prototypes">导出样机台账</button><button class="btn primary" data-module="projects">打开项目跟进</button>`;
+      const filterBar = `<section class="prototype-filter-bar" aria-label="样机管理筛选"><div class="prototype-filter-field"><label>搜索项目</label><input id="prototypeSearch" data-prototype-filter="search" value="${escapeProjectHtml(filters.search || "")}" placeholder="型号、项目或负责人"></div><div class="prototype-filter-field"><label>健康状态</label><select data-prototype-filter="health">${["All", "Red", "Amber", "Green", "Grey"].map((value) => `<option value="${value}" ${filters.health === value ? "selected" : ""}>${value === "All" ? "全部" : projectHealthLabel(value.toLowerCase())}</option>`).join("")}</select></div><div class="prototype-filter-field"><label>项目阶段</label><select data-prototype-filter="stage">${stages.map((value) => `<option value="${value}" ${filters.stage === value ? "selected" : ""}>${value === "All" ? "全部" : projectStageLabel(value)}</option>`).join("")}</select></div><div class="prototype-filter-field"><label>样机负责人</label><select data-prototype-filter="owner">${owners.map((value) => `<option value="${value}" ${filters.owner === value ? "selected" : ""}>${value === "All" ? "全部" : escapeProjectHtml(value)}</option>`).join("")}</select></div><button class="btn" data-project-action="reset-prototype-filters">重置</button></section>`;
+
+      const rows = projects.map((project) => {
+        const stream = projectWorkstreamView(project, "prototype");
+        const task = prototypeCurrentTask(stream);
+        const percent = stream.total ? Math.min(100, Math.round(stream.done / stream.total * 100)) : 0;
+        const blocker = projectText(stream.blocker || "");
+        const nextAction = stream.nextAction ? renderProjectUserContent(stream.nextAction) : activeLocale === "en-GB" ? "Next action required" : "待补充下一步";
+        const onTrack = activeLocale === "en-GB" ? "On schedule" : "按计划推进";
+        return `<tr><td><strong>${project.model}</strong><small>${project.name}</small></td><td><strong>${projectStageLabel(project.stage)}</strong><small>${activeLocale === "en-GB" ? "Launch" : "上市"} ${projectISODateLabel(project.launchDate)}</small></td><td><div class="prototype-readiness"><div class="prototype-progress"><span style="width:${percent}%"></span></div><strong>${stream.done}/${stream.total}</strong></div><small>${percent}%</small></td><td>${renderWorkspaceStatus(projectHealthLabel(stream.health), stream.health)}</td><td>${task ? `<strong>${projectText(task.name)}</strong><small>${projectStatusLabel(task.status)}</small>` : `<span class="permission-note">暂无任务</span>`}</td><td><strong>${projectDateLabel(task?.due || stream.due)}</strong><small>${task?.owner || stream.owner}</small></td><td>${blocker ? `<strong class="number-negative">${renderProjectUserContent(blocker)}</strong><small>${nextAction}</small>` : `<strong>无开放阻塞</strong><small>${stream.nextAction ? renderProjectUserContent(stream.nextAction) : onTrack}</small>`}</td><td><div class="prototype-actions"><button class="btn" data-project-action="open-workstream" data-project-id="${project.id}" data-workstream="prototype">查看</button>${canEditProjectWorkstream("prototype", project.id) ? `<button class="btn primary" data-project-action="edit-workstream" data-project-id="${project.id}" data-workstream="prototype">更新</button>` : ""}</div></td></tr>`;
+      }).join("");
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table prototype-table"><thead><tr><th>项目 / 产品</th><th>阶段 / 上市</th><th>样机准备度</th><th>健康状态</th><th>当前样机任务</th><th>截止 / 负责人</th><th>风险 / 下一步</th><th>操作</th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="exception-empty">没有符合筛选条件的样机项目。</td></tr>`}</tbody></table></div>`;
+      const queueRows = upcoming.slice(0, 6).map((task) => `<div class="prototype-task-row"><div><strong>${task.project.model} · ${projectText(task.name)}</strong><small>${task.owner} · ${projectDateLabel(task.due)} · ${projectStatusLabel(task.status)}</small></div><button class="btn" data-project-action="open-workstream" data-project-id="${task.project.id}" data-workstream="prototype">处理</button></div>`).join("");
+      const queue = `<div class="prototype-task-list">${queueRows || `<div class="exception-empty">未来7天没有待完成样机任务。</div>`}</div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("PROFESSIONAL WORKSPACES", "样机管理", "项目样机工作流统一维护", actions)}${filterBar}${renderWorkspaceSummary([{ label: "样机项目", value: String(allProjects.length), foot: "当前项目组合" }, { label: "整体准备度", value: `${readiness}%`, foot: `${ready}/${required}项完成` }, { label: "开放任务", value: String(openTasks.length), foot: "项目样机工作流" }, { label: "未来7天到期", value: String(upcoming.length), foot: "需要确认交付" }, { label: "风险项目", value: String(riskProjects.length), foot: `${blockedTasks.length}项任务阻塞`, tone: riskProjects.length ? "number-negative" : "number-positive" }])}<div class="prototype-workspace-grid">${renderWorkspacePanel("项目样机台账", `当前筛选 ${projects.length} 个项目`, table)}${renderWorkspacePanel("临期样机任务", "未来7天", queue)}</div></div>`;
+    }
+
+    function renderFunctionsWorkspace() {
+      const rows = [
+        ["研发准备", "研发与工程", "DVT / EVT / 设计冻结", "Leo", "3", "正常", "green", "projects"],
+        ["样机管理", "样机与测试", "申请、借用、寄送和归还", "Evan", "5", "预警", "amber", "prototype-management"],
+        ["质量验证", "质量", "测试计划、问题与CAPA", "Marta", "2", "风险", "red", "projects"],
+        ["供应执行", "供应链", "首批、排产、交付与库存", "Owen", "4", "预警", "amber", "sales"],
+        ["营销物料", "市场", "文案、图片、视频和渠道交付", "Lena", "3", "预警", "amber", "market-assets"],
+        ["销售准备", "销售", "预测、渠道清单和上市准备", "Ivy", "2", "正常", "green", "forecast"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table"><thead><tr><th>职能工作台</th><th>归属</th><th>专业数据</th><th>负责人</th><th>待处理</th><th>状态</th><th>入口</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${renderWorkspaceStatus(row[5], row[6])}</td><td><button class="btn" data-module="${row[7]}">进入</button></td></tr>`).join("")}</tbody></table></div>`;
+      const principle = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>职能工作台负责维护</strong><small>各部门维护专业明细、附件、问题和交付记录。</small></div>${renderWorkspaceStatus("数据源")}</div><div class="workspace-list-row"><div><strong>项目跟进负责监控</strong><small>项目页只汇总准备度、关键卡点与时间影响。</small></div>${renderWorkspaceStatus("控制塔", "blue")}</div><div class="workspace-list-row"><div><strong>审批中心负责决策</strong><small>需要授权、变更或跨部门确认的事项统一进入审批。</small></div>${renderWorkspaceStatus("决策入口", "green")}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("PROFESSIONAL WORKSPACES", "职能工作台", "专业数据维护入口")}${renderWorkspaceSummary([{ label: "职能工作台", value: "6", foot: "当前规划范围" }, { label: "待处理事项", value: "19", foot: "各部门合计" }, { label: "项目阻塞", value: "4", foot: "已同步项目跟进", tone: "number-negative" }, { label: "数据同步", value: "5/6", foot: "物流接口测试中" }])}<div class="workspace-grid">${renderWorkspacePanel("职能入口", "按数据责任归属", table)}${renderWorkspacePanel("模块定位", "维护、监控与决策分层", principle)}</div></div>`;
+    }
+
+    function renderSystemWorkspace() {
+      const rows = [
+        ["计划与交付", "项目 / 产销 / 预测 / 物流", "4", "3已连接 · 1测试中", "启用", "green"],
+        ["经营管理", "经营总览 / BP达成 / 经营分析 / 价值链模拟 / 结算台账", "5", "模拟器与结算台账测试中", "规划中", "amber"],
+        ["市场增长", "新品上市 / 营销活动 / 营销物料", "3", "结构测试", "规划中", "amber"],
+        ["协同中心", "月促审批 / 其他审批 / 待办 / 异常", "4", "统一任务模型待接入", "结构测试", "blue"],
+        ["专业与管理", "职能工作台 / 样机管理 / 系统管理", "3", "样机工作流与项目已连接", "启用", "green"]
+      ];
+      const table = `<div class="workspace-table-wrap"><table class="workspace-table module-registry-table"><thead><tr><th>模块域</th><th>子模块</th><th>数量</th><th>连接状态</th><th>阶段</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${renderWorkspaceStatus(row[4], row[5])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}模块配置。">配置</button></td></tr>`).join("")}</tbody></table></div>`;
+      const settings = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>账号与权限</strong><small>精确邮箱授权、角色和数据范围</small></div><button class="btn primary" data-project-action="permissions">权限管理</button></div><div class="workspace-list-row"><div><strong>主数据管理</strong><small>SKU、市场、渠道、仓库和组织</small></div><button class="btn" data-platform-action="notice" data-message="主数据管理将在接口阶段接入。">规划</button></div><div class="workspace-list-row"><div><strong>接口与同步</strong><small>Supabase、ERP、物流和业务数据源</small></div><button class="btn" data-platform-action="notice" data-message="接口状态页面将在下一阶段接入。">查看</button></div><div class="workspace-list-row"><div><strong>审计日志</strong><small>查看数据修改、审批和权限变更记录</small></div><button class="btn" data-platform-action="notice" data-message="审计日志结构已保留。">查看</button></div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("SYSTEM MANAGEMENT", "系统管理", "总管理员可见")}${renderWorkspaceSummary([{ label: "平台模块", value: "19", foot: "5个业务域" }, { label: "活跃账号", value: "6", foot: "精确邮箱授权" }, { label: "已连接数据源", value: "3", foot: "Supabase与业务数据" }, { label: "待接接口", value: "5", foot: "ERP、财务、银行、物流" }])}<div class="workspace-grid">${renderWorkspacePanel("模块注册表", "平台结构测试", table)}${renderWorkspacePanel("平台配置", "统一治理入口", settings)}</div></div>`;
+    }
+
+    function renderWorkspaceModule(moduleKey) {
+      const root = document.getElementById("workspaceModule");
+      if (!root) return;
+      const renderers = {
+        home: renderHomeWorkspace,
+        forecast: renderForecastWorkspace,
+        logistics: renderLogisticsWorkspace,
+        "business-overview": renderBusinessWorkspace,
+        "business-bp": renderBusinessBpWorkspace,
+        "business-analysis": renderBusinessAnalysisWorkspace,
+        "value-chain": renderValueChainWorkspace,
+        settlements: renderSettlementsWorkspace,
+        "market-launch": renderMarketWorkspace,
+        "market-campaign": renderMarketCampaignWorkspace,
+        "market-assets": renderMarketAssetsWorkspace,
+        "promo-approvals": renderPromoApprovalsWorkspace,
+        "other-approvals": renderOtherApprovalsWorkspace,
+        tasks: renderTasksWorkspace,
+        exceptions: renderExceptionsWorkspace,
+        functions: renderFunctionsWorkspace,
+        "prototype-management": renderPrototypeManagementWorkspace,
+        system: renderSystemWorkspace
+      };
+      root.innerHTML = (renderers[moduleKey] || renderHomeWorkspace)();
+      if (moduleKey === "value-chain") calculateValueChainFromDom();
+    }
+
     function renderApp() {
+      if (!canAccessModuleForUser(activeModule)) activeModule = "home";
       const salesModule = document.getElementById("salesModule");
       const projectModule = document.getElementById("projectModule");
+      const workspaceModule = document.getElementById("workspaceModule");
       const isSales = activeModule === "sales";
+      const isProjects = activeModule === "projects";
+      const isWorkspace = !isSales && !isProjects;
+      const activeMeta = PLATFORM_MODULES[activeModule] || PLATFORM_MODULES.home;
       syncSalesAccessFromToolUser();
       renderToolAccessControls();
       salesModule.hidden = !isSales;
-      projectModule.hidden = isSales;
-      document.querySelectorAll("[data-module]").forEach((button) => {
+      projectModule.hidden = !isProjects;
+      workspaceModule.hidden = !isWorkspace;
+      const context = document.getElementById("platformContext");
+      if (context) context.innerHTML = `<strong>${activeMeta.group} / ${activeMeta.label}</strong><span>${activeMeta.subtitle}</span>`;
+      document.querySelectorAll(".platform-nav-item[data-module]").forEach((button) => {
+        button.hidden = !canAccessModuleForUser(button.getAttribute("data-module"));
         const active = button.getAttribute("data-module") === activeModule;
         button.classList.toggle("active", active);
         button.setAttribute("aria-pressed", String(active));
+      });
+      document.querySelectorAll(".admin-only").forEach((node) => {
+        node.hidden = !canAccessSystemManagement();
       });
       const alertCount = projectExceptionRows(projectState.projects.filter((project) => projectMatchesPortfolioScope(project, "current"))).filter((item) => item.health === "red").length;
       document.getElementById("projectAlertCount").textContent = String(alertCount);
       if (isSales) {
         render();
         renderProjectDrawer(null);
-      } else {
+      } else if (isProjects) {
         state.modal = null;
         renderModal();
         renderProjectModule();
+      } else {
+        state.modal = null;
+        renderModal();
+        renderProjectDrawer(null);
+        renderWorkspaceModule(activeModule);
       }
+      window.operationsI18n?.apply(document.body);
     }
 
     function healthRank(health) {
@@ -5609,9 +7346,14 @@
       const firstBatch = projectFirstBatchData(project);
       if (!firstBatch) return stream;
       const effectiveHealth = healthRank(firstBatch.health) < healthRank(stream.health) ? firstBatch.health : stream.health;
+      const firstBatchMonth = activeLocale === "en-GB"
+        ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${firstBatch.month}-01T00:00:00Z`))
+        : firstBatch.monthShort;
       const firstBatchIssue = firstBatch.health === "green"
         ? ""
-        : `首批${firstBatch.monthShort}：预测${compact(firstBatch.demand)}，供应${compact(firstBatch.supply)}，供需差 ${signed(firstBatch.gap)}`;
+        : activeLocale === "en-GB"
+          ? `First Batch ${firstBatchMonth}: forecast ${compact(firstBatch.demand)}, supply ${compact(firstBatch.supply)}, gap ${signed(firstBatch.gap)}`
+          : `首批${firstBatch.monthShort}：预测${compact(firstBatch.demand)}，供应${compact(firstBatch.supply)}，供需差 ${signed(firstBatch.gap)}`;
       return {
         ...stream,
         health: effectiveHealth,
@@ -5696,7 +7438,7 @@
           <div class="header-actions">
             <span class="status-pill"><span class="dot"></span>${projectText(projectState.syncedAt)}已同步</span>
             <div class="toolbar">
-              ${currentProjectUser()?.role === "super_admin" ? `<button class="btn primary" data-project-action="add-project">+ 新增项目</button>` : ""}
+              ${canCreateProjects() ? `<button class="btn primary" data-project-action="add-project">+ 新增项目</button>` : ""}
               <button class="btn" data-project-action="project-ledger">项目台账</button>
               <button class="btn" data-project-action="export">导出</button>
               <button class="btn" data-project-action="sync" ${projectState.syncing ? "disabled" : ""}>${projectState.syncing ? "同步中..." : "同步子模块"}</button>
@@ -5803,7 +7545,7 @@
                   <span class="health-label"><span class="health-dot ${row.health}"></span>${row.workstreamLabel}</span>
                   <span class="exception-month">${projectDateLabel(row.due)}</span>
                 </span>
-                <span class="project-exception-title">${row.model} · ${projectText(row.issue)}</span>
+                <span class="project-exception-title">${row.model} · ${renderProjectUserContent(projectText(row.issue))}</span>
                 <span class="project-exception-copy">${row.projectName}</span>
                 <span class="project-exception-foot"><span>负责人 ${row.owner}</span><span>${row.health === "red" ? "阻塞" : "预警"}</span></span>
               </button>
@@ -5851,26 +7593,31 @@
       const metrics = projectMetrics(project);
       const lifecycle = projectLifecycleMeta(project);
       const stageProgress = Math.round(((project.gateIndex + 1) / PROJECT_GATES.length) * 100);
+      const ownerLabel = activeLocale === "en-GB" ? "Owner" : "负责人";
+      const delayLabel = activeLocale === "en-GB" ? "delays" : "延期";
+      const originalLabel = activeLocale === "en-GB" ? "Original" : "原";
+      const phaseLabel = activeLocale === "en-GB" ? "Phase" : "阶段";
+      const readinessLabel = activeLocale === "en-GB" ? "Readiness" : "准备度";
       return `
         <tr>
           <td class="project-col">
             <button class="project-link" data-project-action="open-project" data-project-id="${project.id}">
               <span class="sku-main">${project.model} · ${project.name}</span>
-              <span class="project-owner">${projectText(project.category)} · 负责人 ${project.owner}${project.projectStatus !== "active" ? `<span class="lifecycle-inline ${lifecycle.tone}"> · ${lifecycle.label}</span>` : ""}${project.delayRecords?.length ? `<span class="timeline-inline"> · V${project.timelineVersion} / 延期${project.delayRecords.length}</span>` : ""}</span>
+              <span class="project-owner">${projectText(project.category)} · ${ownerLabel} ${project.owner}${project.projectStatus !== "active" ? `<span class="lifecycle-inline ${lifecycle.tone}"> · ${lifecycle.label}</span>` : ""}${project.delayRecords?.length ? `<span class="timeline-inline"> · V${project.timelineVersion} / ${project.delayRecords.length} ${delayLabel}</span>` : ""}</span>
             </button>
           </td>
-          <td class="launch-col"><span class="launch-date-stack"><span>${project.launchDate.slice(5)}</span>${project.originalLaunchDate && project.originalLaunchDate !== project.launchDate ? `<span class="date-original">原 ${project.originalLaunchDate.slice(5)}</span>` : ""}</span></td>
+          <td class="launch-col"><span class="launch-date-stack"><span>${project.launchDate.slice(5)}</span>${project.originalLaunchDate && project.originalLaunchDate !== project.launchDate ? `<span class="date-original">${originalLabel} ${project.originalLaunchDate.slice(5)}</span>` : ""}</span></td>
           <td class="stage-col">
             <div class="stage-cell">
               <span class="stage-name">${projectStageLabel(project.stage)}</span>
               <span class="stage-progress"><span style="width:${stageProgress}%"></span></span>
-              <span class="ws-meta">阶段 ${project.gateIndex + 1}/${PROJECT_GATES.length}</span>
+              <span class="ws-meta">${phaseLabel} ${project.gateIndex + 1}/${PROJECT_GATES.length}</span>
             </div>
           </td>
           <td class="health-col">
             <div class="overall-health">
               <span class="health-label"><span class="health-dot ${metrics.health}"></span>${projectHealthLabel(metrics.health)}</span>
-              <span class="readiness-value">准备度 ${metrics.readiness}%</span>
+              <span class="readiness-value">${readinessLabel} ${metrics.readiness}%</span>
             </div>
           </td>
           ${PROJECT_WORKSTREAMS.map((meta) => renderWorkstreamCell(project, meta)).join("")}
@@ -5886,11 +7633,14 @@
     function renderWorkstreamCell(project, meta) {
       const stream = projectWorkstreamView(project, meta.key);
       const alertCount = stream.tasks.filter((task) => task.status === "Blocked").length;
+      const ariaLabel = activeLocale === "en-GB"
+        ? `${project.model} ${projectWorkstreamLabel(meta.key)}: ${projectHealthLabel(stream.health)}, completed ${stream.done}/${stream.total}${stream.firstBatch ? `, First Batch forecast ${stream.firstBatch.demand}, supply ${stream.firstBatch.supply}` : ""}`
+        : `${project.model} ${meta.label}：${projectHealthLabel(stream.health)}，完成${stream.done}/${stream.total}${stream.firstBatch ? `，首批预测${stream.firstBatch.demand}，供应${stream.firstBatch.supply}` : ""}`;
       return `<td>
-        <button class="ws-cell ${stream.health}${stream.firstBatch ? " has-first-batch" : ""}" data-project-action="open-workstream" data-project-id="${project.id}" data-workstream="${meta.key}" aria-label="${project.model} ${meta.label}：${projectHealthLabel(stream.health)}，完成${stream.done}/${stream.total}${stream.firstBatch ? `，首批预测${stream.firstBatch.demand}，供应${stream.firstBatch.supply}` : ""}">
+        <button class="ws-cell ${stream.health}${stream.firstBatch ? " has-first-batch" : ""}" data-project-action="open-workstream" data-project-id="${project.id}" data-workstream="${meta.key}" aria-label="${ariaLabel}">
           <span class="ws-main"><span class="ws-count">${stream.done}/${stream.total}</span></span>
           <span class="ws-meta"><span title="${stream.baselineDueISO && stream.baselineDueISO !== stream.dueISO ? `原计划 ${projectISODateLabel(stream.baselineDueISO)}` : ""}">${projectDateLabel(stream.due)}${stream.baselineDueISO && stream.baselineDueISO !== stream.dueISO ? "*" : ""}</span>${alertCount ? `<span class="ws-alert">! ${alertCount}</span>` : ""}</span>
-          ${stream.firstBatch ? `<span class="ws-first-batch"><span>首批 ${stream.firstBatch.monthShort}</span><span>预${compact(stream.firstBatch.demand)} / 供${compact(stream.firstBatch.supply)}</span></span>` : ""}
+          ${stream.firstBatch ? `<span class="ws-first-batch"><span>${activeLocale === "en-GB" ? "FB" : "首批"} ${activeLocale === "en-GB" ? new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" }).format(new Date(`${stream.firstBatch.month}-01T00:00:00Z`)) : stream.firstBatch.monthShort}</span><span>${activeLocale === "en-GB" ? "F" : "预"}${compact(stream.firstBatch.demand)} / ${activeLocale === "en-GB" ? "S" : "供"}${compact(stream.firstBatch.supply)}</span></span>` : ""}
         </button>
       </td>`;
     }
@@ -5999,7 +7749,7 @@
             ${blockers.length ? blockers.map((item) => `
               <div class="dependency-row">
                 <span class="health-label"><span class="health-dot ${item.health}"></span>${item.label}</span>
-                <span class="dependency-copy">${projectText(item.blocker)}</span>
+                <span class="dependency-copy">${renderProjectUserContent(projectText(item.blocker))}</span>
                 <strong>${projectDateLabel(item.due)}</strong>
               </div>
             `).join("") : `<div class="exception-empty">没有未关闭的异常。</div>`}
@@ -6040,7 +7790,7 @@
             ${project.dependencies.length ? project.dependencies.map((item) => `
               <div class="dependency-row">
                 <span class="dependency-source">${projectText(item.source)} → ${projectText(item.target)}</span>
-                <span class="dependency-copy">${projectText(item.detail)}</span>
+                <span class="dependency-copy">${renderProjectUserContent(projectText(item.detail))}</span>
                 <span class="task-status"><span class="health-dot ${item.status === "Blocked" ? "red" : "amber"}"></span>${projectStatusLabel(item.status)}</span>
               </div>
             `).join("") : `<div class="exception-empty">没有有效依赖关系。</div>`}
@@ -6052,11 +7802,11 @@
     function renderProjectHistory(project) {
       const statusRecords = project.statusHistory || [];
       return `
-        ${statusRecords.length ? `<section class="drawer-section"><h3 class="drawer-section-title">项目状态记录</h3><div class="activity-list">${statusRecords.map((item) => `<div class="activity-row"><strong>${projectISODateLabel(item.effectiveDate)}</strong><span class="dependency-copy"><span class="project-lifecycle-badge ${projectLifecycleMeta(item.toStatus).tone}">${projectLifecycleMeta(item.toStatus).label}</span> ${escapeProjectHtml(item.reason)}</span><span class="task-status">${escapeProjectHtml(item.createdBy)} · ${escapeProjectHtml(item.responsibleOwner)}</span></div>`).join("")}</div></section>` : ""}
+        ${statusRecords.length ? `<section class="drawer-section"><h3 class="drawer-section-title">项目状态记录</h3><div class="activity-list">${statusRecords.map((item) => `<div class="activity-row"><strong>${projectISODateLabel(item.effectiveDate)}</strong><span class="dependency-copy"><span class="project-lifecycle-badge ${projectLifecycleMeta(item.toStatus).tone}">${projectLifecycleMeta(item.toStatus).label}</span> ${renderProjectUserContent(item.reason)}</span><span class="task-status">${escapeProjectHtml(item.createdBy)} · ${escapeProjectHtml(item.responsibleOwner)}</span></div>`).join("")}</div></section>` : ""}
         <section class="drawer-section">
           <h3 class="drawer-section-title">最近动态</h3>
           <div class="activity-list">
-            ${project.history.map((item) => `<div class="activity-row"><strong>${projectTimeLabel(item.time)}</strong><span class="dependency-copy">${projectText(item.detail)}</span><span class="task-status">${projectText(item.source)}</span></div>`).join("")}
+            ${project.history.map((item) => `<div class="activity-row"><strong>${projectTimeLabel(item.time)}</strong><span class="dependency-copy">${renderProjectUserContent(projectText(item.detail))}</span><span class="task-status">${projectText(item.source)}</span></div>`).join("")}
           </div>
         </section>
       `;
@@ -6085,10 +7835,10 @@
                     <span class="exception-month">${record.createdLabel}</span>
                   </div>
                   <div class="delay-record-body">
-                    <div class="delay-reason">${escapeProjectHtml(record.reason)}</div>
+                    <div class="delay-reason">${renderProjectUserContent(record.reason)}</div>
                     <div class="delay-meta"><span>根因：${delayCategoryLabel(record.category)}</span><span>责任人：${escapeProjectHtml(record.responsibleOwner)}</span><span>顺延方式：${delayPropagationLabel(record.propagation)}</span><span>延期：+${record.delayDays}天</span></div>
-                    ${record.mitigation ? `<div class="dependency-copy"><strong>缓解措施：</strong>${escapeProjectHtml(record.mitigation)}</div>` : ""}
-                    ${record.impactNote ? `<div class="dependency-copy"><strong>影响说明：</strong>${escapeProjectHtml(record.impactNote)}</div>` : ""}
+                    ${record.mitigation ? `<div class="dependency-copy"><strong>缓解措施：</strong>${renderProjectUserContent(record.mitigation)}</div>` : ""}
+                    ${record.impactNote ? `<div class="dependency-copy"><strong>影响说明：</strong>${renderProjectUserContent(record.impactNote)}</div>` : ""}
                     <details class="delay-changes"><summary>查看全部 ${changes.length} 项日期变化</summary><div class="timeline-change-list">${changes.map(renderDelayPreviewChange).join("")}</div></details>
                     <div class="delay-meta"><span>上市日期：${projectISODateLabel(record.oldLaunchDate)} → ${projectISODateLabel(record.newLaunchDate)}</span><span>登记人：${record.createdBy}</span></div>
                   </div>
@@ -6172,8 +7922,8 @@
                     <td><span class="project-lifecycle-badge ${lifecycle.tone}">${lifecycle.label}</span><div class="ledger-scope-note">${projectMatchesPortfolioScope(project, "history") ? "历史项目" : "默认矩阵可见"}</div></td>
                     <td><strong>${project.actualLaunchDate || project.launchDate}</strong>${project.actualLaunchDate ? `<div class="ledger-scope-note">原计划 ${project.launchDate}</div>` : `<div class="ledger-scope-note">计划日期</div>`}</td>
                     <td>${escapeProjectHtml(project.owner)}</td>
-                    <td><span class="${progress.ready ? "number-positive" : progress.blockers ? "number-negative" : ""}">${progress.ready ? "已完成" : `剩余 ${progress.remaining} 项`}</span>${progress.blockers ? `<div class="ledger-scope-note number-negative">${progress.blockers} 项阻塞</div>` : ""}</td>
-                    <td>${latest ? `<strong>${projectISODateLabel(latest.effectiveDate)}</strong><div class="ledger-scope-note">${escapeProjectHtml(latest.createdBy)} · ${escapeProjectHtml(latest.reason)}</div>` : `<span class="ledger-scope-note">暂无状态变更</span>`}</td>
+                    <td><span class="${progress.ready ? "number-positive" : progress.blockers ? "number-negative" : ""}">${progress.ready ? (activeLocale === "en-GB" ? "Completed" : "已完成") : (activeLocale === "en-GB" ? `Remaining ${progress.remaining} items` : `剩余 ${progress.remaining} 项`)}</span>${progress.blockers ? `<div class="ledger-scope-note number-negative">${activeLocale === "en-GB" ? `${progress.blockers} blocked items` : `${progress.blockers} 项阻塞`}</div>` : ""}</td>
+                    <td>${latest ? `<strong>${projectISODateLabel(latest.effectiveDate)}</strong><div class="ledger-scope-note">${escapeProjectHtml(latest.createdBy)} · ${renderProjectUserContent(latest.reason)}</div>` : `<span class="ledger-scope-note">暂无状态变更</span>`}</td>
                     <td><div class="ledger-actions"><button class="btn" data-project-editor-action="open-ledger-project" data-project-id="${project.id}">查看</button>${canManageProjectLifecycle() ? `<button class="btn ${projectIsReadOnly(project) ? "primary" : ""}" data-project-editor-action="manage-project-status" data-project-id="${project.id}">${projectIsReadOnly(project) ? "恢复" : "管理状态"}</button>` : ""}</div></td>
                   </tr>`;
                 }).join("")}</tbody>
@@ -6347,6 +8097,11 @@
       const sourceMeta = PROJECT_WORKSTREAMS.find((item) => item.key === draft.sourceWorkstream);
       const firstBatch = projectFirstBatchData(project);
       const visibleChanges = preview.allChanges.slice(0, 14);
+      const firstBatchWarning = firstBatch
+        ? activeLocale === "en-GB"
+          ? `Updating the project timeline does not change First Batch forecast or supply plan in Sales & Inventory. After publishing, review the ${new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${firstBatch.month}-01T00:00:00Z`))} First Batch plan in Sales & Inventory.`
+          : `项目时间线更新不会自动改写产销首批销售预测或供应计划。发布后需在产销管理中复核 ${firstBatch.monthShort} 首批计划。`
+        : "";
       return `
         <section class="modal project-editor-modal" role="dialog" aria-modal="true" aria-labelledby="delayEditorTitle">
           <div class="modal-head">
@@ -6359,7 +8114,7 @@
           <div class="modal-body">
             <div class="admin-context-strip">
               <span>登记人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">${projectRoleLabel(currentProjectUser()?.role)}</span></span>
-              <span>卡点来源：${sourceMeta?.label || "未指定"}</span>
+              <span>卡点来源：${sourceMeta ? projectWorkstreamLabel(sourceMeta.key) : "未指定"}</span>
             </div>
 
             <section class="editor-section">
@@ -6421,10 +8176,10 @@
                 <div class="delay-impact-item"><div class="delay-impact-label">上市日期</div><div class="delay-impact-value">${projectISODateLabel(preview.oldLaunchDate)} → ${projectISODateLabel(preview.newLaunchDate)}</div></div>
               </div>
               ${preview.delayDays <= 0 ? `<div class="delay-warning">新预测日期必须晚于当前预测日期。</div>` : ""}
-              ${firstBatch ? `<div class="delay-warning">项目时间线更新不会自动改写产销首批销售预测或供应计划。发布后需在产销管理中复核 ${firstBatch.monthShort} 首批计划。</div>` : ""}
+              ${firstBatchWarning ? `<div class="delay-warning">${firstBatchWarning}</div>` : ""}
               <div class="timeline-change-list" style="margin-top:8px">
                 ${visibleChanges.map(renderDelayPreviewChange).join("")}
-                ${preview.allChanges.length > visibleChanges.length ? `<div class="timeline-change"><strong>其他变化</strong><span class="dependency-copy">另有 ${preview.allChanges.length - visibleChanges.length} 项任务日期将同步顺延</span><span></span></div>` : ""}
+                ${preview.allChanges.length > visibleChanges.length ? `<div class="timeline-change"><strong>其他变化</strong><span class="dependency-copy">${activeLocale === "en-GB" ? `Another ${preview.allChanges.length - visibleChanges.length} task dates will shift with this revision` : `另有 ${preview.allChanges.length - visibleChanges.length} 项任务日期将同步顺延`}</span><span></span></div>` : ""}
               </div>
             </section>
           </div>
@@ -6576,22 +8331,26 @@
       const normalizedEmail = normalizePermissionEmail(email);
       let user = projectState.permissionDraft.find((item) => normalizePermissionEmail(item.email) === normalizedEmail);
       if (!user) {
-        user = {
+        user = normalizePermissionUser({
           id: `AUTH-${Date.now()}-${projectState.permissionDraft.length}`,
           name: normalizedEmail.split("@")[0] || "协同成员",
           email: normalizedEmail,
           department: "待分配",
           workstream: "all",
           cloudRole,
-          role: "viewer",
+          platformRole: cloudRole === "admin" ? "super_admin" : "member",
+          functionalRoles: [],
+          role: cloudRole === "admin" ? "super_admin" : "viewer",
           scope: "all",
           status: "active",
           lastLogin: activatedAt ? "已登录" : "待首次登录"
-        };
+        });
         projectState.permissionDraft.push(user);
       } else {
         user.cloudRole = cloudRole;
+        if (cloudRole === "admin") user.platformRole = "super_admin";
         if (activatedAt && (!user.lastLogin || user.lastLogin === "尚未登录" || user.lastLogin === "待首次登录")) user.lastLogin = "已登录";
+        Object.assign(user, normalizePermissionUser(user));
       }
       return user;
     }
@@ -6681,70 +8440,43 @@
       }
     }
 
-    function renderProjectPermissionModal() {
+    function permissionSelectedDraftUser() {
       const users = projectState.permissionDraft || [];
-      const identity = window.cloudStore?.identity;
-      const cloudReady = Boolean(window.cloudStore?.permissions && identity?.role === "admin");
-      const authorizationMap = new Map(permissionCloudState.members.map((member) => [normalizePermissionEmail(member.email), member]));
-      const activeCloudMembers = permissionCloudState.members.filter((member) => member.activated_at).length;
-      const messageClass = permissionCloudState.messageTone ? ` ${permissionCloudState.messageTone}` : "";
-      return `
-        <section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle">
-          <div class="modal-head">
-            <div>
-              <h2 class="modal-title" id="permissionTitle">权限管理</h2>
-              <p class="modal-subtitle">统一管理 Google 邮箱准入、云端权限，以及产销管理和项目跟进的职责范围</p>
-            </div>
-            <button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button>
-          </div>
-          <div class="modal-body">
-            <div class="admin-context-strip">
-              <span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">总管理员</span></span>
-              <span>登录授权即时生效 · 工具职责保存后生效</span>
-            </div>
-
-            <div class="permission-summary">
-              <div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div>
-              <div class="permission-summary-item"><span>已完成首次登录</span><strong>${permissionCloudState.loading ? "--" : activeCloudMembers}</strong></div>
-              <div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div>
-            </div>
-
-            <section class="editor-section">
-              <div class="editor-section-head">
-                <div><h3 class="editor-section-title">新增授权成员</h3><div class="permission-note">精确匹配 Google 邮箱；新成员的工具角色默认只读，授权后请在下方补齐职责。</div></div>
-              </div>
-              ${cloudReady ? `
-                <div class="permission-invite-bar">
-                  <div class="permission-invite-field"><label>Google 邮箱</label><input type="email" autocomplete="email" data-permission-new-field="email" value="${escapeProjectHtml(permissionCloudState.newEmail)}" placeholder="name@company.com"></div>
-                  <div class="permission-invite-field"><label>云端权限</label><select data-permission-new-field="role"><option value="editor" ${permissionCloudState.newRole === "editor" ? "selected" : ""}>可编辑</option><option value="viewer" ${permissionCloudState.newRole === "viewer" ? "selected" : ""}>只读</option></select></div>
-                  <button class="btn primary" data-project-editor-action="authorize-new-member" ${permissionCloudState.busyEmail ? "disabled" : ""}>授权并添加</button>
-                  <div class="permission-invite-help">授权控制能否登录；工具角色与职能控制登录后能查看和编辑什么。</div>
-                </div>` : `<div class="delay-warning">${window.cloudStore?.offline ? "本地预览模式不连接云端授权；仍可配置下方工具职责。" : "当前云端账号没有成员授权管理权限。"}</div>`}
-              <p class="permission-message${messageClass}" role="status">${escapeProjectHtml(permissionCloudState.message || (permissionCloudState.loading ? "正在同步授权成员..." : ""))}</p>
-            </section>
-
-            <section class="editor-section">
-              <div class="editor-section-head">
-                <div><h3 class="editor-section-title">成员账号与职责</h3><div class="permission-note">部门编辑的“授权职能”同时控制项目工作流与产销计划中的销售/供应字段；撤销登录不会删除职责记录。</div></div>
-                <button class="btn" data-project-editor-action="add-user">+ 添加内部账号</button>
-              </div>
-              <div class="permission-table-wrap">
-                <table class="permission-table">
-                  <thead><tr><th class="permission-name-col">成员 / Google 邮箱</th><th class="permission-cloud-col">登录授权</th><th class="permission-role-col">工具角色</th><th class="permission-dept-col">部门</th><th class="permission-scope-col">授权职能</th><th class="permission-project-col">项目范围</th><th class="permission-status-col">账号状态</th><th class="permission-action-col">授权操作</th></tr></thead>
-                  <tbody>${users.map((user, index) => renderPermissionUserRow(user, index, authorizationMap, cloudReady)).join("")}</tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-          <div class="modal-foot">
-            <span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">登录授权即时生效；职责修改需保存后生效。</span></span>
-            <div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存职责并生效</button></div>
-          </div>
-        </section>
-      `;
+      let user = users.find((item) => item.id === permissionUiState.selectedUserId);
+      if (!user) {
+        user = users[0] || null;
+        permissionUiState.selectedUserId = user?.id || "";
+      }
+      return user;
     }
 
-    function renderPermissionUserRow(user, index, authorizationMap, cloudReady) {
+    function permissionFunctionalSummary(user) {
+      if (!user?.functionalRoles?.length) return activeLocale === "en-GB" ? "No functional roles" : "未分配职能角色";
+      return user.functionalRoles.map(functionalRoleLabel).join("、");
+    }
+
+    function renderPermissionTabs() {
+      const tabs = [
+        ["members", "成员账号", "Members"],
+        ["roles", "角色模板", "Role Templates"],
+        ["scopes", "数据范围", "Data Scopes"],
+        ["approvals", "审批权限", "Approval Access"]
+      ];
+      return `<div class="permission-tabs" role="tablist">${tabs.map(([key, zh, en]) => `<button class="permission-tab ${permissionUiState.activeTab === key ? "active" : ""}" role="tab" aria-selected="${permissionUiState.activeTab === key}" data-project-editor-action="permission-tab" data-permission-tab="${key}">${activeLocale === "en-GB" ? en : zh}</button>`).join("")}</div>`;
+    }
+
+    function renderPermissionMembersTab(users, authorizationMap, cloudReady, messageClass) {
+      return `<div class="permission-tab-panel" role="tabpanel">
+        <section class="editor-section" style="padding-top:0">
+          <div class="editor-section-head"><div><h3 class="editor-section-title">成员登录授权</h3><div class="permission-note">Google 邮箱控制能否登录；平台角色与职能角色控制登录后的业务权限。</div></div><button class="btn" data-project-editor-action="add-user">+ 添加内部账号</button></div>
+          ${cloudReady ? `<div class="permission-invite-bar"><div class="permission-invite-field"><label>Google 邮箱</label><input type="email" autocomplete="email" data-permission-new-field="email" value="${escapeProjectHtml(permissionCloudState.newEmail)}" placeholder="name@company.com"></div><div class="permission-invite-field"><label>云端权限</label><select data-permission-new-field="role"><option value="editor" ${permissionCloudState.newRole === "editor" ? "selected" : ""}>可编辑</option><option value="viewer" ${permissionCloudState.newRole === "viewer" ? "selected" : ""}>只读</option></select></div><button class="btn primary" data-project-editor-action="authorize-new-member" ${permissionCloudState.busyEmail ? "disabled" : ""}>授权并添加</button><div class="permission-invite-help">精确匹配 Google 邮箱；新增成员默认只有登录和工作台权限。</div></div>` : `<div class="delay-warning">${window.cloudStore?.offline ? "本地预览模式不连接云端授权；仍可配置账号、角色、范围和审批权限。" : "当前云端账号没有成员授权管理权限。"}</div>`}
+          <p class="permission-message${messageClass}" role="status">${escapeProjectHtml(permissionCloudState.message || (permissionCloudState.loading ? "正在同步授权成员..." : ""))}</p>
+        </section>
+        <section class="editor-section"><div class="permission-table-wrap"><table class="permission-table" style="min-width:1040px"><thead><tr><th style="width:25%">成员 / Google 邮箱</th><th style="width:14%">登录授权</th><th style="width:14%">平台角色</th><th style="width:24%">职能角色</th><th style="width:10%">账号状态</th><th style="width:13%">授权操作</th></tr></thead><tbody>${users.map((user, index) => renderPermissionMemberRow(user, index, authorizationMap, cloudReady)).join("")}</tbody></table></div></section>
+      </div>`;
+    }
+
+    function renderPermissionMemberRow(user, index, authorizationMap, cloudReady) {
       const email = normalizePermissionEmail(user.email);
       const authorization = authorizationMap.get(email);
       const identityEmail = normalizePermissionEmail(window.cloudStore?.identity?.email);
@@ -6767,16 +8499,110 @@
       }
       return `
         <tr>
-          <td><div class="permission-member-fields"><input data-project-user-field="name" data-user-index="${index}" value="${escapeProjectHtml(user.name)}" placeholder="姓名"><input type="email" data-project-user-field="email" data-user-index="${index}" value="${escapeProjectHtml(user.email || "")}" placeholder="Google 邮箱" ${authorization ? "disabled title=\"请先撤销登录授权再更换邮箱\"" : ""}><span class="permission-note">${escapeProjectHtml(user.lastLogin || "尚未登录")}</span></div></td>
+          <td><div class="permission-member-fields"><input data-project-user-field="name" data-user-index="${index}" value="${escapeProjectHtml(user.name)}" placeholder="姓名"><input type="email" data-project-user-field="email" data-user-index="${index}" value="${escapeProjectHtml(user.email || "")}" placeholder="Google 邮箱" ${authorization ? "disabled title=\"请先撤销登录授权再更换邮箱\"" : ""}><input data-project-user-field="department" data-user-index="${index}" value="${escapeProjectHtml(user.department)}" placeholder="部门"><span class="permission-note">${escapeProjectHtml(user.lastLogin || "尚未登录")}</span></div></td>
           <td><div class="permission-access-stack">${accessState}${authorization?.role === "admin" ? '<span class="permission-note">云端管理员</span>' : `<select data-project-user-field="cloudRole" data-user-index="${index}"><option value="editor" ${cloudRole === "editor" ? "selected" : ""}>云端可编辑</option><option value="viewer" ${cloudRole === "viewer" ? "selected" : ""}>云端只读</option></select>`}</div></td>
-          <td><select data-project-user-field="role" data-user-index="${index}">${["super_admin", "project_owner", "department_editor", "viewer"].map((role) => `<option value="${role}" ${user.role === role ? "selected" : ""}>${projectRoleLabel(role)}</option>`).join("")}</select></td>
-          <td><input data-project-user-field="department" data-user-index="${index}" value="${escapeProjectHtml(user.department)}" placeholder="部门"></td>
-          <td><select data-project-user-field="workstream" data-user-index="${index}"><option value="all" ${user.workstream === "all" ? "selected" : ""}>全部工作流</option>${PROJECT_WORKSTREAMS.map((meta) => `<option value="${meta.key}" ${user.workstream === meta.key ? "selected" : ""}>${meta.label}</option>`).join("")}</select></td>
-          <td><select data-project-user-field="scope" data-user-index="${index}"><option value="all" ${user.scope === "all" ? "selected" : ""}>全部项目</option><option value="owned" ${user.scope === "owned" ? "selected" : ""}>负责项目</option><option value="selected" ${user.scope === "selected" ? "selected" : ""}>指定项目</option></select></td>
+          <td><select data-project-user-field="platformRole" data-user-index="${index}">${PLATFORM_ROLE_DEFINITIONS.map((role) => `<option value="${role.key}" ${user.platformRole === role.key ? "selected" : ""}>${permissionDefinitionLabel(role)}</option>`).join("")}</select></td>
+          <td><div class="permission-role-chips">${user.functionalRoles?.length ? user.functionalRoles.map((role) => `<span class="permission-role-chip">${functionalRoleLabel(role)}</span>`).join("") : `<span class="permission-note">${activeLocale === "en-GB" ? "Assign from Role Templates" : "请在角色模板中分配"}</span>`}</div></td>
           <td><select data-project-user-field="status" data-user-index="${index}"><option value="active" ${user.status === "active" ? "selected" : ""}>启用</option><option value="disabled" ${user.status === "disabled" ? "selected" : ""}>停用</option></select></td>
           <td><div class="permission-row-actions">${actions}</div></td>
         </tr>
       `;
+    }
+
+    function renderPermissionRoleTemplatesTab(users) {
+      const selectedUser = permissionSelectedDraftUser();
+      const selectedTemplate = PERMISSION_ROLE_TEMPLATES.find((item) => item.key === permissionUiState.templateKey) || PERMISSION_ROLE_TEMPLATES[0];
+      permissionUiState.templateKey = selectedTemplate.key;
+      const roleChips = selectedUser?.functionalRoles?.length
+        ? selectedUser.functionalRoles.map((role) => `<span class="permission-role-chip">${functionalRoleLabel(role)}<button data-project-editor-action="remove-functional-role" data-functional-role="${role}" aria-label="移除角色">×</button></span>`).join("")
+        : `<span class="permission-note">${activeLocale === "en-GB" ? "No functional roles assigned" : "尚未分配职能角色"}</span>`;
+      return `<div class="permission-tab-panel" role="tabpanel">
+        <div class="permission-control-bar"><div class="permission-control-field"><label>成员</label><select data-permission-ui-field="selectedUserId">${users.map((user) => `<option value="${user.id}" ${selectedUser?.id === user.id ? "selected" : ""}>${escapeProjectHtml(user.name)} · ${platformRoleLabel(user.platformRole)}</option>`).join("")}</select></div><div class="permission-control-field"><label>角色模板</label><select data-permission-ui-field="templateKey">${PERMISSION_ROLE_TEMPLATES.map((template) => `<option value="${template.key}" ${selectedTemplate.key === template.key ? "selected" : ""}>${activeLocale === "en-GB" ? template.en : template.zh}</option>`).join("")}</select></div><div class="permission-control-field"><label>应用方式</label><select data-permission-ui-field="applyMode"><option value="merge" ${permissionUiState.applyMode === "merge" ? "selected" : ""}>叠加权限</option><option value="replace" ${permissionUiState.applyMode === "replace" ? "selected" : ""}>替换权限</option></select></div><button class="btn primary" data-project-editor-action="apply-role-template">应用角色模板</button></div>
+        <div class="permission-control-bar compact"><div><strong>${escapeProjectHtml(selectedUser?.name || "--")} · ${platformRoleLabel(selectedUser?.platformRole || "member")}</strong><div class="permission-note">当前职能角色</div></div><div class="permission-role-chips">${roleChips}</div></div>
+        <div class="permission-table-wrap"><table class="permission-table permission-template-table"><thead><tr><th>分类</th><th>角色模板</th><th>默认可见模块</th><th>关键操作</th><th>已分配</th></tr></thead><tbody>${PERMISSION_ROLE_TEMPLATES.map((template) => { const assigned = users.filter((user) => template.functionalRoles.length ? template.functionalRoles.some((role) => user.functionalRoles?.includes(role)) : user.platformRole === template.platformRole).length; return `<tr><td>${activeLocale === "en-GB" ? template.categoryEn : template.categoryZh}</td><td><strong>${activeLocale === "en-GB" ? template.en : template.zh}</strong></td><td>${activeLocale === "en-GB" ? template.modulesEn : template.modulesZh}</td><td>${activeLocale === "en-GB" ? template.actionsEn : template.actionsZh}</td><td><button class="btn" data-project-editor-action="choose-role-template" data-template-key="${template.key}">${assigned} ${activeLocale === "en-GB" ? "assigned" : "人"}</button></td></tr>`; }).join("")}</tbody></table></div>
+      </div>`;
+    }
+
+    function renderPermissionMemberList(users, selectedUser) {
+      return `<div class="permission-member-list">${users.map((user) => `<button class="permission-member-option ${selectedUser?.id === user.id ? "active" : ""}" data-project-editor-action="select-permission-user" data-user-id="${user.id}"><strong>${escapeProjectHtml(user.name || user.email || "--")}</strong><small>${platformRoleLabel(user.platformRole)} · ${escapeProjectHtml(user.department || "--")}</small></button>`).join("")}</div>`;
+    }
+
+    function renderPermissionScopesTab(users) {
+      const selectedUser = permissionSelectedDraftUser();
+      if (!selectedUser) return `<div class="permission-tab-panel"><div class="delay-warning">暂无可配置成员。</div></div>`;
+      const groups = PERMISSION_SCOPE_DEFINITIONS.map((group) => `<section class="permission-scope-group"><h4>${activeLocale === "en-GB" ? group.en : group.zh}</h4><small>${activeLocale === "en-GB" ? group.noteEn : group.noteZh}</small><div class="permission-check-grid">${group.options.map(([value, zh, en]) => `<label class="permission-check"><input type="checkbox" data-permission-scope-field="${group.key}" data-scope-value="${value}" ${selectedUser.dataScopes?.[group.key]?.includes(value) ? "checked" : ""}><span>${activeLocale === "en-GB" ? en : zh}</span></label>`).join("")}</div></section>`).join("");
+      return `<div class="permission-tab-panel" role="tabpanel"><div class="permission-control-bar compact"><div><strong>数据范围</strong><div class="permission-note">默认拒绝；“全部”与具体选项互斥。</div></div><div><strong>${escapeProjectHtml(selectedUser.name)} · ${permissionFunctionalSummary(selectedUser)}</strong><div class="permission-note">市场、客户、产品、项目、职能和财务主体共同决定最终可见数据。</div></div></div><div class="permission-scope-layout">${renderPermissionMemberList(users, selectedUser)}<div class="permission-scope-groups">${groups}</div></div></div>`;
+    }
+
+    function renderPermissionApprovalsTab(users) {
+      const selectedUser = permissionSelectedDraftUser();
+      if (!selectedUser) return `<div class="permission-tab-panel"><div class="delay-warning">暂无可配置成员。</div></div>`;
+      const approvalChecks = PERMISSION_APPROVAL_DEFINITIONS.map(([key, zh, en]) => `<label class="permission-check"><input type="checkbox" data-permission-approval-type="${key}" ${selectedUser.approval.types.includes(key) ? "checked" : ""}><span>${activeLocale === "en-GB" ? en : zh}</span></label>`).join("");
+      const authorityChecks = PERMISSION_AUTHORITY_DEFINITIONS.map(([key, zh, en]) => `<label class="permission-check"><input type="checkbox" data-permission-authority="${key}" ${selectedUser.approval.authorities.includes(key) ? "checked" : ""}><span>${activeLocale === "en-GB" ? en : zh}</span></label>`).join("");
+      const audit = (projectState.permissionAudit || []).slice(0, 5);
+      return `<div class="permission-tab-panel" role="tabpanel"><div class="permission-scope-layout">${renderPermissionMemberList(users, selectedUser)}<div><div class="permission-approval-groups"><section class="permission-scope-group"><h4>审批类型</h4><small>仅获得被勾选业务类型的审批权。</small><div class="permission-check-grid">${approvalChecks}</div></section><section class="permission-scope-group"><h4>发布与关闭权限</h4><small>发布、月结和归档必须单独授权。</small><div class="permission-check-grid">${authorityChecks}</div></section></div><div class="permission-approval-fields"><div class="permission-control-field"><label>单笔审批上限</label><input type="number" min="0" step="1000" data-permission-approval-field="limit" value="${selectedUser.approval.limit}"></div><div class="permission-control-field"><label>币种</label><select data-permission-approval-field="currency"><option value="EUR" ${selectedUser.approval.currency === "EUR" ? "selected" : ""}>EUR</option><option value="USD" ${selectedUser.approval.currency === "USD" ? "selected" : ""}>USD</option><option value="CNY" ${selectedUser.approval.currency === "CNY" ? "selected" : ""}>CNY</option></select></div><div class="permission-control-field"><label>替代审批人</label><select data-permission-approval-field="substitute"><option value="">无</option>${users.filter((user) => user.id !== selectedUser.id).map((user) => `<option value="${user.id}" ${selectedUser.approval.substitute === user.id ? "selected" : ""}>${escapeProjectHtml(user.name)}</option>`).join("")}</select></div><div class="permission-control-field"><label>有效期开始</label><input type="date" data-permission-approval-field="validFrom" value="${selectedUser.approval.validFrom}"></div><div class="permission-control-field"><label>有效期结束</label><input type="date" data-permission-approval-field="validTo" value="${selectedUser.approval.validTo}"></div></div><section class="editor-section"><div class="editor-section-head"><div><h3 class="editor-section-title">最近权限变更</h3><div class="permission-note">保存生效后生成不可覆盖的本地审计记录。</div></div></div><div class="permission-audit-list">${audit.length ? audit.map((item) => `<div class="permission-audit-item"><strong>${escapeProjectHtml(item.time)}</strong><span>${escapeProjectHtml(item.actor)}</span><span>${escapeProjectHtml(permissionAuditDisplayDetail(item))}</span></div>`).join("") : `<div class="permission-note">暂无权限变更记录。</div>`}</div></section></div></div></div>`;
+    }
+
+    function renderProjectPermissionModal() {
+      const users = (projectState.permissionDraft || []).map(normalizePermissionUser);
+      projectState.permissionDraft = users;
+      const identity = window.cloudStore?.identity;
+      const cloudReady = Boolean(window.cloudStore?.permissions && identity?.role === "admin");
+      const authorizationMap = new Map(permissionCloudState.members.map((member) => [normalizePermissionEmail(member.email), member]));
+      const messageClass = permissionCloudState.messageTone ? ` ${permissionCloudState.messageTone}` : "";
+      const roleAssignments = users.reduce((sum, user) => sum + (user.functionalRoles?.length || 0), 0);
+      const approvers = users.filter((user) => user.approval?.types?.length || user.approval?.authorities?.length).length;
+      const body = permissionUiState.activeTab === "roles" ? renderPermissionRoleTemplatesTab(users) : permissionUiState.activeTab === "scopes" ? renderPermissionScopesTab(users) : permissionUiState.activeTab === "approvals" ? renderPermissionApprovalsTab(users) : renderPermissionMembersTab(users, authorizationMap, cloudReady, messageClass);
+      return `<section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle"><div class="modal-head"><div><h2 class="modal-title" id="permissionTitle">权限管理</h2><p class="modal-subtitle">按平台角色、职能角色、数据范围和审批额度组合成员的最终权限</p></div><button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button></div><div class="modal-body"><div class="admin-context-strip"><span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">${platformRoleLabel(currentProjectUser()?.platformRole || "super_admin")}</span></span><span>默认拒绝 · 最小权限 · 全程留痕</span></div><div class="permission-summary"><div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div><div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div><div class="permission-summary-item"><span>职能角色分配</span><strong>${roleAssignments}</strong></div><div class="permission-summary-item"><span>审批及发布用户</span><strong>${approvers}</strong></div></div>${renderPermissionTabs()}${body}</div><div class="modal-foot"><span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">登录授权即时生效；业务权限修改保存后生效。</span></span><div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存权限并生效</button></div></div></section>`;
+    }
+
+    function schedulePermissionAutosave() {
+      scheduleProjectFormAutosave("project-permissions", "permissions", projectState.permissionDraft || []);
+    }
+
+    function applyPermissionRoleTemplate() {
+      const user = permissionSelectedDraftUser();
+      const template = PERMISSION_ROLE_TEMPLATES.find((item) => item.key === permissionUiState.templateKey);
+      if (!user || !template) return;
+      const replacing = permissionUiState.applyMode === "replace";
+      if (replacing || template.platformRole !== "member") user.platformRole = template.platformRole;
+      else if (!user.platformRole) user.platformRole = "member";
+      user.functionalRoles = replacing ? [...template.functionalRoles] : Array.from(new Set([...(user.functionalRoles || []), ...template.functionalRoles]));
+      user.approval.types = replacing ? [...(template.approvalTypes || [])] : Array.from(new Set([...(user.approval.types || []), ...(template.approvalTypes || [])]));
+      user.approval.authorities = replacing ? [...(template.authorities || [])] : Array.from(new Set([...(user.approval.authorities || []), ...(template.authorities || [])]));
+      Object.assign(user, normalizePermissionUser(user));
+      schedulePermissionAutosave();
+      renderProjectAdminModal();
+      showProjectToast(`${user.name} 已应用${activeLocale === "en-GB" ? template.en : template.zh}模板。`);
+    }
+
+    function updatePermissionSelectionArray(targetArray, value, checked, exclusiveAll = false) {
+      let next = [...(targetArray || [])];
+      if (exclusiveAll && value === "all" && checked) return ["all"];
+      if (exclusiveAll && value !== "all" && checked) next = next.filter((item) => item !== "all");
+      next = checked ? Array.from(new Set([...next, value])) : next.filter((item) => item !== value);
+      return next;
+    }
+
+    function permissionAuditDisplayDetail(item) {
+      if (activeLocale !== "en-GB") return item.detailZh || item.detail || "";
+      if (item.detailEn) return item.detailEn;
+      const legacyMatch = String(item.detail || "").match(/^保存\s+(\d+)\s+个成员的角色、数据范围与审批权限$/);
+      return legacyMatch ? `Applied roles, data scopes and approval access for ${legacyMatch[1]} members` : item.detail || "";
+    }
+
+    function recordPermissionAudit(detailZh, detailEn = "") {
+      projectState.permissionAudit = projectState.permissionAudit || [];
+      projectState.permissionAudit.unshift({
+        id: `PA-${Date.now()}`,
+        time: new Date().toLocaleString(activeLocale === "en-GB" ? "en-GB" : "zh-CN", { hour12: false }),
+        actor: currentProjectUser()?.name || "Ivy",
+        detail: detailZh,
+        detailZh,
+        detailEn
+      });
+      projectState.permissionAudit = projectState.permissionAudit.slice(0, 100);
+      persistPermissionAudit();
     }
 
     function renderToolbar() {
@@ -7934,6 +9760,18 @@
       return true;
     }
 
+    function handlePrototypeFilterChange(event) {
+      const target = event.target;
+      const filter = target.getAttribute("data-prototype-filter");
+      if (!filter) return false;
+      projectState.prototypeFilters = projectState.prototypeFilters || { search: "", health: "All", stage: "All", owner: "All" };
+      projectState.prototypeFilters[filter] = target.value;
+      persistProjectState();
+      renderWorkspaceModule("prototype-management");
+      window.operationsI18n?.apply(document.getElementById("workspaceModule"));
+      return true;
+    }
+
     function openProjectWorkstreamEditor(projectId, workstreamKey) {
       if (!canEditProjectWorkstream(workstreamKey, projectId)) {
         showProjectToast("当前账号没有该工作流的编辑权限。");
@@ -8034,6 +9872,37 @@
         publishProjectWorkstreamUpdate();
         return;
       }
+      if (action === "permission-tab") {
+        permissionUiState.activeTab = button.getAttribute("data-permission-tab") || "members";
+        renderProjectAdminModal();
+        return;
+      }
+      if (action === "select-permission-user") {
+        permissionUiState.selectedUserId = button.getAttribute("data-user-id") || "";
+        renderProjectAdminModal();
+        return;
+      }
+      if (action === "choose-role-template") {
+        permissionUiState.templateKey = button.getAttribute("data-template-key") || "";
+        permissionUiState.activeTab = "roles";
+        renderProjectAdminModal();
+        return;
+      }
+      if (action === "apply-role-template") {
+        applyPermissionRoleTemplate();
+        return;
+      }
+      if (action === "remove-functional-role") {
+        const user = permissionSelectedDraftUser();
+        const role = button.getAttribute("data-functional-role");
+        if (user && role) {
+          user.functionalRoles = user.functionalRoles.filter((item) => item !== role);
+          Object.assign(user, normalizePermissionUser(user));
+          schedulePermissionAutosave();
+          renderProjectAdminModal();
+        }
+        return;
+      }
       if (action === "authorize-new-member") {
         savePermissionCloudMember(permissionCloudState.newEmail, permissionCloudState.newRole);
         return;
@@ -8048,37 +9917,51 @@
         return;
       }
       if (action === "add-user") {
-        projectState.permissionDraft.push({
+        const newUser = normalizePermissionUser({
           id: "USR-" + Date.now(),
           name: "",
           email: "",
           department: "",
           workstream: "engineering",
           cloudRole: "editor",
-          role: "department_editor",
-          scope: "all",
+          platformRole: "member",
+          functionalRoles: [],
+          role: "viewer",
+          scope: "selected",
           status: "active",
           lastLogin: "尚未登录"
         });
-        scheduleProjectFormAutosave("project-permissions", "permissions", projectState.permissionDraft);
+        newUser.dataScopes = { markets: [], customers: [], products: [], projects: [], workstreams: [], entities: [] };
+        projectState.permissionDraft.push(normalizePermissionUser(newUser));
+        permissionUiState.selectedUserId = newUser.id;
+        schedulePermissionAutosave();
         renderProjectAdminModal();
         return;
       }
       if (action === "save-permissions") {
-        const validAdmin = projectState.permissionDraft.some((user) => user.role === "super_admin" && user.status === "active");
+        const validAdmin = projectState.permissionDraft.some((user) => user.platformRole === "super_admin" && user.status === "active");
         if (!validAdmin) {
           showProjectToast("至少需要保留一个启用状态的总管理员账号。");
           return;
         }
-        projectState.users = structuredClone(projectState.permissionDraft);
+        const invalidApprovalPeriod = projectState.permissionDraft.find((user) => user.approval?.validFrom && user.approval?.validTo && user.approval.validFrom > user.approval.validTo);
+        if (invalidApprovalPeriod) {
+          showProjectToast(`${invalidApprovalPeriod.name} 的审批有效期结束日期不能早于开始日期。`);
+          return;
+        }
+        projectState.users = structuredClone(projectState.permissionDraft).map(normalizePermissionUser);
         persistProjectUsers();
+        recordPermissionAudit(
+          `保存 ${projectState.users.length} 个成员的角色、数据范围与审批权限`,
+          `Applied roles, data scopes and approval access for ${projectState.users.length} members`
+        );
         cancelAutosave("project-permissions");
         clearProjectFormDraft("permissions");
         projectState.adminModal = null;
         projectState.permissionDraft = null;
         renderApp();
         renderProjectAdminModal();
-        showProjectToast("成员职责与工具权限已保存。登录授权已即时生效。");
+        showProjectToast("成员角色、数据范围与审批权限已保存并生效。登录授权保持即时生效。");
         return;
       }
       if (action === "create-project") {
@@ -8118,6 +10001,12 @@
         scheduleProjectWorkstreamAutosave();
         return true;
       }
+      const permissionUiField = target.getAttribute("data-permission-ui-field");
+      if (permissionUiField) {
+        permissionUiState[permissionUiField] = target.value;
+        renderProjectAdminModal();
+        return true;
+      }
       const permissionNewField = target.getAttribute("data-permission-new-field");
       if (permissionNewField) {
         if (permissionNewField === "email") permissionCloudState.newEmail = target.value;
@@ -8127,8 +10016,52 @@
       const userField = target.getAttribute("data-project-user-field");
       if (userField && projectState.permissionDraft) {
         const user = projectState.permissionDraft[Number(target.getAttribute("data-user-index"))];
-        if (user) user[userField] = target.value;
-        scheduleProjectFormAutosave("project-permissions", "permissions", projectState.permissionDraft);
+        if (user) {
+          user[userField] = target.value;
+          if (userField === "platformRole") Object.assign(user, normalizePermissionUser(user));
+        }
+        schedulePermissionAutosave();
+        return true;
+      }
+      const permissionScopeField = target.getAttribute("data-permission-scope-field");
+      if (permissionScopeField) {
+        const user = permissionSelectedDraftUser();
+        if (user) {
+          const value = target.getAttribute("data-scope-value");
+          user.dataScopes[permissionScopeField] = updatePermissionSelectionArray(user.dataScopes[permissionScopeField], value, target.checked, true);
+          Object.assign(user, normalizePermissionUser(user));
+          schedulePermissionAutosave();
+          renderProjectAdminModal();
+        }
+        return true;
+      }
+      const permissionApprovalType = target.getAttribute("data-permission-approval-type");
+      if (permissionApprovalType) {
+        const user = permissionSelectedDraftUser();
+        if (user) {
+          user.approval.types = updatePermissionSelectionArray(user.approval.types, permissionApprovalType, target.checked);
+          if (target.checked && !user.functionalRoles.includes("approver")) user.functionalRoles.push("approver");
+          Object.assign(user, normalizePermissionUser(user));
+          schedulePermissionAutosave();
+          renderProjectAdminModal();
+        }
+        return true;
+      }
+      const permissionAuthority = target.getAttribute("data-permission-authority");
+      if (permissionAuthority) {
+        const user = permissionSelectedDraftUser();
+        if (user) {
+          user.approval.authorities = updatePermissionSelectionArray(user.approval.authorities, permissionAuthority, target.checked);
+          schedulePermissionAutosave();
+          renderProjectAdminModal();
+        }
+        return true;
+      }
+      const permissionApprovalField = target.getAttribute("data-permission-approval-field");
+      if (permissionApprovalField) {
+        const user = permissionSelectedDraftUser();
+        if (user) user.approval[permissionApprovalField] = permissionApprovalField === "limit" ? Math.max(0, Number(target.value || 0)) : target.value;
+        schedulePermissionAutosave();
         return true;
       }
       const newProjectField = target.getAttribute("data-new-project-field");
@@ -8468,7 +10401,11 @@
       persistProjectData();
       projectState.adminModal = null;
       projectState.editorDraft = null;
-      renderProjectModule();
+      if (activeModule === "projects") renderProjectModule();
+      else {
+        renderApp();
+        renderProjectAdminModal();
+      }
       showProjectToast(`${project.model} · ${meta.label}已发布更新。`);
     }
 
@@ -8481,9 +10418,20 @@
         renderProjectModule();
         return;
       }
+      if (action === "reset-prototype-filters") {
+        projectState.prototypeFilters = { search: "", health: "All", stage: "All", owner: "All" };
+        persistProjectState();
+        renderWorkspaceModule("prototype-management");
+        window.operationsI18n?.apply(document.getElementById("workspaceModule"));
+        return;
+      }
+      if (action === "export-prototypes") {
+        exportPrototypeWorkspace();
+        return;
+      }
       if (action === "add-project") {
-        if (currentProjectUser()?.role !== "super_admin") {
-          showProjectToast("仅总管理员可以新增项目。");
+        if (!canCreateProjects()) {
+          showProjectToast("当前账号没有新增项目权限。");
           return;
         }
         projectState.adminModal = "add-project";
@@ -8524,13 +10472,15 @@
       }
       if (action === "permissions") {
         const cloudIdentity = window.cloudStore?.identity;
-        if (currentProjectUser()?.role !== "super_admin" || (cloudIdentity && cloudIdentity.role !== "admin")) {
-          showProjectToast("仅云端总管理员可以管理权限。");
+        if (!canManagePermissionsForUser() || (cloudIdentity && cloudIdentity.role !== "admin")) {
+          showProjectToast("当前账号没有权限管理权限。");
           return;
         }
         projectState.adminModal = "permissions";
-        projectState.permissionDraft = structuredClone(projectState.formDrafts?.permissions || projectState.users);
+        projectState.permissionDraft = structuredClone(projectState.formDrafts?.permissions || projectState.users).map(normalizePermissionUser);
         permissionCloudState = createPermissionCloudState();
+        permissionUiState = createPermissionUiState();
+        permissionUiState.selectedUserId = projectState.permissionDraft[0]?.id || "";
         projectState.newProjectDraft = null;
         projectState.delayDraft = null;
         projectState.transitionDraft = null;
@@ -8588,7 +10538,8 @@
       }
       if (action === "open-source") {
         const project = projectState.projects.find((item) => item.id === button.getAttribute("data-project-id"));
-        const stream = project?.workstreams[button.getAttribute("data-workstream")];
+        const workstreamKey = button.getAttribute("data-workstream");
+        const stream = project?.workstreams[workstreamKey];
         if (project && stream?.sourceModule === "Sales & Inventory" && state.products.some((item) => item.model === project.model)) {
           state.filters.model = project.model;
           projectState.selectedProjectId = null;
@@ -8597,8 +10548,43 @@
           showProjectToast(`已进入产销管理并筛选型号 ${project.model}。`);
           return;
         }
+        if (project && workstreamKey === "prototype" && stream?.sourceModule === "Prototype Management") {
+          projectState.prototypeFilters = { ...(projectState.prototypeFilters || {}), search: project.model };
+          projectState.selectedProjectId = null;
+          projectState.selectedWorkstream = null;
+          activeModule = "prototype-management";
+          persistProjectState();
+          renderApp();
+          showProjectToast(`已进入样机管理并定位 ${project.model}。`);
+          return;
+        }
+        if (project && workstreamKey === "marketing" && stream?.sourceModule === "Product Material Management") {
+          projectState.selectedProjectId = null;
+          projectState.selectedWorkstream = null;
+          activeModule = "market-assets";
+          renderApp();
+          showProjectToast(`已进入营销物料并关联 ${project.model}。`);
+          return;
+        }
         showProjectToast(`${projectSourceLabel(stream?.sourceModule || "Project Tracking")}尚未接入独立来源页面。`);
       }
+    }
+
+    function exportPrototypeWorkspace() {
+      const rows = [["项目ID", "型号", "产品名称", "项目阶段", "上市日期", "样机健康状态", "已完成", "必需任务", "样机负责人", "最近截止", "阻塞原因", "下一步", "任务", "任务状态", "任务负责人", "任务截止"]];
+      prototypeWorkspaceProjects().forEach((project) => {
+        const stream = projectWorkstreamView(project, "prototype");
+        const tasks = stream.tasks?.length ? stream.tasks : [{}];
+        tasks.forEach((task) => rows.push([project.id, project.model, project.name, projectStageLabel(project.stage), project.launchDate, projectHealthLabel(stream.health), stream.done, stream.total, stream.owner, stream.dueISO, projectText(stream.blocker), projectText(stream.nextAction), projectText(task.name || ""), projectStatusLabel(task.status || ""), task.owner || "", task.dueISO || ""]));
+      });
+      const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+      const url = URL.createObjectURL(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "样机管理台账.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+      showProjectToast("样机管理台账已导出。");
     }
 
     function exportProjectPortfolio() {
@@ -8643,8 +10629,15 @@
 
     function handleToolAccessChange(event) {
       const target = event.target;
+      if (target.hasAttribute("data-tool-locale")) {
+        setActiveLocale(target.value);
+        showProjectToast(target.value === "en-GB" ? "Interface language changed to English." : "界面语言已切换为中文。");
+        return true;
+      }
       if (!target.hasAttribute("data-tool-user")) return false;
       projectState.activeUserId = target.value;
+      activeLocale = loadLocaleForCurrentUser();
+      window.operationsI18n?.setLocale(activeLocale);
       projectState.selectedProjectId = null;
       projectState.selectedWorkstream = null;
       state.modal = null;
@@ -8676,12 +10669,22 @@
         renderProjectAdminModal();
         return;
       }
+      const valueChainPresetButton = event.target.closest("[data-vc-preset]");
+      if (valueChainPresetButton) {
+        applyValueChainPreset(valueChainPresetButton.getAttribute("data-vc-preset"));
+        return;
+      }
+      const platformActionButton = event.target.closest("[data-platform-action]");
+      if (platformActionButton) {
+        showProjectToast(platformActionButton.getAttribute("data-message") || "本地测试入口已触发。");
+        return;
+      }
       const moduleButton = event.target.closest("[data-module]");
       if (moduleButton) {
         flushActiveProjectAutosave();
         flushAutosave("sales-plan");
         flushAutosave("month-closing");
-        activeModule = moduleButton.getAttribute("data-module") || "sales";
+        activeModule = moduleButton.getAttribute("data-module") || "home";
         state.modal = null;
         projectState.selectedProjectId = null;
         projectState.adminModal = null;
@@ -9320,6 +11323,7 @@
       }
       if (handleToolAccessChange(event)) return;
       if (handleProjectEditorFieldChange(event)) return;
+      if (handlePrototypeFilterChange(event)) return;
       if (handleProjectFilterChange(event)) return;
       if (handleSalesEditorFormChange(event)) return;
       handleFilterChange(event);
@@ -9330,9 +11334,14 @@
     document.addEventListener("click", handleClick);
 
     let projectSearchTimer = null;
+    let prototypeSearchTimer = null;
     let editorSearchTimer = null;
     document.addEventListener("input", (event) => {
       if (handleProjectEditorFieldChange(event)) return;
+      if (event.target.hasAttribute("data-vc-input")) {
+        calculateValueChainFromDom();
+        return;
+      }
       if (event.target.hasAttribute("data-plan-input")) {
         handleEditChange(event, false);
         return;
@@ -9352,6 +11361,22 @@
         return;
       }
       if (handleSalesEditorFormChange(event)) return;
+      if (event.target.getAttribute("data-prototype-filter") === "search") {
+        projectState.prototypeFilters = projectState.prototypeFilters || { search: "", health: "All", stage: "All", owner: "All" };
+        projectState.prototypeFilters.search = event.target.value;
+        clearTimeout(prototypeSearchTimer);
+        prototypeSearchTimer = setTimeout(() => {
+          persistProjectState();
+          renderWorkspaceModule("prototype-management");
+          window.operationsI18n?.apply(document.getElementById("workspaceModule"));
+          const search = document.getElementById("prototypeSearch");
+          if (search) {
+            search.focus();
+            search.setSelectionRange(search.value.length, search.value.length);
+          }
+        }, 140);
+        return;
+      }
       if (event.target.getAttribute("data-project-filter") !== "search") return;
       projectState.filters.search = event.target.value;
       clearTimeout(projectSearchTimer);
