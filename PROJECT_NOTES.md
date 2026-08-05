@@ -55,6 +55,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Marketing material names use English title case in both interface languages, while recognised abbreviations such as POSM remain uppercase. Saving a material updates the linked project's marketing workstream readiness, tasks, owner, next deadline and blockers.
 - Each of the six standard marketing materials has a bilingual default delivery checklist. Project-specific item dialogs support check/uncheck, add, delete and restore-default actions; completion is calculated from checked items and stored with the material record.
 - Checklist completion can advance ordinary not-started/in-progress work to completed, but review, missing and overdue remain explicit business states. Selecting completed checks every deliverable; reducing a completed checklist reopens it as in progress.
+- The Marketing Assets matrix supports two persistent sort controls: Project/Product sorts by launch date and Total Progress sorts by calculated project completion. Each toggles ascending/descending; the default is launch date ascending (nearest launch first).
 - Project Tracking is the source of truth for the Marketing Assets project list. Creating a project initializes all six standard assets as `not_started`; active, paused and closeout projects stay visible, while archived/cancelled records are retained but hidden from the current matrix.
 
 ## Current State
@@ -142,6 +143,7 @@ The standalone reference remains the design and behavior source for the React ap
 - The checklist-enabled material editor passes add/delete/reset, autosave and persistence tests. A five-item material changes from `5/5 · 100%` to `4/5 · 80%`, then to `4/6 · 67%` after adding an item; reopening restores the saved checklist. A review item remains in review at `5/5 · 100%`.
 - Marketing Assets typography is increased to 8px column headers, 9px project-row headers and 8px status values while the 1040px matrix still fits its container without horizontal scrolling.
 - Sidebar module marks compute as `display: none` in Chinese and English; module labels and right-aligned status/count badges remain correctly aligned.
+- Marketing Assets sorting passes all four local order checks with six projects: launch date ascending/descending and progress ascending/descending. Active headers expose `aria-sort`, inactive headers show `↕`, and launch-date ascending persists after reload as the default/current preference.
 - JavaScript syntax checks pass for `cloud-app/i18n.js`, `cloud-app/cloud-sync.js`, and the inline application script.
 - The user-locale preference migration is applied to Supabase with RLS. Anonymous table access is revoked; authenticated users receive only select, insert and update privileges, constrained by own-user policies.
 - Vercel production deployment `dpl_D12a4aXTgi75ThZgfMuiUYBHNiFC` is READY and aliased to `https://operations-planning-hub.vercel.app`.
@@ -151,6 +153,8 @@ The standalone reference remains the design and behavior source for the React ap
 - Production Marketing Assets regression confirms the 1040px matrix fits its 1040px container, all nine headers use static positioning, the project selector is present, and WAL101 opens a five-item actionable gap dialog.
 - Vercel production deployment `dpl_7NJmy2be6AUdcbnFM8aivQLXXkid` is READY and aliased to `https://operations-planning-hub.vercel.app`. Production root and `/api/config` return HTTP 200.
 - Production regression confirms no sidebar module marks are visible, matrix header/project/status fonts compute to 8/9/8px without horizontal overflow, and the PX51 image/manual dialog renders five default checklist items with add, remove and restore-default controls.
+- Vercel production deployment `dpl_APYCHknM1o5ojms85HvZPB764enY` is READY and aliased to `https://operations-planning-hub.vercel.app`; production root returns HTTP 200.
+- Production Marketing Assets opens with launch-date ascending order (`PX51`, `WAL101`, `WM321`, `PM61-Black`, `P51L-P2`), exposes correct active/inactive `aria-sort` states, and sorts progress from 3% to 96% on the first progress-header action without document or matrix overflow.
 - Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.
 
 ## Next Steps
