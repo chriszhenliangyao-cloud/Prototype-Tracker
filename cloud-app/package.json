@@ -1,0 +1,10 @@
+{
+  "name": "operations-planning-cloud",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel",
+    "deploy:prod": "vercel --prod"
+  }
+}
