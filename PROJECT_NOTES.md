@@ -73,6 +73,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Local offline smoke test passes for the Chinese Sales view and Project Tracking module switch.
 - Google login page JavaScript and visual smoke tests pass locally against the real Supabase configuration.
 - Production login page shows only Google login, with no password fields, and the OAuth request reaches Google with the expected Supabase callback and `email profile` scopes.
+- The cloud account status is mounted inside the persistent top application bar. Its compact trigger shows sync state only; email, authorization management and logout are contained in a click-open account menu, with no fixed overlay positioning.
 - Anonymous requests to the authorization table and authorization RPC are rejected with HTTP 401/404.
 - Authorization and revocation privilege logic lives in the unexposed `private` schema; public RPCs are `SECURITY INVOKER` wrappers.
 - Supabase security advisor now reports only the existing versioned-document save RPC; it performs an explicit workspace editor/admin check.
