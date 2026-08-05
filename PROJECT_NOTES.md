@@ -42,7 +42,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Supabase project: `Operations Planning Hub`, ref `yzsmdwbuuwhsqrewecle`, region `eu-west-1`.
 - Supabase provides exact-email Google authorization, workspace membership, shared versioned JSON documents, audit events and Realtime document notifications.
 - The first administrator authorization is registered for `payton.ppc@gmail.com`. That address becomes the administrator on its first successful Google login.
-- Google OAuth frontend and database support are implemented locally. Production deployment is intentionally waiting for the Google Provider and redirect configuration to be completed in Google Cloud and Supabase.
+- Google OAuth frontend and database support are deployed in production. Supabase reports the Google Provider as enabled.
 - The existing React Sales route is still an earlier implementation and does not yet contain the full Chinese collaboration workflow from the standalone tool.
 
 ## Key Decisions
@@ -72,6 +72,7 @@ The standalone reference remains the design and behavior source for the React ap
 - JavaScript syntax checks pass for `cloud-sync.js` and the inline application script.
 - Local offline smoke test passes for the Chinese Sales view and Project Tracking module switch.
 - Google login page JavaScript and visual smoke tests pass locally against the real Supabase configuration.
+- Production login page shows only Google login, with no password fields, and the OAuth request reaches Google with the expected Supabase callback and `email profile` scopes.
 - Anonymous requests to the authorization table and authorization RPC are rejected with HTTP 401/404.
 - Authorization and revocation privilege logic lives in the unexposed `private` schema; public RPCs are `SECURITY INVOKER` wrappers.
 - Supabase security advisor now reports only the existing versioned-document save RPC; it performs an explicit workspace editor/admin check.
@@ -80,12 +81,10 @@ The standalone reference remains the design and behavior source for the React ap
 
 ## Next Steps
 
-1. Configure the Google OAuth Client, Supabase Google Provider, Site URL and redirect allow list as documented in `cloud-app/README.md`.
-2. Deploy the pending Google-login frontend after provider configuration is confirmed.
-3. Sign in with the first authorized administrator email, authorize one editor and one viewer, then verify cross-browser Realtime updates and access restrictions with real sessions.
-4. Push `codex/operations-planning-updates` and open a draft pull request when GitHub credentials are available.
-5. Port the current Chinese Sales & Inventory collaboration workflow from the standalone reference into `app/routes/sales-inventory.tsx` and focused components.
-6. Replace shared JSON documents with normalized domain tables when field-level multi-user editing becomes the priority.
+1. Sign in with the first authorized administrator email, authorize one editor and one viewer, then verify cross-browser Realtime updates and access restrictions with real sessions.
+2. Push `codex/operations-planning-updates` and open a draft pull request when GitHub credentials are available.
+3. Port the current Chinese Sales & Inventory collaboration workflow from the standalone reference into `app/routes/sales-inventory.tsx` and focused components.
+4. Replace shared JSON documents with normalized domain tables when field-level multi-user editing becomes the priority.
 
 ## Resume Instructions
 
