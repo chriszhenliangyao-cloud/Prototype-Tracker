@@ -15,6 +15,7 @@ export function meta() {
 }
 
 const STORAGE_KEY = "prototrack-sales-inventory-matrix-v2";
+const AUGUST_TEST_RESET_KEY = "prototrack-sales-inventory-august-test-reset-v1";
 const clone = <T,>(value: T): T => structuredClone(value);
 const numberValue = (value: string) => Math.max(0, Number(value) || 0);
 const monthLabel = (month: string) => new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
@@ -272,7 +273,7 @@ export default function SalesInventory() {
 	const [addOpen, setAddOpen] = useState(false);
 
 	useEffect(() => {
-		try { const value = localStorage.getItem(STORAGE_KEY); if (value) { const stored = JSON.parse(value) as Workspace; if (stored.rows?.length && stored.months?.length === 3) { const savedSnapshots = stored.forecastSnapshots?.length ? stored.forecastSnapshots : clone(seedSnapshots); setRows(stored.rows); setDraftRows(stored.draftRows?.length ? stored.draftRows : null); setMonths(stored.months); setHistory(stored.history || []); setLastClosedMonth(stored.lastClosedMonth); setSnapshots(savedSnapshots); setRevisionLogs(stored.revisionLogs?.length ? stored.revisionLogs : snapshotRevisionLogs(savedSnapshots)); } } } catch { localStorage.removeItem(STORAGE_KEY); }
+		try { const value = localStorage.getItem(STORAGE_KEY); if (value) { const stored = JSON.parse(value) as Workspace; if (stored.rows?.length && stored.months?.length === 3) { const needsAugustReset = stored.months[0] > initialPlanningMonths[0] && !localStorage.getItem(AUGUST_TEST_RESET_KEY); const restoredHistory = needsAugustReset ? (stored.history || []).filter((item) => item.month < initialPlanningMonths[0]) : (stored.history || []); const restoredSnapshots = needsAugustReset ? (stored.forecastSnapshots || seedSnapshots).filter((item) => item.archiveMonth < initialPlanningMonths[0]) : (stored.forecastSnapshots?.length ? stored.forecastSnapshots : clone(seedSnapshots)); const restoredRows = needsAugustReset ? stored.rows.map((row) => ({ ...row, inventory: (stored.history || []).find((item) => item.month === initialPlanningMonths[0] && item.model === row.model)?.beginningInventory ?? row.inventory })) : stored.rows; setRows(restoredRows); setDraftRows(needsAugustReset ? null : (stored.draftRows?.length ? stored.draftRows : null)); setMonths(needsAugustReset ? [...initialPlanningMonths] : stored.months); setHistory(restoredHistory); setLastClosedMonth(needsAugustReset ? lastMonth(initialPlanningMonths[0]) : stored.lastClosedMonth); setSnapshots(restoredSnapshots); setRevisionLogs(needsAugustReset ? snapshotRevisionLogs(restoredSnapshots) : (stored.revisionLogs?.length ? stored.revisionLogs : snapshotRevisionLogs(restoredSnapshots))); if (needsAugustReset) localStorage.setItem(AUGUST_TEST_RESET_KEY, "done"); } } } catch { localStorage.removeItem(STORAGE_KEY); }
 		setTheme(document.documentElement.getAttribute("data-theme") || "light"); setLoaded(true);
 	}, []);
 	useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows, draftRows, months, history, lastClosedMonth, forecastSnapshots: snapshots, revisionLogs } satisfies Workspace)); }, [draftRows, history, lastClosedMonth, loaded, months, revisionLogs, rows, snapshots]);
@@ -284,8 +285,8 @@ export default function SalesInventory() {
 	const activeMonths = view === "Trend" && trendMonths.length ? trendMonths : months;
 	const filtered = rows.filter((row) => {
 		const life = lifecycleOf(row, activeMonths[0]);
-		const gaps = activeMonths.some((month) => (row.months[month]?.supply || 0) - (row.months[month]?.forecast || 0) < 0);
-		return (!models.length || models.includes(row.model)) && (category === "all" || row.category === category) && (lifecycle === "All" || life === lifecycle) && (!onlyGap || gaps) && (!firstBatchOnly || (life === "New" && firstBatchMonth(row, activeMonths)));
+		const periodGap = activeMonths.reduce((sum, month) => sum + (row.months[month]?.supply || 0) - (row.months[month]?.forecast || 0), 0);
+		return (!models.length || models.includes(row.model)) && (category === "all" || row.category === category) && (lifecycle === "All" || life === lifecycle) && (!onlyGap || periodGap < 0) && (!firstBatchOnly || (life === "New" && firstBatchMonth(row, activeMonths)));
 	});
 	const totals = activeMonths.map((month) => ({ month, demand: filtered.reduce((sum, row) => sum + (row.months[month]?.forecast || 0), 0), supply: filtered.reduce((sum, row) => sum + (row.months[month]?.supply || 0), 0) }));
 	const demand = totals.reduce((sum, item) => sum + item.demand, 0);
