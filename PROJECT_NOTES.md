@@ -30,6 +30,8 @@ The standalone reference remains the design and behavior source for the React ap
 - All input surfaces automatically save drafts, including plan cells, notes, paste/import, bulk changes, temporary changes, reopen reasons, month closing, project creation, workstream updates, delays, and permission forms.
 - Automatic saving is persistence only. Create, submit, publish, close, and permission-apply actions remain explicit and audited.
 - Project Tracking is a cross-functional control tower. Department modules remain the source of truth for detailed tasks.
+- Project workstream matrix cards use the colored left border as the single compact health indicator; redundant colored dots are reserved for surfaces without a status border.
+- Source-module controls only use button styling when a real destination exists. Sales & Inventory opens with the project model prefiltered; unconnected department sources are shown as non-interactive status labels.
 - Project delays create immutable timeline revisions with cause, accountable owner, mitigation, complete before/after dates, and downstream impact. Repeated delays preserve the original baseline and every intermediate version.
 - Sales & Inventory first-batch Forecast and Supply values feed the Project Supply workstream as read-only data.
 - Account and permission management belongs to the application shell, not inside the monthly planning workflow.

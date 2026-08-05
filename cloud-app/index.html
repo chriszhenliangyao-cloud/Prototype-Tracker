@@ -2433,8 +2433,15 @@
     .ws-meta {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 5px;
+    }
+
+    .ws-main {
+      justify-content: flex-end;
+    }
+
+    .ws-meta {
+      justify-content: space-between;
     }
 
     .ws-count {
@@ -2872,6 +2879,44 @@
       padding: 9px 16px;
       border-top: 1px solid var(--line);
       background: #fbfcff;
+    }
+
+    .drawer-foot > .helper-note {
+      max-width: 190px;
+    }
+
+    .drawer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .source-connection {
+      min-height: 29px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #f7f9fc;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .source-connection strong {
+      color: var(--text);
+      font-size: 9px;
+    }
+
+    .source-connection.current {
+      border-color: #bfd0ff;
+      background: var(--blue-soft);
+      color: var(--blue);
     }
 
     .project-editor-backdrop {
@@ -3874,6 +3919,18 @@
         "Commercial Readiness": "销售准备",
         "Project Tracking": "项目跟进"
       }[value] || projectText(value);
+    }
+
+    function renderProjectSourceControl(project, stream, workstreamKey) {
+      const sourceLabel = projectSourceLabel(stream?.sourceModule || "Project Tracking");
+      const salesConnected = stream?.sourceModule === "Sales & Inventory" && state.products.some((item) => item.model === project.model);
+      if (salesConnected) {
+        return `<button class="btn" data-project-action="open-source" data-project-id="${project.id}" data-workstream="${workstreamKey}">进入产销管理</button>`;
+      }
+      if (stream?.sourceModule === "Project Tracking") {
+        return `<span class="source-connection current" title="该职能当前直接在项目跟进中维护">来源：<strong>${sourceLabel}</strong> · 当前维护</span>`;
+      }
+      return `<span class="source-connection" title="该职能尚未接入独立来源页面，请使用编辑更新维护当前状态">来源：<strong>${sourceLabel}</strong> · 未接入</span>`;
     }
 
     function projectOptionLabel(name, value) {
@@ -5416,7 +5473,7 @@
       const alertCount = stream.tasks.filter((task) => task.status === "Blocked").length;
       return `<td>
         <button class="ws-cell ${stream.health}${stream.firstBatch ? " has-first-batch" : ""}" data-project-action="open-workstream" data-project-id="${project.id}" data-workstream="${meta.key}" aria-label="${project.model} ${meta.label}：${projectHealthLabel(stream.health)}，完成${stream.done}/${stream.total}${stream.firstBatch ? `，首批预测${stream.firstBatch.demand}，供应${stream.firstBatch.supply}` : ""}">
-          <span class="ws-main"><span class="health-dot ${stream.health}"></span><span class="ws-count">${stream.done}/${stream.total}</span></span>
+          <span class="ws-main"><span class="ws-count">${stream.done}/${stream.total}</span></span>
           <span class="ws-meta"><span title="${stream.baselineDueISO && stream.baselineDueISO !== stream.dueISO ? `原计划 ${projectISODateLabel(stream.baselineDueISO)}` : ""}">${projectDateLabel(stream.due)}${stream.baselineDueISO && stream.baselineDueISO !== stream.dueISO ? "*" : ""}</span>${alertCount ? `<span class="ws-alert">! ${alertCount}</span>` : ""}</span>
           ${stream.firstBatch ? `<span class="ws-first-batch"><span>首批 ${stream.firstBatch.monthShort}</span><span>预${compact(stream.firstBatch.demand)} / 供${compact(stream.firstBatch.supply)}</span></span>` : ""}
         </button>
@@ -5496,8 +5553,8 @@
             ${renderProjectDrawerBody(project, selectedMeta)}
           </div>
           <div class="drawer-foot">
-            <span class="helper-note">详细数据由各工作流模块维护。</span>
-            ${selectedStream ? `<div style="display:flex;gap:6px"><button class="btn" data-project-action="open-source" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">打开${projectSourceLabel(selectedStream.sourceModule)}</button>${canEditProjectWorkstream(selectedMeta.key) ? `<button class="btn danger" data-project-action="register-delay" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">登记延期</button><button class="btn primary" data-project-action="edit-workstream" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">编辑更新</button>` : ""}</div>` : `<button class="btn" data-project-action="close-drawer">关闭</button>`}
+            <span class="helper-note">当前状态可在项目跟进中更新；已接入模块可跳转查看来源数据。</span>
+            ${selectedStream ? `<div class="drawer-actions">${renderProjectSourceControl(project, selectedStream, selectedMeta.key)}${canEditProjectWorkstream(selectedMeta.key) ? `<button class="btn danger" data-project-action="register-delay" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">登记延期</button><button class="btn primary" data-project-action="edit-workstream" data-project-id="${project.id}" data-workstream="${selectedMeta.key}">编辑更新</button>` : ""}</div>` : `<button class="btn" data-project-action="close-drawer">关闭</button>`}
           </div>
         </aside>
       `;
@@ -7794,7 +7851,7 @@
           showProjectToast(`已进入产销管理并筛选型号 ${project.model}。`);
           return;
         }
-        showProjectToast(`${projectSourceLabel(stream?.sourceModule || "Project Tracking")}接口已定位到项目 ${project?.id || ""}。`);
+        showProjectToast(`${projectSourceLabel(stream?.sourceModule || "Project Tracking")}尚未接入独立来源页面。`);
       }
     }
 
