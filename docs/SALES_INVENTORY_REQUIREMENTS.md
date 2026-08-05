@@ -60,7 +60,14 @@
 
 - The Sales & Inventory toolbar provides a `Matrix | Trend` view switch.
   Matrix remains the default view; both views share Model, Category, Lifecycle,
-  Only Gap, First Batch Only, history status, and the active three-month period.
+  Only Gap, First Batch Only, and history status. Trend replaces the Matrix
+  period label with independent `From` and `To` month selectors; Matrix keeps
+  its fixed rolling three-month window.
+- Every Trend result derives from one shared filtered dataset. Changing Model,
+  Category, Lifecycle, From, To, Only Gap, or First Batch Only recalculates the
+  KPI cards, Monthly Demand vs Supply, SKU Gap Heatmap, EOH Risk Trend, and Top
+  Actions together. If From is moved after To (or To before From), the other
+  boundary follows automatically so the selected range always remains valid.
 - The desktop analysis workspace uses a compact two-column composition: Monthly
   Demand vs Supply spans the left column, SKU Gap Heatmap and EOH Risk Trend are
   stacked in the right column, and Top Actions spans one full-width row below.

@@ -102,6 +102,8 @@
 .sip-v2-tools .sip-btn { flex: 0 0 auto; padding-inline: 10px; }
 .sip-v2-synced { align-self: center; color: var(--sip-muted); font-size: 11px; }
 .sip-v2-field { display: grid; gap: 4px; color: var(--sip-muted); font-size: 10px; font-weight: 700; }
+.sip-v2-trend-period { display: flex; flex: 0 0 auto; align-items: flex-end; gap: 6px; }
+.sip-v2-trend-period .sip-v2-field > select { min-width: 102px; }
 .sip-v2-field > select, .sip-v2-model > summary, .sip-v2-editor-tools select, .sip-v2-archive-filter select { height: 36px; min-width: 118px; padding: 0 30px 0 11px; border: 1px solid var(--sip-border); border-radius: 7px; background: var(--sip-panel); color: var(--sip-text); font: inherit; font-size: 12px; font-weight: 700; }
 .sip-v2-field.period select { min-width: 142px; }
 .sip-v2-model { position: relative; }
