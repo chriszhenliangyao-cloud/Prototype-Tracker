@@ -63,6 +63,9 @@
   Only Gap, First Batch Only, and history status. Trend replaces the Matrix
   period label with independent `From` and `To` month selectors; Matrix keeps
   its fixed rolling three-month window.
+- `Edit Plan` and `Forecast Archive` belong to Matrix and are hidden in Trend,
+  keeping the analysis toolbar focused on filters, history, Month Closing, and
+  view switching.
 - Every Trend result derives from one shared filtered dataset. Changing Model,
   Category, Lifecycle, From, To, Only Gap, or First Batch Only recalculates the
   KPI cards, Monthly Demand vs Supply, SKU Gap Heatmap, EOH Risk Trend, and Top
