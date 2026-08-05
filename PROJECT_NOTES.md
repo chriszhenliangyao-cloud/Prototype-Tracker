@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Maintain and extend the published bilingual operations collaboration platform. The current delivery focuses on the Marketing Asset Delivery Matrix: keep it fully visible without horizontal scrolling, make project gaps actionable, and synchronize its project list from Project Tracking so every newly created project is initialized automatically.
+Maintain and extend the published bilingual operations collaboration platform. The current delivery improves the Project Tracking control bar: make portfolio scopes unambiguous without label/count overlap and provide a scope-aware, typeable project/model selector.
 
 ## Repository Context
 
@@ -57,6 +57,8 @@ The standalone reference remains the design and behavior source for the React ap
 - Checklist completion can advance ordinary not-started/in-progress work to completed, but review, missing and overdue remain explicit business states. Selecting completed checks every deliverable; reducing a completed checklist reopens it as in progress.
 - The Marketing Assets matrix supports two persistent sort controls: Project/Product sorts by launch date and Total Progress sorts by calculated project completion. Each toggles ascending/descending; the default is launch date ascending (nearest launch first).
 - Project Tracking is the source of truth for the Marketing Assets project list. Creating a project initializes all six standard assets as `not_started`; active, paused and closeout projects stay visible, while archived/cancelled records are retained but hidden from the current matrix.
+- Project Tracking filters use two compact rows: portfolio scope and project selection first, then health, phase, owner, critical-only and view controls. Scope counts have fixed independent space, and changing scope clears the previous project-specific search.
+- The Project / Model filter is a typeable native dropdown. Its options are limited to the selected portfolio scope and ordered by launch date, while free-text model, project-name and category search remains supported.
 
 ## Current State
 
@@ -80,6 +82,7 @@ The standalone reference remains the design and behavior source for the React ap
 - The latest platform-shell, bilingual, permission, settlement and Prototype Management changes are published to the production Vercel application.
 - The Marketing Asset Delivery Matrix and its shared cloud document are published to the production Vercel application.
 - The no-horizontal-scroll Marketing Assets matrix, project-gap workflow, compact editor and Project Tracking project synchronization are published to production.
+- The Project Tracking filter bar with non-overlapping scope controls and a scope-aware project/model dropdown is published to production.
 
 ## Key Decisions
 
@@ -144,6 +147,8 @@ The standalone reference remains the design and behavior source for the React ap
 - Marketing Assets typography is increased to 8px column headers, 9px project-row headers and 8px status values while the 1040px matrix still fits its container without horizontal scrolling.
 - Sidebar module marks compute as `display: none` in Chinese and English; module labels and right-aligned status/count badges remain correctly aligned.
 - Marketing Assets sorting passes all four local order checks with six projects: launch date ascending/descending and progress ascending/descending. Active headers expose `aria-sort`, inactive headers show `↕`, and launch-date ascending persists after reload as the default/current preference.
+- Project Tracking filter regression passes at 1280×720 in Chinese and English. Scope labels and counts do not overlap or truncate, the filter bar and document have no horizontal overflow, and six current-scope project options are available from the Project / Model dropdown.
+- Selecting `PX51` through the Project / Model field reduces the matrix to one project; switching portfolio scope clears the project condition and restores the complete scope result.
 - JavaScript syntax checks pass for `cloud-app/i18n.js`, `cloud-app/cloud-sync.js`, and the inline application script.
 - The user-locale preference migration is applied to Supabase with RLS. Anonymous table access is revoked; authenticated users receive only select, insert and update privileges, constrained by own-user policies.
 - Vercel production deployment `dpl_D12a4aXTgi75ThZgfMuiUYBHNiFC` is READY and aliased to `https://operations-planning-hub.vercel.app`.
@@ -155,6 +160,8 @@ The standalone reference remains the design and behavior source for the React ap
 - Production regression confirms no sidebar module marks are visible, matrix header/project/status fonts compute to 8/9/8px without horizontal overflow, and the PX51 image/manual dialog renders five default checklist items with add, remove and restore-default controls.
 - Vercel production deployment `dpl_APYCHknM1o5ojms85HvZPB764enY` is READY and aliased to `https://operations-planning-hub.vercel.app`; production root returns HTTP 200.
 - Production Marketing Assets opens with launch-date ascending order (`PX51`, `WAL101`, `WM321`, `PM61-Black`, `P51L-P2`), exposes correct active/inactive `aria-sort` states, and sorts progress from 3% to 96% on the first progress-header action without document or matrix overflow.
+- Vercel production deployment `dpl_A47N1L7aSkvAvwPfxddig45vipvj` is READY and aliased to `https://operations-planning-hub.vercel.app`; production root and `/api/config` return HTTP 200.
+- Production Project Tracking shows all portfolio-scope labels without clipping or overlap, exposes five current-scope project/model dropdown options in the base production dataset, and filters the matrix to the selected `PX51` project without document or filter-bar overflow.
 - Local review URL: `http://127.0.0.1:4178/?offline=1` while the local HTTP server is running from `cloud-app/`.
 
 ## Next Steps

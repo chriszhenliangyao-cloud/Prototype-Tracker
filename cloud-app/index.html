@@ -3529,39 +3529,83 @@
     }
 
     .project-filterbar {
-      align-items: center;
+      display: grid;
+      align-items: end;
+      gap: 8px;
+      overflow: visible;
     }
 
-    .project-scope-control {
-      min-width: 368px;
+    .project-filter-primary,
+    .project-filter-secondary {
+      display: grid;
+      align-items: end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .project-filter-primary {
+      grid-template-columns: minmax(640px, 1.55fr) minmax(220px, 1fr);
+    }
+
+    .project-filter-secondary {
+      grid-template-columns: repeat(3, minmax(120px, 1fr)) auto auto;
+      padding-top: 7px;
+      border-top: 1px solid var(--line);
+    }
+
+    .project-scope-control,
+    .project-search-control,
+    .project-filter-control,
+    .project-view-control {
+      min-width: 0;
+    }
+
+    .project-scope-switch {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      width: 100%;
     }
 
     .project-scope-switch button {
-      gap: 5px;
-      padding-inline: 9px;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 8px;
+      white-space: nowrap;
     }
 
-    .project-scope-switch button span {
-      min-width: 16px;
-      height: 16px;
+    .project-scope-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-scope-count {
+      min-width: 18px;
+      height: 17px;
+      flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0 4px;
+      padding: 0 5px;
       border-radius: 4px;
       background: #e8edf5;
       color: var(--muted);
       font-size: 8px;
       font-weight: 900;
+      line-height: 1;
     }
 
-    .project-scope-switch button.active span {
-      background: #dbe6ff;
+    .project-scope-switch button.active .project-scope-count {
+      background: rgba(255, 255, 255, 0.92);
       color: var(--blue);
     }
 
     .project-search {
-      min-width: 210px;
+      width: 100%;
+      min-width: 0;
       min-height: 30px;
       border: 1px solid var(--line-strong);
       border-radius: 6px;
@@ -3574,6 +3618,25 @@
     .project-search:focus {
       border-color: var(--blue);
       box-shadow: 0 0 0 2px rgba(34, 91, 232, 0.12);
+    }
+
+    .project-filter-control select {
+      width: 100%;
+    }
+
+    .project-critical-toggle {
+      justify-self: start;
+      align-self: end;
+    }
+
+    @media (max-width: 1180px) {
+      .project-filter-primary {
+        grid-template-columns: minmax(600px, 1.5fr) minmax(190px, 1fr);
+      }
+
+      .project-filter-secondary {
+        grid-template-columns: repeat(3, minmax(100px, 1fr)) auto auto;
+      }
     }
 
     .project-content-grid {
@@ -9169,6 +9232,11 @@
       const owners = ["All", ...Array.from(new Set(projectState.projects.map((project) => project.owner)))];
       const stages = ["All", ...PROJECT_GATES];
       const currentCount = projectState.projects.filter((project) => projectMatchesPortfolioScope(project, "current")).length;
+      const projectOptions = projectState.projects
+        .filter((project) => projectMatchesPortfolioScope(project))
+        .sort((a, b) => String(a.launchDate || "").localeCompare(String(b.launchDate || "")) || a.model.localeCompare(b.model))
+        .map((project) => `<option value="${escapeProjectHtml(project.model)}" label="${escapeProjectHtml(project.name)}"></option>`)
+        .join("");
       document.getElementById("projectModule").innerHTML = `
         <header class="topbar">
           <div class="brand">
@@ -9187,22 +9255,27 @@
         </header>
 
         <section class="filterbar project-filterbar" aria-label="项目筛选与视图控制">
-          ${renderProjectScopeSwitch()}
-          <div class="control" style="min-width:210px">
-            <label for="projectSearch">项目 / 型号</label>
-            <input class="project-search" id="projectSearch" data-project-filter="search" value="${projectState.filters.search}" placeholder="搜索项目">
+          <div class="project-filter-primary">
+            ${renderProjectScopeSwitch()}
+            <div class="control project-search-control">
+              <label for="projectSearch">项目 / 型号</label>
+              <input class="project-search" id="projectSearch" list="projectSearchOptions" data-project-filter="search" value="${escapeProjectHtml(projectState.filters.search)}" placeholder="${activeLocale === "en-GB" ? "Type or select a project / model" : "输入或选择项目 / 型号"}" autocomplete="off">
+              <datalist id="projectSearchOptions">${projectOptions}</datalist>
+            </div>
           </div>
-          ${renderProjectSelect("health", "健康状态", ["All", "Red", "Amber", "Green"], projectState.filters.health)}
-          ${renderProjectSelect("stage", "项目阶段", stages, projectState.filters.stage)}
-          ${renderProjectSelect("owner", "项目负责人", owners, projectState.filters.owner)}
-          <button class="toggle ${projectState.filters.onlyCritical ? "active" : ""}" data-project-action="toggle-critical" aria-pressed="${projectState.filters.onlyCritical}">
-            <span class="switch"></span><span>仅看重大风险</span>
-          </button>
-          <div class="control">
-            <label>视图</label>
-            <div class="segmented">
-              <button class="${projectState.view === "matrix" ? "active" : ""}" data-project-view="matrix">矩阵</button>
-              <button class="${projectState.view === "milestones" ? "active" : ""}" data-project-view="milestones">里程碑</button>
+          <div class="project-filter-secondary">
+            ${renderProjectSelect("health", "健康状态", ["All", "Red", "Amber", "Green"], projectState.filters.health)}
+            ${renderProjectSelect("stage", "项目阶段", stages, projectState.filters.stage)}
+            ${renderProjectSelect("owner", "项目负责人", owners, projectState.filters.owner)}
+            <button class="toggle project-critical-toggle ${projectState.filters.onlyCritical ? "active" : ""}" data-project-action="toggle-critical" aria-pressed="${projectState.filters.onlyCritical}">
+              <span class="switch"></span><span>仅看重大风险</span>
+            </button>
+            <div class="control project-view-control">
+              <label>视图</label>
+              <div class="segmented">
+                <button class="${projectState.view === "matrix" ? "active" : ""}" data-project-view="matrix">矩阵</button>
+                <button class="${projectState.view === "milestones" ? "active" : ""}" data-project-view="milestones">里程碑</button>
+              </div>
             </div>
           </div>
         </section>
@@ -9231,7 +9304,7 @@
           <div class="segmented project-scope-switch">
             ${items.map(([scope, label]) => {
               const count = projectState.projects.filter((project) => projectMatchesPortfolioScope(project, scope)).length;
-              return `<button class="${projectState.portfolioScope === scope ? "active" : ""}" data-project-scope="${scope}">${label}<span>${count}</span></button>`;
+              return `<button class="${projectState.portfolioScope === scope ? "active" : ""}" data-project-scope="${scope}"><span class="project-scope-label">${label}</span><span class="project-scope-count">${count}</span></button>`;
             }).join("")}
           </div>
         </div>
@@ -9240,7 +9313,7 @@
 
     function renderProjectSelect(name, label, options, value) {
       return `
-        <div class="control">
+        <div class="control project-filter-control">
           <label>${label}</label>
           <select data-project-filter="${name}">
             ${options.map((option) => `<option value="${option}" ${option === value ? "selected" : ""}>${projectOptionLabel(name, option)}</option>`).join("")}
@@ -12457,6 +12530,7 @@
       const projectScopeButton = event.target.closest("[data-project-scope]");
       if (projectScopeButton) {
         projectState.portfolioScope = projectScopeButton.getAttribute("data-project-scope") || "current";
+        projectState.filters.search = "";
         projectState.selectedProjectId = null;
         projectState.selectedWorkstream = null;
         persistProjectState();
