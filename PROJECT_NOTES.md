@@ -74,6 +74,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Google login page JavaScript and visual smoke tests pass locally against the real Supabase configuration.
 - Production login page shows only Google login, with no password fields, and the OAuth request reaches Google with the expected Supabase callback and `email profile` scopes.
 - The cloud account status is mounted inside the persistent top application bar. Its compact trigger shows sync state only; email, authorization management and logout are contained in a click-open account menu, with no fixed overlay positioning.
+- Exact-email authorization upserts use the named unique constraint to avoid PL/pgSQL output-column ambiguity. Authorization UI errors are logged for diagnostics but shown to users as concise Chinese business messages.
 - Anonymous requests to the authorization table and authorization RPC are rejected with HTTP 401/404.
 - Authorization and revocation privilege logic lives in the unexposed `private` schema; public RPCs are `SECURITY INVOKER` wrappers.
 - Supabase security advisor now reports only the existing versioned-document save RPC; it performs an explicit workspace editor/admin check.

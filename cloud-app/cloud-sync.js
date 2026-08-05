@@ -105,7 +105,8 @@
         .is("revoked_at", null)
         .order("created_at", { ascending: true });
       if (response.error) {
-        items.innerHTML = `<div class="cloud-authorization-empty">${escapeHtml(response.error.message)}</div>`;
+        console.error("Authorization list failed", response.error);
+        items.innerHTML = '<div class="cloud-authorization-empty">授权列表加载失败，请稍后重试。</div>';
         return;
       }
       if (!response.data.length) {
@@ -127,7 +128,8 @@
           p_email: email
         });
         if (revokeResponse.error) {
-          message.textContent = revokeResponse.error.message.includes("cannot_revoke_current_admin") ? "不能撤销当前登录管理员自身的权限。" : revokeResponse.error.message;
+          console.error("Authorization revoke failed", revokeResponse.error);
+          message.textContent = cloudErrorMessage(revokeResponse.error, "撤销失败，请稍后重试。");
           button.disabled = false;
           return;
         }
@@ -150,7 +152,8 @@
       });
       submit.disabled = false;
       if (response.error) {
-        message.textContent = response.error.message;
+        console.error("Authorization save failed", response.error);
+        message.textContent = cloudErrorMessage(response.error, "授权保存失败，请稍后重试。");
         return;
       }
       const result = Array.isArray(response.data) ? response.data[0] : response.data;
@@ -188,6 +191,15 @@
 
   function escapeHtml(value) {
     return String(value || "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+  }
+
+  function cloudErrorMessage(error, fallback) {
+    const detail = String(error?.message || error || "");
+    if (detail.includes("cannot_revoke_current_admin")) return "不能撤销当前登录管理员自身的权限。";
+    if (detail.includes("admin_permission_required")) return "只有云端管理员可以管理成员授权。";
+    if (detail.includes("invalid_email")) return "请输入有效的完整邮箱地址。";
+    if (detail.includes("invalid_role")) return "请选择有效的云端权限。";
+    return fallback;
   }
 
   function renderAuthGate(supabase, deniedEmail = "", authError = "") {
