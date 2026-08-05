@@ -90,7 +90,8 @@
   `−20K`. Demand and Supply grow upward from the zero baseline; negative Net Gap
   grows downward from that same baseline, so no bar floats within the plot.
   Month labels and New-product First Batch events sit below the complete plot;
-  events use compact red `FB!`, orange `FB~`, or green `FB✓` badges.
+  a complete horizontal X axis is drawn at `−20K` immediately above the month
+  labels. Events use compact red `FB!`, orange `FB~`, or green `FB✓` badges.
 - SKU Gap Heatmap uses rows for filtered SKUs and columns for the rolling months.
   Its header contains `Gap (S − D)` plus the Severe, Warning, Healthy, and No
   Data colour legend; explanatory legends are not repeated below the table.

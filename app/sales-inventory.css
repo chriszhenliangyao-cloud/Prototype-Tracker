@@ -337,7 +337,7 @@
   min-height: 468px;
   padding: 32px 20px 12px 56px;
   border: 0;
-  background: none;
+  background: linear-gradient(#8392a7, #8392a7) 54px 392px / calc(100% - 74px) 1px no-repeat;
 }
 .sip-v2-main > .sip-trend .sip-bars::before,
 .sip-v2-main > .sip-trend .sip-bars::after {
