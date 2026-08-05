@@ -88,12 +88,6 @@
   visible X/Y axes, value labels, guides, and a clear zero line.
   New-product First Batch events appear below the corresponding month as
   compact red `FB!`, orange `FB~`, or green `FB✓` badges.
-- Monthly Demand vs Supply anchors every series to the central zero baseline:
-  Demand and Supply grow upward, while negative Net Gap grows downward. The
-  positive and negative axes auto-scale independently with about 10% headroom,
-  keeping the negative range only as large as the selected period requires.
-  Wider bars, tighter month groups, and compact month/First Batch labels keep
-  the data area dense without changing any demand, supply, or gap calculation.
 - SKU Gap Heatmap uses rows for filtered SKUs and columns for the rolling months.
   Its header contains `Gap (S − D)` plus the Severe, Warning, Healthy, and No
   Data colour legend; explanatory legends are not repeated below the table.
