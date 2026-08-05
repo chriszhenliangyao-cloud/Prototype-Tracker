@@ -40,8 +40,9 @@ The standalone reference remains the design and behavior source for the React ap
 - The independent combined tool is deployed at `https://operations-planning-hub.vercel.app`.
 - Vercel project: `paytonppc-2101s-projects/operations-planning-hub`.
 - Supabase project: `Operations Planning Hub`, ref `yzsmdwbuuwhsqrewecle`, region `eu-west-1`.
-- Supabase provides invitation-only authentication, workspace membership, shared versioned JSON documents, audit events and Realtime document notifications.
-- The first administrator invitation is registered for `payton.ppc@gmail.com`. That address must complete registration before inviting other users from the cloud status menu.
+- Supabase provides exact-email Google authorization, workspace membership, shared versioned JSON documents, audit events and Realtime document notifications.
+- The first administrator authorization is registered for `payton.ppc@gmail.com`. That address becomes the administrator on its first successful Google login.
+- Google OAuth frontend and database support are implemented locally. Production deployment is intentionally waiting for the Google Provider and redirect configuration to be completed in Google Cloud and Supabase.
 - The existing React Sales route is still an earlier implementation and does not yet contain the full Chinese collaboration workflow from the standalone tool.
 
 ## Key Decisions
@@ -51,7 +52,7 @@ The standalone reference remains the design and behavior source for the React ap
 - Keep product behavior and integration contracts separate from browser-only prototype persistence.
 - Implement and verify on the conversation branch; merge through a pull request rather than pushing directly to `main`.
 - Keep the Vercel cloud app independent until the React implementation reaches feature parity.
-- Use invitation-only workspace access. Supabase roles control workspace-level access; in-app account permissions control department/workstream scope.
+- Use exact-email authorization with Google OAuth. Supabase roles control workspace-level access; in-app account permissions control department/workstream scope.
 
 ## Changed Files
 
@@ -70,17 +71,21 @@ The standalone reference remains the design and behavior source for the React ap
 
 - JavaScript syntax checks pass for `cloud-sync.js` and the inline application script.
 - Local offline smoke test passes for the Chinese Sales view and Project Tracking module switch.
-- Supabase security advisor reports only the two intentional authenticated `SECURITY DEFINER` RPCs; both perform explicit workspace-role checks.
+- Google login page JavaScript and visual smoke tests pass locally against the real Supabase configuration.
+- Anonymous requests to the authorization table and authorization RPC are rejected with HTTP 401/404.
+- Authorization and revocation privilege logic lives in the unexposed `private` schema; public RPCs are `SECURITY INVOKER` wrappers.
+- Supabase security advisor now reports only the existing versioned-document save RPC; it performs an explicit workspace editor/admin check.
 - Supabase performance advisor reports only unused-index informational notices on the newly created, nearly empty database.
 - Production root and `/api/config` return HTTP 200; browser smoke testing finds the cloud login screen without console errors.
 
 ## Next Steps
 
-1. Complete first-admin registration and email verification with the invited administrator email.
-2. Invite one editor and one viewer, then verify cross-browser Realtime updates and access restrictions with real sessions.
-3. Push `codex/operations-planning-updates` and open a draft pull request when GitHub credentials are available.
-4. Port the current Chinese Sales & Inventory collaboration workflow from the standalone reference into `app/routes/sales-inventory.tsx` and focused components.
-5. Replace shared JSON documents with normalized domain tables when field-level multi-user editing becomes the priority.
+1. Configure the Google OAuth Client, Supabase Google Provider, Site URL and redirect allow list as documented in `cloud-app/README.md`.
+2. Deploy the pending Google-login frontend after provider configuration is confirmed.
+3. Sign in with the first authorized administrator email, authorize one editor and one viewer, then verify cross-browser Realtime updates and access restrictions with real sessions.
+4. Push `codex/operations-planning-updates` and open a draft pull request when GitHub credentials are available.
+5. Port the current Chinese Sales & Inventory collaboration workflow from the standalone reference into `app/routes/sales-inventory.tsx` and focused components.
+6. Replace shared JSON documents with normalized domain tables when field-level multi-user editing becomes the priority.
 
 ## Resume Instructions
 

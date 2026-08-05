@@ -31,14 +31,28 @@ Vercel Production 环境需要配置：
 
 `/api/config` 只向浏览器返回这两个公开配置。数据库权限由 Supabase Auth、RLS 和 RPC 内部角色校验控制。
 
+## Google 登录配置
+
+生产环境采用“精确邮箱预授权 + Google OAuth”，不提供密码注册入口。上线前需要完成以下一次性配置：
+
+1. 在 Google Cloud Console 配置 OAuth consent screen。
+2. 创建类型为 Web application 的 OAuth 2.0 Client。
+3. Authorized JavaScript origin 添加 `https://operations-planning-hub.vercel.app`。
+4. Authorized redirect URI 添加 `https://yzsmdwbuuwhsqrewecle.supabase.co/auth/v1/callback`。
+5. 在 Supabase Dashboard 的 Authentication > Sign In / Providers > Google 中启用 Google，并填写 Client ID 和 Client Secret。
+6. 在 Authentication > URL Configuration 中，将 Site URL 设置为 `https://operations-planning-hub.vercel.app`，并把相同地址加入 Redirect URLs。
+
+Google Client Secret 只保存在 Google Cloud 和 Supabase，不写入 Vercel、前端代码或本仓库。
+
 ## 成员接入
 
-1. 首位管理员使用预先登记的管理员邮箱完成“受邀注册”和邮箱验证。
-2. 管理员登录后，从右上角选择“邀请成员”，填写成员邮箱并选择“可编辑”或“只读”。
-3. 成员使用相同邮箱完成“受邀注册”，随后自动加入共享工作区。
+1. 首位管理员使用预先授权的 Google 邮箱登录。
+2. 管理员从右上角选择“授权成员”，填写成员的完整 Google 邮箱并选择“可编辑”或“只读”。
+3. 成员点击“使用 Google 登录”；邮箱精确匹配授权记录后自动进入共享工作区。
 4. 对于项目模块的部门职责，管理员再从工具级“账号与权限”中分配部门、工作流和数据范围。
+5. 管理员可以在授权窗口撤销成员；撤销后该成员的工作区关系立即删除。
 
-云端角色控制工作区级别的读写权限；工具内角色继续控制具体职能模块和操作入口。未被邀请的注册账号不会获得任何工作区数据权限。
+云端角色控制工作区级别的读写权限；工具内角色继续控制具体职能模块和操作入口。Google 登录只负责确认邮箱身份，未预先授权的邮箱即使完成 Google 验证也无法读取任何工作区数据。
 
 ## 数据同步
 
