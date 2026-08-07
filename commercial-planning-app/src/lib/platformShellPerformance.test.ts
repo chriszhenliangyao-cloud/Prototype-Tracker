@@ -8,6 +8,26 @@ const platformShell = readFileSync(
 );
 
 describe("commercial planning platform shell performance", () => {
+  it("serves the complete product roadmap through a same-origin platform module", () => {
+    const roadmapIndex = readFileSync(
+      new URL("../../public/roadmap/index.html", import.meta.url),
+      "utf8"
+    );
+    const roadmapApp = readFileSync(
+      new URL("../../public/roadmap/app.js", import.meta.url),
+      "utf8"
+    );
+
+    expect(platformShell).toContain('data-module="roadmap"');
+    expect(platformShell).toContain('/roadmap/index.html?embedded=1&lang=${language}');
+    expect(platformShell).toContain("roadmap: renderRoadmapWorkspace");
+    expect(roadmapIndex).toContain('data-vertical-mode="structure"');
+    expect(roadmapIndex).toContain('data-vertical-mode="precise"');
+    expect(roadmapApp).toContain('const SOURCE_URL = "data/roadmap-baseline.json"');
+    expect(roadmapApp).toContain('const MASTER_DATA_URL = "data/master-products.json"');
+    expect(roadmapApp).toContain('document.documentElement.classList.toggle("embedded", EMBEDDED_MODE)');
+  });
+
   it("opens copied commercial modules through native platform routes", () => {
     expect(platformShell).toContain("const nativePlatformModuleRoutes = {");
     expect(platformShell).toContain('"business-bp": "/platform/business/bp"');

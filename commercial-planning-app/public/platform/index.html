@@ -2538,7 +2538,8 @@
       min-height: 39px;
     }
 
-    .commercial-planning-embed {
+    .commercial-planning-embed,
+    .roadmap-module-embed {
       position: relative;
       height: calc(100vh - 76px);
       min-height: 680px;
@@ -2546,6 +2547,18 @@
       border: 1px solid var(--line);
       border-radius: 7px;
       background: var(--panel);
+    }
+
+    .roadmap-host-page {
+      gap: 0;
+    }
+
+    .roadmap-module-embed iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      background: #f4f7fb;
     }
 
     .commercial-planning-embed-status {
@@ -5930,6 +5943,7 @@
 
         <div class="platform-nav-group">
           <div class="platform-nav-label">计划与交付</div>
+          <button class="platform-nav-item" data-module="roadmap" aria-pressed="false"><span class="platform-nav-mark">图</span><span>产品路线图</span></button>
           <button class="platform-nav-item" data-module="projects" aria-pressed="false"><span class="platform-nav-mark">项</span><span>项目跟进</span><span class="module-alert" id="projectAlertCount">0</span></button>
           <button class="platform-nav-item" data-module="sales" aria-pressed="false"><span class="platform-nav-mark">产</span><span>产销管理</span></button>
           <button class="platform-nav-item" data-module="forecast" aria-pressed="false"><span class="platform-nav-mark">预</span><span>预测管理</span><span class="nav-state ready">测试</span></button>
@@ -7170,16 +7184,16 @@
     ];
 
     const FUNCTIONAL_ROLE_DEFINITIONS = [
-      { key: "management", zh: "管理层 / 经营负责人", en: "Management", modules: ["business-overview", "business-bp", "business-analysis", "value-chain", "settlements", "promo-approvals", "other-approvals", "tasks", "exceptions", "projects", "sales", "forecast", "logistics", "market-launch", "market-campaign", "market-assets", "prototype-management"] },
-      { key: "plan_admin", zh: "计划管理员", en: "Planning Admin", modules: ["sales", "forecast", "logistics", "projects", "promo-approvals", "other-approvals", "tasks", "exceptions"] },
-      { key: "pmo", zh: "PMO / 项目经理", en: "PMO / Project Manager", modules: ["projects", "prototype-management", "market-launch", "other-approvals", "tasks", "exceptions", "functions"] },
-      { key: "sales_forecast", zh: "销售预测负责人", en: "Sales Forecast Owner", modules: ["forecast", "sales", "projects", "market-launch", "tasks", "exceptions"] },
-      { key: "supply_planner", zh: "供应计划负责人", en: "Supply Planner", modules: ["sales", "logistics", "projects", "other-approvals", "tasks", "exceptions"] },
+      { key: "management", zh: "管理层 / 经营负责人", en: "Management", modules: ["business-overview", "business-bp", "business-analysis", "value-chain", "settlements", "promo-approvals", "other-approvals", "tasks", "exceptions", "roadmap", "projects", "sales", "forecast", "logistics", "market-launch", "market-campaign", "market-assets", "prototype-management"] },
+      { key: "plan_admin", zh: "计划管理员", en: "Planning Admin", modules: ["roadmap", "sales", "forecast", "logistics", "projects", "promo-approvals", "other-approvals", "tasks", "exceptions"] },
+      { key: "pmo", zh: "PMO / 项目经理", en: "PMO / Project Manager", modules: ["roadmap", "projects", "prototype-management", "market-launch", "other-approvals", "tasks", "exceptions", "functions"] },
+      { key: "sales_forecast", zh: "销售预测负责人", en: "Sales Forecast Owner", modules: ["roadmap", "forecast", "sales", "projects", "market-launch", "tasks", "exceptions"] },
+      { key: "supply_planner", zh: "供应计划负责人", en: "Supply Planner", modules: ["roadmap", "sales", "logistics", "projects", "other-approvals", "tasks", "exceptions"] },
       { key: "logistics", zh: "物流交付负责人", en: "Logistics Owner", modules: ["logistics", "sales", "projects", "tasks", "exceptions"] },
-      { key: "business_planning", zh: "经营分析 / BP负责人", en: "Business Planning", modules: ["business-overview", "business-bp", "business-analysis", "value-chain", "settlements", "promo-approvals", "other-approvals", "tasks", "exceptions"] },
+      { key: "business_planning", zh: "经营分析 / BP负责人", en: "Business Planning", modules: ["roadmap", "business-overview", "business-bp", "business-analysis", "value-chain", "settlements", "promo-approvals", "other-approvals", "tasks", "exceptions"] },
       { key: "settlement_specialist", zh: "财务结算专员", en: "Settlement Specialist", modules: ["settlements", "business-overview", "business-analysis", "other-approvals", "tasks", "exceptions"] },
       { key: "settlement_manager", zh: "财务结算经理", en: "Settlement Manager", modules: ["settlements", "business-overview", "business-bp", "business-analysis", "value-chain", "other-approvals", "tasks", "exceptions"] },
-      { key: "marketing_growth", zh: "市场增长负责人", en: "Market Growth Owner", modules: ["market-launch", "market-campaign", "market-assets", "promo-approvals", "projects", "tasks", "exceptions"] },
+      { key: "marketing_growth", zh: "市场增长负责人", en: "Market Growth Owner", modules: ["roadmap", "market-launch", "market-campaign", "market-assets", "promo-approvals", "projects", "tasks", "exceptions"] },
       { key: "department_contributor", zh: "职能部门编辑", en: "Function Contributor", modules: ["projects", "functions", "tasks", "exceptions"] },
       { key: "approver", zh: "专项审批人", en: "Specialist Approver", modules: ["promo-approvals", "other-approvals", "tasks", "exceptions", "business-overview", "projects", "sales"] }
     ];
@@ -7382,6 +7396,7 @@
 
     const PLATFORM_MODULES = {
       home: { group: "工作台", label: "我的工作台", subtitle: "跨模块待办、审批与异常" },
+      roadmap: { group: "计划与交付", label: "产品路线图", subtitle: "产品组合、目标上市时间与项目执行联动" },
       projects: { group: "计划与交付", label: "项目跟进", subtitle: "跨职能项目控制塔" },
       sales: { group: "计划与交付", label: "产销管理", subtitle: "需求、供应与库存协同" },
       forecast: { group: "计划与交付", label: "预测管理", subtitle: "销售预测输入、共识与版本管理" },
@@ -8800,6 +8815,12 @@
       ])}<div class="workspace-grid">${renderWorkspacePanel("优先事项", "按截止时间与风险排序", table)}${renderWorkspacePanel("协同提醒", "跨模块聚合", list)}</div></div>`;
     }
 
+    function renderRoadmapWorkspace() {
+      const language = activeLocale === "en-GB" ? "en" : "zh";
+      const title = activeLocale === "en-GB" ? "Product Roadmap" : "产品路线图";
+      return `<div class="workspace-page roadmap-host-page"><section class="roadmap-module-embed" aria-label="${title}"><iframe src="/roadmap/index.html?embedded=1&lang=${language}" title="${title}" loading="eager" referrerpolicy="same-origin" data-roadmap-frame></iframe></section></div>`;
+    }
+
     function renderForecastWorkspace() {
       const actions = `<button class="btn" data-platform-action="notice" data-message="预测模板已准备下载。">导出模板</button><button class="btn" data-platform-action="notice" data-message="已打开预测导入检查流程。">导入预测</button><button class="btn primary" data-platform-action="notice" data-message="已创建9月滚动预测协同草稿。">发起滚动预测</button>`;
       const filters = `<section class="filterbar" aria-label="预测管理筛选"><div class="control"><label>预测周期</label><select><option>2026年8月滚动预测</option></select></div><div class="control"><label>区域</label><select><option>全部区域</option><option>德国</option><option>法国</option><option>意大利</option><option>西班牙</option></select></div><div class="control"><label>渠道</label><select><option>全部渠道</option><option>Amazon</option><option>Retail</option><option>DTC</option></select></div><div class="control"><label>版本</label><select><option>当前协同草稿 v4</option><option>7月正式版 v3</option></select></div><button class="toggle active" aria-pressed="true"><span class="switch"></span><span>仅看有变化</span></button></section>`;
@@ -10176,7 +10197,7 @@
 
     function renderSystemWorkspace() {
       const rows = [
-        ["计划与交付", "项目 / 产销 / 预测 / 物流", "4", "3已连接 · 1测试中", "启用", "green"],
+        ["计划与交付", "路线图 / 项目 / 产销 / 预测 / 物流", "5", "4已连接 · 1测试中", "启用", "green"],
         ["经营管理", "经营总览 / BP达成 / 经营分析 / 价值链模拟 / 结算台账", "5", "模拟器与结算台账测试中", "规划中", "amber"],
         ["市场增长", "新品上市 / 营销活动 / 营销物料", "3", "结构测试", "规划中", "amber"],
         ["协同中心", "月促审批 / 其他审批 / 待办 / 异常", "4", "统一任务模型待接入", "结构测试", "blue"],
@@ -10185,7 +10206,7 @@
       const table = `<div class="workspace-table-wrap"><table class="workspace-table module-registry-table"><thead><tr><th>模块域</th><th>子模块</th><th>数量</th><th>连接状态</th><th>阶段</th><th>操作</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${renderWorkspaceStatus(row[4], row[5])}</td><td><button class="btn" data-platform-action="notice" data-message="已打开${row[0]}模块配置。">配置</button></td></tr>`).join("")}</tbody></table></div>`;
       const masterDataAction = `<button class="btn" data-platform-action="notice" data-message="主数据管理将在接口阶段接入。">规划</button>`;
       const settings = `<div class="workspace-list"><div class="workspace-list-row"><div><strong>账号与权限</strong><small>精确邮箱授权、角色和数据范围</small></div><button class="btn primary" data-project-action="permissions">权限管理</button></div><div class="workspace-list-row"><div><strong>主数据管理</strong><small>SKU、市场、渠道、仓库和组织</small></div>${masterDataAction}</div><div class="workspace-list-row"><div><strong>接口与同步</strong><small>Supabase、ERP、物流和业务数据源</small></div><button class="btn" data-platform-action="notice" data-message="接口状态页面将在下一阶段接入。">查看</button></div><div class="workspace-list-row"><div><strong>审计日志</strong><small>查看数据修改、审批和权限变更记录</small></div><button class="btn" data-platform-action="notice" data-message="审计日志结构已保留。">查看</button></div></div>`;
-      return `<div class="workspace-page">${renderWorkspaceHeader("SYSTEM MANAGEMENT", "系统管理", "总管理员可见")}${renderWorkspaceSummary([{ label: "平台模块", value: "19", foot: "5个业务域" }, { label: "活跃账号", value: "6", foot: "精确邮箱授权" }, { label: "已连接数据源", value: "3", foot: "Supabase与业务数据" }, { label: "待接接口", value: "5", foot: "ERP、财务、银行、物流" }])}<div class="workspace-grid">${renderWorkspacePanel("模块注册表", "平台结构测试", table)}${renderWorkspacePanel("平台配置", "统一治理入口", settings)}</div></div>`;
+      return `<div class="workspace-page">${renderWorkspaceHeader("SYSTEM MANAGEMENT", "系统管理", "总管理员可见")}${renderWorkspaceSummary([{ label: "平台模块", value: "20", foot: "5个业务域" }, { label: "活跃账号", value: "6", foot: "精确邮箱授权" }, { label: "已连接数据源", value: "3", foot: "Supabase与业务数据" }, { label: "待接接口", value: "5", foot: "ERP、财务、银行、物流" }])}<div class="workspace-grid">${renderWorkspacePanel("模块注册表", "平台结构测试", table)}${renderWorkspacePanel("平台配置", "统一治理入口", settings)}</div></div>`;
     }
 
     function renderWorkspaceModule(moduleKey) {
@@ -10193,6 +10214,7 @@
       if (!root) return;
       const renderers = {
         home: renderHomeWorkspace,
+        roadmap: renderRoadmapWorkspace,
         forecast: renderForecastWorkspace,
         logistics: renderLogisticsWorkspace,
         "business-overview": renderBusinessWorkspace,

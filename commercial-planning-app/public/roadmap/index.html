@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>产品路线图 · 运营协同平台本地测试</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="platform-shell">
+      <aside class="platform-sidebar" aria-label="平台模块导航">
+        <div class="brand-block">
+          <div class="brand-sign">OP</div>
+          <div>
+            <strong data-copy="brand">运营协同平台</strong>
+            <span data-copy="region">欧洲业务运营</span>
+          </div>
+        </div>
+
+        <nav class="platform-nav">
+          <div class="nav-group">
+            <span class="nav-label" data-copy="planning">计划与交付</span>
+            <button class="nav-item active" type="button"><span data-copy="roadmap">产品路线图</span></button>
+            <button class="nav-item" type="button"><span data-copy="projects">项目跟进</span><b>10</b></button>
+            <button class="nav-item" type="button"><span data-copy="sales">产销管理</span></button>
+            <button class="nav-item" type="button"><span data-copy="forecast">预测管理</span><i data-copy="test">测试</i></button>
+            <button class="nav-item" type="button"><span data-copy="logistics">物流交付</span><i data-copy="test">测试</i></button>
+          </div>
+          <div class="nav-group">
+            <span class="nav-label" data-copy="growth">市场增长</span>
+            <button class="nav-item" type="button"><span data-copy="launch">新品上市</span></button>
+            <button class="nav-item" type="button"><span data-copy="campaigns">营销活动</span></button>
+            <button class="nav-item" type="button"><span data-copy="assets">营销物料</span></button>
+          </div>
+          <div class="nav-group">
+            <span class="nav-label" data-copy="collaboration">协同中心</span>
+            <button class="nav-item" type="button"><span data-copy="promoApprovals">月度促销审批</span></button>
+            <button class="nav-item" type="button"><span data-copy="otherApprovals">其他审批</span></button>
+            <button class="nav-item" type="button"><span data-copy="tasks">我的待办</span><b>4</b></button>
+            <button class="nav-item" type="button"><span data-copy="exceptions">异常中心</span><b>12</b></button>
+          </div>
+          <div class="nav-group">
+            <span class="nav-label" data-copy="business">经营管理</span>
+            <button class="nav-item" type="button"><span data-copy="businessOverview">经营总览</span></button>
+            <button class="nav-item" type="button"><span data-copy="bp">BP达成</span></button>
+            <button class="nav-item" type="button"><span data-copy="analysis">经营分析</span></button>
+            <button class="nav-item" type="button"><span data-copy="valueChain">价值链测算</span></button>
+            <button class="nav-item" type="button"><span data-copy="settlement">结算台账</span></button>
+          </div>
+          <div class="nav-group">
+            <span class="nav-label" data-copy="admin">专业与管理</span>
+            <button class="nav-item" type="button"><span data-copy="workspace">职能工作台</span></button>
+            <button class="nav-item" type="button"><span data-copy="prototype">样机管理</span></button>
+            <button class="nav-item" type="button"><span data-copy="system">系统管理</span></button>
+          </div>
+        </nav>
+
+        <div class="sidebar-foot">
+          <span class="status-light"></span>
+          <span data-copy="localTest">本地 Roadmap 测试</span>
+        </div>
+      </aside>
+
+      <div class="platform-main">
+        <header class="platform-header">
+          <div class="context-title">
+            <strong><span data-copy="planning">计划与交付</span> / <span data-copy="roadmap">产品路线图</span></strong>
+            <span data-copy="contextSubtitle">产品组合、目标上市时间与项目执行联动</span>
+          </div>
+          <div class="account-actions">
+            <label class="account-select">
+              <span data-copy="account">当前账号</span>
+              <select aria-label="当前账号">
+                <option>Ivy · 超级管理员</option>
+              </select>
+            </label>
+            <label class="language-select">
+              <span class="sr-only" data-copy="language">界面语言</span>
+              <select id="languageSelect" aria-label="界面语言">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+            <button class="header-button" id="resetTestButton" type="button" title="仅重置本地测试数据" data-copy="reset">重置测试</button>
+            <span class="sync-pill"><span class="status-light"></span><span data-copy="localOnly">仅本地</span></span>
+          </div>
+        </header>
+
+        <main class="workspace">
+          <section class="workspace-heading">
+            <div>
+              <span class="eyebrow">PRODUCT PORTFOLIO</span>
+              <h1 data-copy="roadmap">产品路线图</h1>
+            </div>
+            <div class="heading-actions">
+              <button class="button" id="presentButton" type="button" data-copy="presentation">演示模式</button>
+              <button class="button primary" id="addProductButton" type="button" data-copy="addProduct">新增产品</button>
+            </div>
+          </section>
+
+          <section class="control-band" aria-label="Roadmap controls">
+            <div class="control-topline">
+              <div class="line-tabs" id="lineTabs" role="tablist" aria-label="产品线"></div>
+              <label class="search-control">
+                <span data-copy="projectSearch">产品 / 型号</span>
+                <input id="productSearch" type="search" list="productOptions" data-placeholder-zh="输入或选择产品 / 型号" data-placeholder-en="Type or select product / model" placeholder="输入或选择产品 / 型号">
+                <datalist id="productOptions"></datalist>
+              </label>
+              <label class="card-scale-control" title="统一调整所有产品卡片、图片和文字大小">
+                <span aria-hidden="true">Aa</span>
+                <strong data-copy="cardScale">卡片大小</strong>
+                <input id="cardScaleInput" type="range" min="80" max="135" step="5" value="100" aria-label="产品卡片统一大小">
+                <output id="cardScaleValue" for="cardScaleInput">100%</output>
+              </label>
+              <button class="button compact show-weekly-button" id="showWeeklyPanelButton" type="button" hidden><span data-copy="showWeekly">显示本周更新</span></button>
+              <div class="view-switch" role="tablist" aria-label="视图">
+                <button class="view-button active" type="button" data-view="roadmap" data-copy="roadmapView">路线图</button>
+                <button class="view-button" type="button" data-view="updates" data-copy="updateLedger">更新台账</button>
+                <button class="view-button" type="button" data-view="history" data-copy="versionHistory">版本历史</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="source-notice" role="status">
+            <span class="status-light"></span>
+            <strong data-copy="sourceCopy">源 Roadmap 只读副本</strong>
+            <span data-copy="sourceCopyDetail">所有测试修改只保存在当前浏览器，不写入源文件或云端。</span>
+          </div>
+
+          <section class="view-panel active" id="roadmapView" data-panel="roadmap">
+            <div class="roadmap-layout" id="roadmapLayout">
+              <div class="roadmap-frame" id="roadmapFrame">
+                <div class="canvas-heading">
+                  <div>
+                    <h2 id="canvasTitle">Product Roadmap</h2>
+                    <span id="canvasMeta"></span>
+                  </div>
+                  <div class="canvas-heading-actions">
+                    <div class="vertical-mode-switch" id="verticalModeSwitch" role="group" aria-label="Roadmap 展示模式">
+                      <button class="vertical-mode-button active" type="button" data-vertical-mode="structure" data-copy="structureOverview">结构总览</button>
+                      <button class="vertical-mode-button" type="button" data-vertical-mode="precise" data-copy="preciseLayout">精确坐标</button>
+                    </div>
+                    <div class="status-filters canvas-status-filters" id="statusFilters" aria-label="状态筛选"></div>
+                  </div>
+                </div>
+                <div class="roadmap-scroll" id="roadmapScroll">
+                  <div class="roadmap-canvas" id="roadmapCanvas" tabindex="0" aria-label="产品路线图画布"></div>
+                </div>
+                <div class="canvas-footer">
+                  <span data-copy="axisHint">横轴为目标上市时间，纵轴为规划零售价。点击产品查看项目与历史。</span>
+                  <span id="visibleCount"></span>
+                </div>
+              </div>
+              <aside class="weekly-panel" id="weeklyPanel" aria-label="最新一周更新">
+                <div class="weekly-panel-heading">
+                  <div><h2 id="weeklyTitle">最新一周更新</h2><p id="weeklyScope"></p></div>
+                  <div class="weekly-panel-actions">
+                    <button class="button compact language-button" id="weeklyLanguageButton" type="button" title="Flip to English">EN</button>
+                    <button class="button compact" id="weeklyEditButton" type="button">编辑</button>
+                    <button class="icon-button weekly-hide-button" id="hideWeeklyPanelButton" type="button" aria-label="隐藏本周更新" title="隐藏本周更新">→</button>
+                  </div>
+                </div>
+                <div class="weekly-period"><strong id="weeklyPeriod"></strong><span id="weeklyMeta"></span><small id="weeklyTranslationStatus" hidden></small></div>
+                <label class="weekly-history-control"><span id="weeklyHistoryLabel">显示历史记录</span><span class="switch"><input id="weeklyHistoryToggle" type="checkbox"><span class="slider" aria-hidden="true"></span></span></label>
+                <div class="weekly-updates" id="weeklyUpdatesDisplay"></div>
+                <form class="weekly-inline-form" id="weeklyInlineForm" hidden>
+                  <div class="weekly-auto-date"><span id="weeklyAutoDateLabel">记录日期</span><strong id="weeklyAutoDateValue"></strong><i id="weeklyAutoDateTag">自动</i></div>
+                  <label class="field"><span id="weeklyMetaFieldLabel">本周主题（可选）</span><input name="meta"></label>
+                  <div class="weekly-form-head"><span id="weeklyProductFormLabel">按产品填写本周更新</span><output id="weeklyProductCount"></output></div>
+                  <div class="weekly-product-fields" id="weeklyProductFields"></div>
+                  <div class="weekly-form-actions"><button class="button primary" id="weeklySaveButton" type="submit">保存、翻译并归档</button><button class="button" id="weeklyCancelButton" type="button">取消</button></div>
+                </form>
+              </aside>
+            </div>
+          </section>
+
+          <section class="view-panel" id="updatesView" data-panel="updates">
+            <div class="section-heading">
+              <div><h2 data-copy="updateLedger">更新台账</h2><span data-copy="updateLedgerSubtitle">按产品集中查看和录入周度更新</span></div>
+              <button class="button primary" id="editWeeklyButton" type="button" data-copy="editWeek">编辑本周</button>
+            </div>
+            <div class="ledger-toolbar">
+              <label><span data-copy="week">周次</span><select id="ledgerWeek"></select></label>
+              <label><span data-copy="status">状态</span><select id="ledgerStatus"></select></label>
+              <span id="ledgerResultCount"></span>
+            </div>
+            <div class="table-wrap"><table class="data-table" id="updatesTable"></table></div>
+          </section>
+
+          <section class="view-panel" id="historyView" data-panel="history">
+            <div class="section-heading">
+              <div><h2 data-copy="versionHistory">版本历史</h2><span data-copy="historySubtitle">Roadmap 版本与原始周度归档统一查看</span></div>
+              <span class="immutable-pill" data-copy="immutable">历史不可覆盖</span>
+            </div>
+            <div class="history-layout">
+              <aside class="version-list" id="versionList" aria-label="Roadmap versions"></aside>
+              <section class="version-detail" id="versionDetail"></section>
+            </div>
+            <div class="archive-section">
+              <div class="section-heading compact-heading"><div><h3 data-copy="sourceArchives">源周度归档</h3><span data-copy="sourceArchiveSubtitle">由原 Roadmap 完整导入的中英文历史</span></div></div>
+              <div class="table-wrap"><table class="data-table" id="archiveTable"></table></div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <aside class="overlay-drawer" id="updatesDrawer" aria-hidden="true" aria-label="本周更新">
+      <div class="drawer-head">
+        <div><span class="eyebrow">WEEKLY UPDATE</span><h2 data-copy="weeklyUpdates">本周更新</h2><p id="drawerScope"></p></div>
+        <button class="icon-button" type="button" data-close-drawer="updates" title="关闭">×</button>
+      </div>
+      <div class="drawer-toolbar"><button class="button primary" id="drawerEditButton" type="button" data-copy="editWeek">编辑本周</button><button class="button" id="openLedgerButton" type="button" data-copy="openLedger">打开台账</button></div>
+      <div class="drawer-content" id="updatesDrawerContent"></div>
+    </aside>
+
+    <aside class="overlay-drawer wide" id="productDrawer" aria-hidden="true" aria-label="产品详情">
+      <div class="drawer-head">
+        <div><span class="eyebrow" id="productDrawerLine"></span><h2 id="productDrawerTitle">Product</h2><p id="productDrawerSubtitle"></p></div>
+        <button class="icon-button" type="button" data-close-drawer="product" title="关闭">×</button>
+      </div>
+      <div class="drawer-tabs" role="tablist">
+        <button class="drawer-tab active" type="button" data-product-tab="overview" data-copy="overview">概览</button>
+        <button class="drawer-tab" type="button" data-product-tab="project" data-copy="projectExecution">项目执行</button>
+        <button class="drawer-tab" type="button" data-product-tab="changes" data-copy="changes">变更历史</button>
+      </div>
+      <div class="drawer-content" id="productDrawerContent"></div>
+    </aside>
+
+    <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+
+    <dialog class="modal" id="productModal">
+      <form method="dialog" id="productForm">
+        <div class="modal-head">
+          <div><span class="eyebrow">MASTER DATA</span><h2 data-copy="addProduct">新增产品</h2><p data-copy="masterDataRule">必须从 Master Data 选择，型号和名称不可自由创建。</p></div>
+          <button class="icon-button" type="button" data-close-modal title="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <label class="field full"><span data-copy="masterProduct">Master Data 产品</span><span class="master-combobox"><input id="masterProductInput" name="masterProduct" required autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="masterProductResults" placeholder="输入型号或产品名称"><button class="master-combobox-toggle" id="masterProductToggle" type="button" aria-label="展开 Master Data 产品">⌄</button><span class="master-combobox-results" id="masterProductResults" role="listbox" hidden></span></span></label>
+          <div class="master-preview" id="masterPreview"><span data-copy="selectMasterData">选择后自动带出型号、名称和品类</span></div>
+          <label class="field"><span data-copy="productLine">产品线</span><select name="lineId" id="productLineSelect" required></select></label>
+          <label class="field"><span data-copy="lifecycle">生命周期</span><select name="status" id="newProductStatus" required></select></label>
+          <label class="field"><span data-copy="targetLaunch">目标上市</span><input name="launchDate" placeholder="2026 Q4"></label>
+          <label class="field"><span data-copy="rrp">规划 RRP (€)</span><input name="price" type="number" min="0" step="0.01" value="49.99"></label>
+          <label class="field full"><span>KSP</span><textarea name="ksp" rows="3"></textarea></label>
+        </div>
+        <div class="modal-foot"><button class="button" type="button" data-close-modal data-copy="cancel">取消</button><button class="button primary" type="submit" data-copy="saveDraft">保存测试草稿</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="modal weekly-modal" id="weeklyModal">
+      <form method="dialog" id="weeklyForm">
+        <div class="modal-head">
+          <div><span class="eyebrow">WEEKLY UPDATE</span><h2 data-copy="editWeek">编辑本周</h2><p id="weeklyFormScope"></p></div>
+          <button class="icon-button" type="button" data-close-weekly title="关闭">×</button>
+        </div>
+        <div class="modal-body weekly-editor" id="weeklyEditor"></div>
+        <div class="modal-foot"><span class="autosave-note"><span class="status-light"></span><span data-copy="autosave">输入自动保存为测试草稿</span></span><button class="button" type="button" data-close-weekly data-copy="cancel">取消</button><button class="button primary" type="submit" data-copy="publishWeek">保存并生成版本</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="image-lightbox" id="imageLightbox" aria-label="产品大图">
+      <button class="icon-button image-lightbox-close" id="imageLightboxClose" type="button" aria-label="关闭大图" title="关闭">×</button>
+      <figure>
+        <img id="imageLightboxImage" alt="">
+        <figcaption id="imageLightboxCaption"></figcaption>
+      </figure>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js" defer></script>
+  </body>
+</html>

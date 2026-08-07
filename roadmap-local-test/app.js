@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  const EMBEDDED_MODE = new URLSearchParams(window.location.search).get("embedded") === "1";
+  const EMBEDDED_LANGUAGE = new URLSearchParams(window.location.search).get("lang");
   const SOURCE_URL = "data/roadmap-baseline.json";
   const MASTER_DATA_URL = "data/master-products.json";
   const STORAGE_KEY = "operationsPlanningRoadmapLocalTest.v1";
@@ -21,7 +23,7 @@
       transitionTrack: "替代与升级路径", eolProducts: "EOL", historyScope: "历史范围", weeklyUpdates: "本周更新",
       roadmapView: "路线图", updateLedger: "更新台账", versionHistory: "版本历史", projectSearch: "产品 / 型号", timeline: "时间线",
       sourceCopy: "源 Roadmap 只读副本", sourceCopyDetail: "所有测试修改只保存在当前浏览器，不写入源文件或云端。",
-      cardScale: "卡片大小", showWeekly: "显示本周更新", singleScreen: "单屏总览", preciseLayout: "精确坐标",
+      cardScale: "卡片大小", showWeekly: "显示本周更新", structureOverview: "结构总览", preciseLayout: "精确坐标",
       axisHint: "横轴为目标上市时间，纵轴为规划零售价。点击产品查看项目与历史。", updateLedgerSubtitle: "按产品集中查看和录入周度更新",
       editWeek: "编辑本周", week: "周次", status: "状态", historySubtitle: "Roadmap 版本与原始周度归档统一查看",
       immutable: "历史不可覆盖", sourceArchives: "源周度归档", sourceArchiveSubtitle: "由原 Roadmap 完整导入的中英文历史",
@@ -43,7 +45,7 @@
       transitionTrack: "Replacement and upgrade paths", eolProducts: "EOL", historyScope: "Historical scope", weeklyUpdates: "Weekly updates",
       roadmapView: "Roadmap", updateLedger: "Update ledger", versionHistory: "Version history", projectSearch: "Product / model", timeline: "Timeline",
       sourceCopy: "Read-only Roadmap copy", sourceCopyDetail: "Test changes stay in this browser and never write to the source or cloud.",
-      cardScale: "Card size", showWeekly: "Show weekly update", singleScreen: "Single screen", preciseLayout: "Precise",
+      cardScale: "Card size", showWeekly: "Show weekly update", structureOverview: "Structure", preciseLayout: "Precise",
       axisHint: "The horizontal axis is target launch timing and the vertical axis is planned retail price. Select a product for project and history details.", updateLedgerSubtitle: "Review and enter weekly updates by product",
       editWeek: "Edit this week", week: "Week", status: "Status", historySubtitle: "Review Roadmap versions and source weekly archives together",
       immutable: "Immutable history", sourceArchives: "Source weekly archives", sourceArchiveSubtitle: "Complete Chinese and English history imported from the source Roadmap",
@@ -74,6 +76,13 @@
     ["2024", 10.8], ["2025", 27.4], ["2026 Q1", 44], ["2026 Q2", 60.7], ["2026 Q3", 77.3], ["2026 Q4", 93],
     ["2027 Q1", 109.6], ["2027 Q2", 126.3], ["2027 Q3", 142.9], ["2027 Q4", 158.6], ["TBD", 175.2]
   ];
+  const STRUCTURE_PRICE_THRESHOLDS = {
+    "pocket-leopard": [130, 100, 80, 50, 20],
+    "magpro-pb": [100, 80, 60, 40, 20],
+    wireless: [150, 100, 80, 60, 20],
+    charger: [130, 100, 80, 50, 20],
+    cable: [30, 20, 15, 10, 5]
+  };
 
   const MASTER_DATA_FALLBACK = [
     { code: "P61L-P2", name: "Pocket 10K 45W", category: "移动电源", line: "pocket-leopard", image: "image2.png", project: "P61L-P2" },
@@ -117,6 +126,7 @@
   document.addEventListener("DOMContentLoaded", init);
 
   async function init() {
+    document.documentElement.classList.toggle("embedded", EMBEDDED_MODE);
     cacheDom();
     bindStaticEvents();
     try {
@@ -132,6 +142,7 @@
       sourceSlides = await response.json();
       state = loadState(sourceSlides);
       normaliseState();
+      if (EMBEDDED_MODE && ["zh", "en"].includes(EMBEDDED_LANGUAGE)) state.language = EMBEDDED_LANGUAGE;
       applyLanguage();
       renderAll();
     } catch (error) {
@@ -190,7 +201,7 @@
       requestAnimationFrame(layoutProductCards);
     });
     dom.verticalModeSwitch.querySelectorAll("[data-vertical-mode]").forEach(button => button.addEventListener("click", () => {
-      state.verticalMode = button.dataset.verticalMode === "precise" ? "precise" : "overview";
+      state.verticalMode = ["structure", "precise"].includes(button.dataset.verticalMode) ? button.dataset.verticalMode : "structure";
       persistState();
       renderVerticalMode();
       renderRoadmap();
@@ -283,7 +294,7 @@
       slides: cleanSlides,
       weeklyDrafts: {},
       cardScale: 100,
-      verticalMode: "overview",
+      verticalMode: "structure",
       weeklyPanelHidden: false,
       weeklyLanguage: "zh",
       weeklyHistoryVisible: false,
@@ -318,7 +329,7 @@
     state.statusFilter = STATUS_ORDER.includes(state.statusFilter) ? state.statusFilter : "all";
     state.year = [2026, 2027].includes(Number(state.year)) ? Number(state.year) : 2026;
     state.cardScale = clamp(Number(state.cardScale) || 100, 80, 135);
-    state.verticalMode = state.verticalMode === "precise" ? "precise" : "overview";
+    state.verticalMode = ["structure", "precise"].includes(state.verticalMode) ? state.verticalMode : "structure";
     state.weeklyPanelHidden = Boolean(state.weeklyPanelHidden);
     state.weeklyLanguage = state.weeklyLanguage === "en" ? "en" : "zh";
     state.weeklyHistoryVisible = Boolean(state.weeklyHistoryVisible);
@@ -452,21 +463,50 @@
       return true;
     });
 
-    dom.canvasTitle.textContent = slide.title || slide.label;
-    const modeCopy = state.verticalMode === "overview"
-      ? (state.language === "zh" ? "单屏价格分层" : "single-screen price lanes")
+    const structureMode = state.verticalMode === "structure";
+    dom.canvasTitle.textContent = structureMode
+      ? `${slide.label} ${state.language === "zh" ? "产品结构" : "portfolio structure"}`
+      : (slide.title || slide.label);
+    const modeCopy = structureMode
+      ? (state.language === "zh" ? "价格 × 时间结构矩阵" : "price × time structure matrix")
       : (state.language === "zh" ? "精确坐标" : "precise coordinates");
     dom.canvasMeta.textContent = state.language === "zh"
       ? `2024-2027 连续时间线 · ${products.length}/${(slide.products || []).length} 个节点 · ${modeCopy}`
       : `Continuous 2024-2027 timeline · ${products.length}/${(slide.products || []).length} items · ${modeCopy}`;
     dom.visibleCount.textContent = state.language === "zh" ? `当前显示 ${products.length} 个产品` : `${products.length} products visible`;
+    const footerHint = document.querySelector(".canvas-footer span:first-child");
+    if (footerHint) footerHint.textContent = structureMode
+      ? (state.language === "zh" ? "横轴：目标上市时间　纵轴：价格层级　点击产品查看图片、参数、KSP与历史" : "X-axis: target launch · Y-axis: price tier · Select a product for images, specifications, KSP and history")
+      : COPY[state.language].axisHint;
+
+    if (structureMode) {
+      dom.roadmapCanvas.style.minHeight = "0px";
+      dom.roadmapCanvas.innerHTML = renderStructureMatrix(slide, products, updatedIds);
+      bindRoadmapProductEvents();
+      requestAnimationFrame(() => {
+        dom.roadmapScroll.scrollLeft = 0;
+        dom.roadmapScroll.scrollTop = 0;
+      });
+      return;
+    }
 
     const bands = renderTimeBands();
     const grids = renderPriceGrid(slide);
     const relations = renderRelations(slide, products);
     const cards = products.map(product => renderProductCard(slide, product, updatedIds)).join("");
-    const anchors = `<svg class="card-anchor-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>`;
-    dom.roadmapCanvas.innerHTML = `${bands}${grids}${relations}${anchors}${cards || `<div class="canvas-empty">${state.language === "zh" ? "当前筛选没有产品" : "No products match the current filters"}</div>`}`;
+    dom.roadmapCanvas.innerHTML = `${bands}${grids}${relations}${cards || `<div class="canvas-empty">${state.language === "zh" ? "当前筛选没有产品" : "No products match the current filters"}</div>`}`;
+    bindRoadmapProductEvents();
+    requestAnimationFrame(() => {
+      layoutProductCards();
+      if (timelineInitialised) dom.roadmapScroll.scrollLeft = previousScroll;
+      else {
+        dom.roadmapScroll.scrollLeft = Math.max(0, dom.roadmapCanvas.scrollWidth * .43 - dom.roadmapScroll.clientWidth / 2);
+        timelineInitialised = true;
+      }
+    });
+  }
+
+  function bindRoadmapProductEvents() {
     dom.roadmapCanvas.querySelectorAll("[data-product-id]").forEach(card => {
       card.addEventListener("click", event => {
         const imageButton = event.target.closest("[data-product-image]");
@@ -480,14 +520,85 @@
         openProduct(card.dataset.productId);
       });
     });
-    requestAnimationFrame(() => {
-      layoutProductCards();
-      if (timelineInitialised) dom.roadmapScroll.scrollLeft = previousScroll;
-      else {
-        dom.roadmapScroll.scrollLeft = Math.max(0, dom.roadmapCanvas.scrollWidth * .43 - dom.roadmapScroll.clientWidth / 2);
-        timelineInitialised = true;
-      }
+  }
+
+  function renderStructureMatrix(slide, products, updatedIds) {
+    if (!products.length) return `<div class="canvas-empty">${state.language === "zh" ? "当前筛选没有产品" : "No products match the current filters"}</div>`;
+    const timeColumns = structureTimeColumns(products);
+    const priceBands = structurePriceBands(slide, products);
+    const currentKey = structureCurrentTimeKey();
+    const marker = currentTimelineMarker().label;
+    const relationIds = new Set((slide.connections || []).flatMap(relation => [relation.fromId, relation.toId]));
+    const header = `<div class="structure-corner"><span>${state.language === "zh" ? "价格层级" : "Price tier"}</span><small>${state.language === "zh" ? "目标上市" : "Target launch"}</small></div>${timeColumns.map(key => `<div class="structure-time ${key === currentKey ? "current" : ""}"><strong>${escapeHtml(key === "TBD" ? (state.language === "zh" ? "日期待定" : "TBD") : key)}</strong>${key === currentKey ? `<span>${escapeHtml(marker)}</span>` : ""}</div>`).join("")}`;
+    const rows = priceBands.map((band, bandIndex) => {
+      const priceHeader = `<div class="structure-price"><strong>${escapeHtml(band.label)}</strong><span>${band.products.length}</span></div>`;
+      const cells = timeColumns.map(timeKey => {
+        const cellProducts = band.products
+          .filter(product => structureProductTimeKey(product) === timeKey)
+          .sort((a, b) => Number(b.plannedPrice || 0) - Number(a.plannedPrice || 0) || productTimeRaw(a) - productTimeRaw(b) || String(a.name).localeCompare(String(b.name)));
+        const density = cellProducts.length >= 4 ? "very-dense" : cellProducts.length >= 3 ? "dense" : "";
+        const nodes = cellProducts.map(product => renderStructureNode(product, updatedIds, relationIds)).join("");
+        return `<div class="structure-cell ${timeKey === currentKey ? "current" : ""} ${density}" data-price-band="${bandIndex}" data-time-key="${escapeAttr(timeKey)}">${nodes}</div>`;
+      }).join("");
+      return `${priceHeader}${cells}`;
+    }).join("");
+    return `<div class="structure-matrix" style="--time-columns:${timeColumns.length};--price-rows:${priceBands.length}">${header}${rows}</div>`;
+  }
+
+  function renderStructureNode(product, updatedIds, relationIds) {
+    const status = ["launched", "upgrade", "new", "eol"].includes(product.status) ? product.status : "new";
+    const name = String(product.name || product.masterId || "--");
+    const model = String(product.masterId || (state.language === "zh" ? "待映射" : "Unmapped"));
+    const price = `€${formatPrice(product.plannedPrice)}`;
+    const launch = String(product.launchDate || (state.language === "zh" ? "日期待定" : "Date TBD"));
+    const relation = relationIds.has(product.id);
+    const updated = updatedIds.has(product.id);
+    const title = [name, model, price, launch, product.specs, product.ksp ? `KSP: ${product.ksp}` : ""].filter(Boolean).join(" · ");
+    return `<button class="structure-node ${escapeAttr(status)} ${updated ? "is-updated" : ""} ${relation ? "has-relation" : ""}" type="button" data-product-id="${escapeAttr(product.id)}" title="${escapeAttr(title)}" aria-label="${escapeAttr(`${name} · ${model} · ${price} · ${launch}`)}"><strong>${escapeHtml(name)}</strong><span><b>${escapeHtml(model)}</b><em>${escapeHtml(price)}</em></span>${relation ? `<i aria-hidden="true">↗</i>` : ""}</button>`;
+  }
+
+  function structurePriceBands(slide, products) {
+    const thresholds = STRUCTURE_PRICE_THRESHOLDS[slide.id] || [100, 80, 60, 40, 20];
+    const rawBands = thresholds.map((lower, index) => ({ lower, upper: index === 0 ? Infinity : thresholds[index - 1], products: [] }));
+    products.forEach(product => {
+      const price = Number(product.plannedPrice || 0);
+      const index = rawBands.findIndex((band, bandIndex) => price >= band.lower || bandIndex === rawBands.length - 1);
+      rawBands[Math.max(0, index)].products.push(product);
     });
+    return rawBands.filter(band => band.products.length).map((band, index, visibleBands) => {
+      if (!Number.isFinite(band.upper)) return { ...band, label: `€${formatBandNumber(band.lower)}+` };
+      const minimum = Math.min(...band.products.map(product => Number(product.plannedPrice || 0)));
+      const lower = index === visibleBands.length - 1 && minimum < band.lower ? Math.floor(minimum) : band.lower;
+      return { ...band, label: `€${formatBandNumber(lower)}–${formatBandNumber(Math.ceil(band.upper) - 1)}` };
+    });
+  }
+
+  function formatBandNumber(value) {
+    return Number.isInteger(Number(value)) ? String(Number(value)) : Number(value).toFixed(1);
+  }
+
+  function structureTimeColumns(products) {
+    const labels = CONTINUOUS_TIMELINE.map(([label]) => label);
+    const occupied = new Set(products.map(structureProductTimeKey));
+    const currentIndex = Math.max(0, labels.indexOf(structureCurrentTimeKey()));
+    const datedIndexes = [...occupied].filter(key => key !== "TBD").map(key => labels.indexOf(key)).filter(index => index >= 0);
+    const endIndex = Math.max(labels.indexOf("2026 Q4"), currentIndex + 1, ...datedIndexes);
+    const columns = labels.slice(0, Math.min(labels.indexOf("TBD"), endIndex) + 1);
+    if (occupied.has("TBD")) columns.push("TBD");
+    return columns;
+  }
+
+  function structureProductTimeKey(product) {
+    const raw = productTimeRaw(product);
+    return CONTINUOUS_TIMELINE.reduce((closest, entry) => Math.abs(entry[1] - raw) < Math.abs(closest[1] - raw) ? entry : closest, CONTINUOUS_TIMELINE[0])[0];
+  }
+
+  function structureCurrentTimeKey() {
+    const today = new Date();
+    const year = today.getFullYear();
+    if (year < 2026) return String(year);
+    if (year > 2027) return "2027 Q4";
+    return `${year} Q${Math.floor(today.getMonth() / 3) + 1}`;
   }
 
   function renderTimeBands() {
@@ -575,11 +686,6 @@
       grouped.get(key).records.push(record);
     });
     const groups = [...grouped.values()].sort((a, b) => b.price - a.price);
-    if (state.verticalMode === "overview") {
-      layoutOverviewProductCards({ canvas, canvasWidth, topBound, bottomPadding, leftBound, rightBound, records, groups });
-      return;
-    }
-
     groups.forEach(group => {
       const laneRights = [];
       group.records.sort((a, b) => a.centerX - b.centerX || a.time - b.time).forEach(record => {
@@ -620,83 +726,6 @@
     });
     updatePriceGrid(groupCenters);
     updateRelationLines(placements, canvasWidth, canvasHeight);
-    updateTimeAnchors([], canvasWidth, canvasHeight);
-  }
-
-  function layoutOverviewProductCards({ canvas, canvasWidth, topBound, bottomPadding, leftBound, rightBound, records, groups }) {
-    const horizontalGap = 5;
-    groups.forEach(group => resolveOverviewGroupX(group.records, leftBound, rightBound, horizontalGap));
-
-    const maxCardHeight = Math.max(...records.map(record => record.height));
-    const viewportHeight = Math.max(1, dom.roadmapScroll.clientHeight);
-    canvas.style.minHeight = `${viewportHeight}px`;
-    const canvasHeight = canvas.clientHeight;
-    const availableHeight = Math.max(1, canvasHeight - topBound - bottomPadding);
-    const baseGap = groups.length > 1
-      ? Math.max(4, (availableHeight - groups.length * maxCardHeight) / (groups.length - 1))
-      : 0;
-    const usedHeight = groups.length * maxCardHeight + Math.max(0, groups.length - 1) * baseGap;
-    let cursor = topBound + Math.max(0, (availableHeight - usedHeight) / 2);
-    const placements = new Map();
-    const groupCenters = [];
-
-    groups.forEach(group => {
-      group.records.forEach(record => {
-        const top = cursor + (maxCardHeight - record.height) / 2;
-        record.card.style.left = `${record.centerX}px`;
-        record.card.style.top = `${top}px`;
-        placements.set(record.card.dataset.productId, { x: record.centerX, y: top + record.height / 2 });
-      });
-      groupCenters.push({ price: group.price, y: cursor + maxCardHeight / 2 });
-      cursor += maxCardHeight + baseGap;
-    });
-
-    updatePriceGrid(groupCenters);
-    updateRelationLines(placements, canvasWidth, canvasHeight);
-    updateTimeAnchors(records, canvasWidth, canvasHeight, placements);
-  }
-
-  function resolveOverviewGroupX(records, leftBound, rightBound, gap) {
-    const sorted = [...records].sort((a, b) => a.anchorX - b.anchorX || a.time - b.time || a.card.dataset.productId.localeCompare(b.card.dataset.productId));
-    sorted.forEach((record, index) => {
-      const minimum = index === 0
-        ? leftBound + record.width / 2
-        : sorted[index - 1].centerX + sorted[index - 1].width / 2 + gap + record.width / 2;
-      record.centerX = Math.max(record.anchorX, minimum);
-    });
-    for (let index = sorted.length - 1; index >= 0; index -= 1) {
-      const record = sorted[index];
-      const maximum = index === sorted.length - 1
-        ? rightBound - record.width / 2
-        : sorted[index + 1].centerX - sorted[index + 1].width / 2 - gap - record.width / 2;
-      record.centerX = Math.min(record.centerX, maximum);
-    }
-    sorted.forEach((record, index) => {
-      const minimum = index === 0
-        ? leftBound + record.width / 2
-        : sorted[index - 1].centerX + sorted[index - 1].width / 2 + gap + record.width / 2;
-      record.centerX = clamp(Math.max(record.centerX, minimum), leftBound + record.width / 2, rightBound - record.width / 2);
-      record.left = record.centerX - record.width / 2;
-      record.right = record.centerX + record.width / 2;
-    });
-  }
-
-  function updateTimeAnchors(records, width, height, placements = new Map()) {
-    const layer = dom.roadmapCanvas.querySelector(".card-anchor-layer");
-    if (!layer) return;
-    if (state.verticalMode !== "overview" || !records.length) {
-      layer.innerHTML = "";
-      return;
-    }
-    layer.innerHTML = records.map(record => {
-      if (Math.abs(record.centerX - record.anchorX) < 5) return "";
-      const position = placements.get(record.card.dataset.productId);
-      if (!position) return "";
-      const x1 = record.anchorX / width * 100;
-      const x2 = record.centerX / width * 100;
-      const y = position.y / height * 100;
-      return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"></line><circle cx="${x1}" cy="${y}" r=".24"></circle>`;
-    }).join("");
   }
 
   function updatePriceGrid(groupCenters) {
@@ -769,7 +798,11 @@
     const monthFirstMatch = text.match(/(?:^|\D)(\d{1,2})[-/.](20(?:24|25|26|27))(?:\D|$)/);
     const yearMatch = text.match(/20(?:24|25|26|27)/);
     const year = Number(yearFirstMatch?.[1] || monthFirstMatch?.[2] || yearMatch?.[0]);
-    if (!year) return 175.2;
+    if (!year) {
+      const sourceX = Number(product?.x);
+      if (Number.isFinite(sourceX)) return clamp(sourceX + (Number(product?.roadmapYear) === 2027 ? TIMELINE_2027_OFFSET : 0), 0, TIMELINE_RAW_END);
+      return 175.2;
+    }
     const month = Number(yearFirstMatch?.[2] || monthFirstMatch?.[1] || 0);
     const day = Number(yearFirstMatch?.[3] || 15);
     const quarter = month ? Math.floor((month - 1) / 3) + 1 : Number(text.match(/Q\s*([1-4])/)?.[1] || 0);
@@ -830,35 +863,28 @@
   }
 
   function renderCardScale() {
-    const preferredPercent = clamp(Number(state.cardScale) || 100, 80, 135);
-    const overviewLimit = overviewCardScaleLimit();
-    const percent = state.verticalMode === "overview" ? Math.min(preferredPercent, overviewLimit) : preferredPercent;
-    dom.cardScaleInput.max = String(state.verticalMode === "overview" ? overviewLimit : 135);
+    const percent = clamp(Number(state.cardScale) || 100, 80, 135);
+    dom.cardScaleInput.max = "135";
     dom.cardScaleInput.value = String(percent);
     dom.cardScaleValue.value = `${percent}%`;
-    dom.cardScaleValue.title = state.verticalMode === "overview" && preferredPercent > overviewLimit
-      ? (state.language === "zh" ? `为保持单屏显示，自动适配为 ${percent}%` : `Auto-fitted to ${percent}% for a single-screen view`)
-      : "";
+    dom.cardScaleValue.title = "";
     dom.roadmapCanvas.style.setProperty("--card-scale", String(percent / 100));
   }
 
-  function overviewCardScaleLimit() {
-    const prices = new Set([...dom.roadmapCanvas.querySelectorAll(".product-card")].map(card => Number(card.dataset.price || 0).toFixed(4)));
-    const groupCount = Math.max(1, prices.size);
-    const available = Math.max(1, dom.roadmapScroll.clientHeight - 25 - 34 - Math.max(0, groupCount - 1) * 4);
-    return clamp(Math.floor(available / (groupCount * 76) * 100 / 5) * 5, 80, 135);
-  }
-
   function renderVerticalMode() {
-    const overview = state.verticalMode !== "precise";
+    const structure = state.verticalMode === "structure";
     dom.verticalModeSwitch.querySelectorAll("[data-vertical-mode]").forEach(button => {
       const active = button.dataset.verticalMode === state.verticalMode;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    dom.roadmapScroll.classList.toggle("single-screen", overview);
-    dom.roadmapScroll.title = overview
-      ? (state.language === "zh" ? "同价产品横向避让；圆点与细线标记真实上市时间" : "Same-price cards avoid horizontally; dots and lines retain exact launch timing")
+    dom.roadmapScroll.classList.toggle("structure-scroll", structure);
+    dom.roadmapCanvas.classList.toggle("structure-mode", structure);
+    dom.roadmapCanvas.classList.toggle("precise-mode", state.verticalMode === "precise");
+    const scaleControl = dom.cardScaleInput.closest(".card-scale-control");
+    if (scaleControl) scaleControl.hidden = structure;
+    dom.roadmapScroll.title = structure
+      ? (state.language === "zh" ? "价格 × 时间结构矩阵；点击产品查看完整详情" : "Price × time structure matrix; select a product for full details")
       : (state.language === "zh" ? "按精确价格和时间坐标显示；密集产品允许纵向滚动" : "Exact price and time coordinates; dense products may scroll vertically");
   }
 

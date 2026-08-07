@@ -92,6 +92,12 @@ Google Client Secret 只保存在 Google Cloud 和 Supabase，不写入 Vercel�
 
 任何后续开发必须遵守：不复用或删除现有文档键；不清空 `workspace_document_versions`；数据结构升级只做兼容迁移；上线前验证当前文档与最新历史版本内容一致。
 
+## 产品路线图
+
+“计划与交付 > 产品路线图”由统一 Next.js 项目通过同域静态模块提供。生产构建执行 `commercial-planning-app/scripts/sync-platform-shell.mjs` 时，会把 `roadmap-local-test/` 中已验证的界面、Roadmap 基线、Master Data 产品快照和产品图片完整复制到 `/roadmap/`，避免独立部署或源工具运行时依赖。
+
+当前 Roadmap 发布范围仍属于测试阶段：源 Roadmap、源周报和产品图片只读；基线与历史数据随 Git 版本发布；用户编辑保存在浏览器草稿和本地版本链中，尚未写入 Supabase 团队文档。正式启用多人编辑前，需要为 Roadmap 分配独立文档键并接入现有版本、审计和冲突处理协议。
+
 ## 双语界面
 
 - 顶栏语言选择支持 `简体中文 (zh-CN)` 与 `English (en-GB)`，每次仅显示一种界面语言。

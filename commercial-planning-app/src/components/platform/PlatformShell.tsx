@@ -33,6 +33,7 @@ const navGroups: NavGroup[] = [
     zh: "计划与交付",
     en: "Planning & Delivery",
     items: [
+      { key: "roadmap", zh: "产品路线图", en: "Product Roadmap", href: "/platform/index.html#module=roadmap", legacy: true },
       { key: "projects", zh: "项目跟进", en: "Project Tracking", href: "/platform/index.html#module=projects", legacy: true },
       { key: "sales", zh: "产销管理", en: "Sales & Inventory", href: "/platform/index.html#module=sales", legacy: true },
       { key: "forecast", zh: "预测管理", en: "Forecast Management", href: "/platform/index.html#module=forecast", legacy: true, badge: "Beta" },
