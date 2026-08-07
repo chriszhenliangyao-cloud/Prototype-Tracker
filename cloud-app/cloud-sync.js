@@ -4,7 +4,8 @@
     "projectTrackingData.v1",
     "projectDeletionAudit.v1",
     "projectTrackingAccess.v1",
-    "marketingAssets.v1"
+    "marketingAssets.v1",
+    "productRoadmap.v1"
   ]);
   const LOCAL_ONLY_KEYS = new Set([
     "projectTrackingTool.v1",
@@ -147,7 +148,8 @@
       "projectTrackingDrafts.v1": "项目草稿",
       "projectTrackingAccess.v1": "项目权限",
       "projectTrackingFormDrafts.v1": "项目表单",
-      "marketingAssets.v1": "营销物料"
+      "marketingAssets.v1": "营销物料",
+      "productRoadmap.v1": "产品路线图"
     })[documentKey] || "共享数据";
   }
 
@@ -213,7 +215,8 @@
       "projectTrackingDrafts.v1": ["projects", "prototype-management"],
       "projectTrackingAccess.v1": ["projects", "system"],
       "projectTrackingFormDrafts.v1": ["projects", "prototype-management"],
-      "marketingAssets.v1": ["home", "projects", "market-assets", "tasks", "exceptions"]
+      "marketingAssets.v1": ["home", "projects", "market-assets", "tasks", "exceptions"],
+      "productRoadmap.v1": ["roadmap", "projects", "market-launch"]
     })[documentKey] || [];
     return relevantModules.includes(moduleKey);
   }
@@ -315,7 +318,8 @@
       "projectTrackingData.v1": { module: "计划与交付 / 项目跟进", authority: "项目负责人" },
       "projectDeletionAudit.v1": { module: "系统管理 / 项目审计", authority: "平台所有者" },
       "projectTrackingAccess.v1": { module: "系统管理 / 权限管理", authority: "平台所有者" },
-      "marketingAssets.v1": { module: "市场增长 / 营销物料", authority: "市场负责人" }
+      "marketingAssets.v1": { module: "市场增长 / 营销物料", authority: "市场负责人" },
+      "productRoadmap.v1": { module: "计划与交付 / 产品路线图", authority: "Roadmap 管理员" }
     })[documentKey] || { module: documentLabel(documentKey), authority: "模块负责人" };
   }
 
@@ -949,6 +953,11 @@
       originalRemoveItem.call(this, key);
       if (!suppressSync && this === localStorage) queuePayload(key, null);
     };
+
+    window.addEventListener("storage", (event) => {
+      if (event.storageArea !== localStorage || !event.key || !SYNC_KEYS.has(event.key)) return;
+      queuePayload(event.key, event.newValue);
+    });
 
     const channel = supabase.channel(`workspace-documents-${workspaceId}`)
       .on("postgres_changes", {

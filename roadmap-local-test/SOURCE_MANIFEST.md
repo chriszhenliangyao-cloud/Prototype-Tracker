@@ -1,6 +1,6 @@
-# Roadmap Local Test Source Manifest
+# Roadmap Platform Source Manifest
 
-This directory is an isolated local prototype. The source Roadmap remains read-only and is not modified by this test.
+This directory is the maintained source for the platform Roadmap module. The original Roadmap remains read-only and unchanged.
 
 ## Read-only source
 
@@ -13,9 +13,10 @@ This directory is an isolated local prototype. The source Roadmap remains read-o
 - Roadmap HTML SHA-256: `46a9c0c65d59178fedccbb5e756fef05c2ed431d8b9ee32f4d9c1630f9eae21a`
 - Baseline JSON SHA-256: `0494fc66e321f8690a9c59b72583a1b04a059a39f010d3a2e523719a9f5f0c72`
 
-## Local-test behavior
+## Platform behavior
 
 - The copied baseline JSON is fetched from `data/roadmap-baseline.json`.
-- Test changes are stored only under the browser key `operationsPlanningRoadmapLocalTest.v1`.
-- No API endpoint, Supabase table, Vercel project, or source file is written by this prototype.
-- Resetting the prototype deletes only its local browser test key and reloads the copied baseline.
+- The source Roadmap files remain read-only. In the unified platform, governed business changes use the shared document key `productRoadmap.v1`; personal filters and view preferences use the browser-only key `productRoadmapPreferences.v1`.
+- The legacy browser key `operationsPlanningRoadmapLocalTest.v1` is read once for safe migration and is never written again.
+- The platform shell synchronizes the shared document to Supabase with immutable versions, audit events, offline retry, and conflict handling. The module never writes to the original Roadmap files.
+- A Roadmap manager can restore the copied baseline as a new shared version. Existing history is preserved.

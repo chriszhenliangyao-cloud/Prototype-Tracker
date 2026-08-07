@@ -96,7 +96,7 @@ Google Client Secret 只保存在 Google Cloud 和 Supabase，不写入 Vercel�
 
 “计划与交付 > 产品路线图”由统一 Next.js 项目通过同域静态模块提供。生产构建执行 `commercial-planning-app/scripts/sync-platform-shell.mjs` 时，会把 `roadmap-local-test/` 中已验证的界面、Roadmap 基线、Master Data 产品快照和产品图片完整复制到 `/roadmap/`，避免独立部署或源工具运行时依赖。
 
-当前 Roadmap 发布范围仍属于测试阶段：源 Roadmap、源周报和产品图片只读；基线与历史数据随 Git 版本发布；用户编辑保存在浏览器草稿和本地版本链中，尚未写入 Supabase 团队文档。正式启用多人编辑前，需要为 Roadmap 分配独立文档键并接入现有版本、审计和冲突处理协议。
+Roadmap 的源文件、源周报和源产品图片保持只读，基线内容随 Git 版本发布。平台内的产品、图片、KSP、周报及版本操作统一写入 Supabase 共享文档 `productRoadmap.v1`，复用不可变版本、审计、离线队列和冲突处理；筛选、语言、缩放和面板显隐等个人偏好保留在账号浏览器。Roadmap 另设无权限、只读、可编辑、管理发布四级权限，数据库仅接受可编辑或管理账号的共享文档写入。
 
 ## 双语界面
 

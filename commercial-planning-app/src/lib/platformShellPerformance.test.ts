@@ -19,12 +19,17 @@ describe("commercial planning platform shell performance", () => {
     );
 
     expect(platformShell).toContain('data-module="roadmap"');
-    expect(platformShell).toContain('/roadmap/index.html?embedded=1&lang=${language}');
+    expect(platformShell).toContain('const access = roadmapPermissionForUser()');
+    expect(platformShell).toContain('?embedded=1&lang=${language}&access=${access}');
     expect(platformShell).toContain("roadmap: renderRoadmapWorkspace");
     expect(roadmapIndex).toContain('data-vertical-mode="structure"');
     expect(roadmapIndex).toContain('data-vertical-mode="precise"');
     expect(roadmapApp).toContain('const SOURCE_URL = "data/roadmap-baseline.json"');
     expect(roadmapApp).toContain('const MASTER_DATA_URL = "data/master-products.json"');
+    expect(roadmapApp).toContain('const STORAGE_KEY = "productRoadmap.v1"');
+    expect(roadmapApp).toContain('const PREFERENCES_KEY = "productRoadmapPreferences.v1"');
+    expect(roadmapApp).toContain('function sharedRoadmapState');
+    expect(roadmapApp).toContain('function canManageRoadmap');
     expect(roadmapApp).toContain('document.documentElement.classList.toggle("embedded", EMBEDDED_MODE)');
   });
 

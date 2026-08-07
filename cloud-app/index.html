@@ -2529,6 +2529,10 @@
       padding: 10px 12px 14px;
     }
 
+    .platform-main > .app:has(.roadmap-host-page) {
+      padding: 4px 6px 6px;
+    }
+
     .workspace-page {
       display: grid;
       gap: 8px;
@@ -2551,6 +2555,11 @@
 
     .roadmap-host-page {
       gap: 0;
+    }
+
+    .roadmap-host-page .roadmap-module-embed {
+      height: calc(100vh - 62px);
+      min-height: 620px;
     }
 
     .roadmap-module-embed iframe {
@@ -7281,6 +7290,24 @@
       return "viewer";
     }
 
+    const ROADMAP_PERMISSION_LEVELS = ["none", "view", "edit", "manage"];
+
+    function inferredRoadmapPermission(user, platformRole = user?.platformRole, functionalRoles = user?.functionalRoles || []) {
+      if (["platform_owner", "super_admin"].includes(platformRole)) return "manage";
+      if (platformRole === "auditor") return "view";
+      if (["permission_admin", "external"].includes(platformRole)) return "none";
+      if (functionalRoles.some((role) => ["plan_admin"].includes(role))) return "manage";
+      if (functionalRoles.some((role) => ["management", "pmo", "business_planning", "marketing_growth"].includes(role))) return "edit";
+      if (functionalRoles.some((role) => ["sales_forecast", "supply_planner"].includes(role))) return "view";
+      return "none";
+    }
+
+    function normalizeRoadmapPermission(value, user, platformRole, functionalRoles) {
+      return ROADMAP_PERMISSION_LEVELS.includes(value)
+        ? value
+        : inferredRoadmapPermission(user, platformRole, functionalRoles);
+    }
+
     function normalizePermissionUser(user) {
       const platformRole = user.platformRole || (user.role === "super_admin" ? "super_admin" : user.role === "viewer" ? "member" : "member");
       const functionalRoles = normalizePermissionArray(user.functionalRoles, inferredFunctionalRoles(user));
@@ -7290,6 +7317,10 @@
         ...user,
         platformRole,
         functionalRoles,
+        modulePermissions: {
+          ...(user.modulePermissions || {}),
+          roadmap: normalizeRoadmapPermission(user.modulePermissions?.roadmap, user, platformRole, functionalRoles)
+        },
         dataScopes: {
           markets: normalizePermissionScopeArray(user.dataScopes?.markets, ["all"]),
           customers: normalizePermissionScopeArray(user.dataScopes?.customers, ["all"]),
@@ -7367,9 +7398,16 @@
       );
     }
 
+    function roadmapPermissionForUser(user = currentProjectUser()) {
+      if (!user || user.status !== "active") return "none";
+      if (isPlatformAdministrator(user)) return "manage";
+      return normalizeRoadmapPermission(user.modulePermissions?.roadmap, user, user.platformRole, user.functionalRoles || []);
+    }
+
     function canAccessModuleForUser(moduleKey, user = currentProjectUser()) {
       if (!user || user.status !== "active") return false;
       if (moduleKey === "home") return true;
+      if (moduleKey === "roadmap") return roadmapPermissionForUser(user) !== "none";
       if (isPlatformAdministrator(user)) return true;
       if (moduleKey === "system") return user.platformRole === "permission_admin";
       if (user.platformRole === "permission_admin") return ["tasks", "system"].includes(moduleKey);
@@ -8818,7 +8856,12 @@
     function renderRoadmapWorkspace() {
       const language = activeLocale === "en-GB" ? "en" : "zh";
       const title = activeLocale === "en-GB" ? "Product Roadmap" : "产品路线图";
-      return `<div class="workspace-page roadmap-host-page"><section class="roadmap-module-embed" aria-label="${title}"><iframe src="/roadmap/index.html?embedded=1&lang=${language}" title="${title}" loading="eager" referrerpolicy="same-origin" data-roadmap-frame></iframe></section></div>`;
+      const localRoadmapPath = window.location.pathname.includes("/cloud-app/")
+        ? "../roadmap-local-test/index.html"
+        : "../roadmap/index.html";
+      const roadmapPath = window.location.protocol === "file:" ? localRoadmapPath : "/roadmap/index.html";
+      const access = roadmapPermissionForUser();
+      return `<div class="workspace-page roadmap-host-page"><section class="roadmap-module-embed" aria-label="${title}"><iframe src="${roadmapPath}?embedded=1&lang=${language}&access=${access}" title="${title}" loading="eager" referrerpolicy="same-origin" data-roadmap-frame></iframe></section></div>`;
     }
 
     function renderForecastWorkspace() {
@@ -11587,6 +11630,7 @@
       const tabs = [
         ["members", "成员账号", "Members"],
         ["roles", "角色模板", "Role Templates"],
+        ["modules", "模块权限", "Module Access"],
         ["scopes", "数据范围", "Data Scopes"],
         ["approvals", "审批权限", "Approval Access"]
       ];
@@ -11671,6 +11715,21 @@
       return `<div class="permission-tab-panel" role="tabpanel"><div class="permission-control-bar compact"><div><strong>数据范围</strong><div class="permission-note">默认拒绝；“全部”与具体选项互斥。</div></div><div><strong>${escapeProjectHtml(selectedUser.name)} · ${permissionFunctionalSummary(selectedUser)}</strong><div class="permission-note">市场、客户、产品、项目、职能和财务主体共同决定最终可见数据。</div></div></div><div class="permission-scope-layout">${renderPermissionMemberList(users, selectedUser)}<div class="permission-scope-groups">${groups}</div></div></div>`;
     }
 
+    function renderPermissionModulesTab(users) {
+      const selectedUser = permissionSelectedDraftUser();
+      if (!selectedUser) return `<div class="permission-tab-panel"><div class="delay-warning">暂无可配置成员。</div></div>`;
+      const selectedUserLocked = !canEditPermissionUser(selectedUser);
+      const permission = roadmapPermissionForUser(selectedUser);
+      const lockAttributes = selectedUserLocked ? 'disabled title="受保护账号只能由平台所有者修改"' : "";
+      const levels = [
+        ["none", "无权限", "No access", "不显示产品路线图入口", "Hide Product Roadmap"],
+        ["view", "只读", "View only", "查看画布、产品详情、周报及版本历史", "View portfolio, details, weekly updates and history"],
+        ["edit", "可编辑", "Edit", "更新产品、图片、KSP及周度内容，自动写入团队云版本", "Edit products, images, KSP and weekly updates with cloud versioning"],
+        ["manage", "管理发布", "Manage", "包含编辑，并可新增产品、恢复版本及管理历史", "Includes editing, plus product creation, restoration and history management"]
+      ];
+      return `<div class="permission-tab-panel" role="tabpanel"><div class="permission-control-bar compact"><div><strong>${activeLocale === "en-GB" ? "Module-specific access" : "模块独立权限"}</strong><div class="permission-note">${activeLocale === "en-GB" ? "Roadmap access is evaluated independently from functional roles." : "产品路线图权限独立于职能角色计算，可单独收紧或提升。"}</div></div><div><strong>${escapeProjectHtml(selectedUser.name)} · ${activeLocale === "en-GB" ? levels.find((item) => item[0] === permission)?.[2] : levels.find((item) => item[0] === permission)?.[1]}</strong><div class="permission-note">${escapeProjectHtml(selectedUser.email || "--")}</div></div></div><div class="permission-scope-layout">${renderPermissionMemberList(users, selectedUser)}<div class="permission-scope-groups"><section class="permission-scope-group"><h4>${activeLocale === "en-GB" ? "Product Roadmap" : "产品路线图"}</h4><small>${activeLocale === "en-GB" ? "Controls module visibility and every data-changing operation." : "同时控制模块可见性和所有数据变更操作。"}</small><div class="permission-check-grid">${levels.map(([value, zh, en, noteZh, noteEn]) => `<label class="permission-check"><input type="radio" name="roadmapPermission" data-roadmap-permission="${value}" ${permission === value ? "checked" : ""} ${lockAttributes}><span><strong>${activeLocale === "en-GB" ? en : zh}</strong><small>${activeLocale === "en-GB" ? noteEn : noteZh}</small></span></label>`).join("")}</div></section><div class="permission-note">${activeLocale === "en-GB" ? "Platform Owner and Super Admin always retain Manage access. Database write checks enforce Edit/Manage access." : "平台所有者和超级管理员始终保留管理权限；数据库写入还会校验可编辑/管理权限。"}</div></div></div></div>`;
+    }
+
     function renderPermissionApprovalsTab(users) {
       const selectedUser = permissionSelectedDraftUser();
       if (!selectedUser) return `<div class="permission-tab-panel"><div class="delay-warning">暂无可配置成员。</div></div>`;
@@ -11692,8 +11751,8 @@
       const roleAssignments = users.reduce((sum, user) => sum + (user.functionalRoles?.length || 0), 0);
       const approvers = users.filter((user) => user.approval?.types?.length || user.approval?.authorities?.length).length;
       const owner = users.find((user) => user.platformRole === "platform_owner" && user.status === "active");
-      const body = permissionUiState.activeTab === "roles" ? renderPermissionRoleTemplatesTab(users) : permissionUiState.activeTab === "scopes" ? renderPermissionScopesTab(users) : permissionUiState.activeTab === "approvals" ? renderPermissionApprovalsTab(users) : renderPermissionMembersTab(users, authorizationMap, cloudReady, messageClass);
-      return `<section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle"><div class="modal-head"><div><h2 class="modal-title" id="permissionTitle">权限管理</h2><p class="modal-subtitle">按平台角色、职能角色、数据范围和审批额度组合成员的最终权限</p></div><button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button></div><div class="modal-body"><div class="admin-context-strip"><span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">${platformRoleLabel(currentProjectUser()?.platformRole || "super_admin")}</span></span><span>平台所有者：${escapeProjectHtml(owner?.name || owner?.email || "待配置")} · 权限冲突最终裁决</span></div><div class="permission-summary"><div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div><div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div><div class="permission-summary-item"><span>职能角色分配</span><strong>${roleAssignments}</strong></div><div class="permission-summary-item"><span>审批及发布用户</span><strong>${approvers}</strong></div></div>${renderPermissionTabs()}${body}</div><div class="modal-foot"><span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">草稿仅保存在当前账号；平台所有者/超级管理员受保护，只有平台所有者可以修改。</span></span><div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存权限并生效</button></div></div></section>`;
+      const body = permissionUiState.activeTab === "roles" ? renderPermissionRoleTemplatesTab(users) : permissionUiState.activeTab === "modules" ? renderPermissionModulesTab(users) : permissionUiState.activeTab === "scopes" ? renderPermissionScopesTab(users) : permissionUiState.activeTab === "approvals" ? renderPermissionApprovalsTab(users) : renderPermissionMembersTab(users, authorizationMap, cloudReady, messageClass);
+      return `<section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle"><div class="modal-head"><div><h2 class="modal-title" id="permissionTitle">权限管理</h2><p class="modal-subtitle">按平台角色、职能角色、模块操作、数据范围和审批额度组合成员的最终权限</p></div><button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button></div><div class="modal-body"><div class="admin-context-strip"><span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">${platformRoleLabel(currentProjectUser()?.platformRole || "super_admin")}</span></span><span>平台所有者：${escapeProjectHtml(owner?.name || owner?.email || "待配置")} · 权限冲突最终裁决</span></div><div class="permission-summary"><div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div><div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div><div class="permission-summary-item"><span>Roadmap编辑/管理</span><strong>${users.filter((user) => ["edit", "manage"].includes(roadmapPermissionForUser(user))).length}</strong></div><div class="permission-summary-item"><span>审批及发布用户</span><strong>${approvers}</strong></div></div>${renderPermissionTabs()}${body}</div><div class="modal-foot"><span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">草稿仅保存在当前账号；平台所有者/超级管理员受保护，只有平台所有者可以修改。</span></span><div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存权限并生效</button></div></div></section>`;
     }
 
     function schedulePermissionAutosave() {
@@ -13301,8 +13360,8 @@
       projectState.users = structuredClone(draftUsers).map(normalizePermissionUser);
       persistProjectUsers();
       recordPermissionAudit(
-        `保存 ${projectState.users.length} 个成员的角色、数据范围与审批权限；平台所有者：${owner.name || owner.email}`,
-        `Applied roles, data scopes and approval access for ${projectState.users.length} members; platform owner: ${owner.name || owner.email}`
+        `保存 ${projectState.users.length} 个成员的角色、模块操作、数据范围与审批权限；平台所有者：${owner.name || owner.email}`,
+        `Applied roles, module access, data scopes and approval access for ${projectState.users.length} members; platform owner: ${owner.name || owner.email}`
       );
       cancelAutosave("project-permissions");
       clearProjectFormDraft("permissions");
@@ -13533,6 +13592,22 @@
         return true;
       }
       const permissionScopeField = target.getAttribute("data-permission-scope-field");
+      const roadmapPermission = target.getAttribute("data-roadmap-permission");
+      if (roadmapPermission) {
+        const user = permissionSelectedDraftUser();
+        if (!canEditPermissionUser(user)) {
+          showProjectToast("受保护账号只能由平台所有者修改。");
+          renderProjectAdminModal();
+          return true;
+        }
+        if (user && ROADMAP_PERMISSION_LEVELS.includes(roadmapPermission)) {
+          user.modulePermissions ||= {};
+          user.modulePermissions.roadmap = roadmapPermission;
+          schedulePermissionAutosave();
+          renderProjectAdminModal();
+        }
+        return true;
+      }
       if (permissionScopeField) {
         const user = permissionSelectedDraftUser();
         if (!canEditPermissionUser(user)) {

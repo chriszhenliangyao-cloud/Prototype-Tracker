@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <title>产品路线图 · 运营协同平台本地测试</title>
+    <title>产品路线图 · 运营协同平台</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -83,7 +83,7 @@
                 <option value="en">English</option>
               </select>
             </label>
-            <button class="header-button" id="resetTestButton" type="button" title="仅重置本地测试数据" data-copy="reset">重置测试</button>
+            <button class="header-button" id="resetTestButton" type="button" title="从只读源基准创建新的团队版本" data-copy="reset">恢复基准</button>
             <span class="sync-pill"><span class="status-light"></span><span data-copy="localOnly">仅本地</span></span>
           </div>
         </header>
@@ -125,8 +125,9 @@
 
           <div class="source-notice" role="status">
             <span class="status-light"></span>
-            <strong data-copy="sourceCopy">源 Roadmap 只读副本</strong>
-            <span data-copy="sourceCopyDetail">所有测试修改只保存在当前浏览器，不写入源文件或云端。</span>
+            <strong id="roadmapSyncTitle" data-copy="sourceCopy">团队 Roadmap 已同步</strong>
+            <span id="roadmapSyncDetail" data-copy="sourceCopyDetail">业务修改自动保存到云端并生成版本；个人筛选和视图偏好仅保存在当前浏览器。</span>
+            <span class="roadmap-access-badge" id="roadmapAccessBadge">只读</span>
           </div>
 
           <section class="view-panel active" id="roadmapView" data-panel="roadmap">

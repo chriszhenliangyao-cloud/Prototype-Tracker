@@ -16,6 +16,11 @@ const superAdminControlSource = readFileSync(
   "utf8"
 );
 
+const roadmapPermissionSource = readFileSync(
+  new URL("../../../supabase/migrations/20260807160000_roadmap_cloud_permissions.sql", import.meta.url),
+  "utf8"
+);
+
 const cloudSyncSource = readFileSync(
   new URL("../../public/cloud-sync.js", import.meta.url),
   "utf8"
@@ -64,5 +69,15 @@ describe("platform owner governance", () => {
     expect(migrationSource).toContain("protected_role_change_requires_owner");
     expect(cloudSyncSource).toContain('supabase.rpc("save_workspace_document"');
     expect(cloudSyncSource).not.toContain('supabase.rpc("save_workspace_access_configuration"');
+  });
+
+  it("enforces independent Product Roadmap write access in Postgres", () => {
+    expect(roadmapPermissionSource).toContain("private.workspace_roadmap_permission");
+    expect(roadmapPermissionSource).toContain("productRoadmap.v1");
+    expect(roadmapPermissionSource).toContain("roadmap_write_permission_required");
+    expect(roadmapPermissionSource).toContain("permission not in ('edit', 'manage')");
+    expect(roadmapPermissionSource).toContain("set search_path = pg_catalog");
+    expect(platformSource).toContain('data-roadmap-permission="${value}"');
+    expect(cloudSyncSource).toContain('"productRoadmap.v1"');
   });
 });

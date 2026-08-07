@@ -1,11 +1,23 @@
 (() => {
   "use strict";
 
-  const EMBEDDED_MODE = new URLSearchParams(window.location.search).get("embedded") === "1";
-  const EMBEDDED_LANGUAGE = new URLSearchParams(window.location.search).get("lang");
+  const QUERY = new URLSearchParams(window.location.search);
+  const EMBEDDED_MODE = QUERY.get("embedded") === "1";
+  const EMBEDDED_LANGUAGE = QUERY.get("lang");
+  const ACCESS_LEVELS = ["view", "edit", "manage"];
+  const ROADMAP_ACCESS = ACCESS_LEVELS.includes(QUERY.get("access"))
+    ? QUERY.get("access")
+    : EMBEDDED_MODE ? "view" : "manage";
   const SOURCE_URL = "data/roadmap-baseline.json";
   const MASTER_DATA_URL = "data/master-products.json";
-  const STORAGE_KEY = "operationsPlanningRoadmapLocalTest.v1";
+  const STORAGE_KEY = "productRoadmap.v1";
+  const PREFERENCES_KEY = "productRoadmapPreferences.v1";
+  const LEGACY_STORAGE_KEY = "operationsPlanningRoadmapLocalTest.v1";
+  const PREFERENCE_FIELDS = [
+    "language", "activeLineId", "statusFilter", "year", "view", "search",
+    "selectedProductId", "selectedVersionId", "productTab", "cardScale",
+    "verticalMode", "weeklyPanelHidden", "weeklyLanguage", "weeklyHistoryVisible"
+  ];
   const STATUS_ORDER = ["all", "updated", "launched", "upgrade", "new", "eol"];
   const SOURCE_IMPORTED_AT = "2026-08-05T22:45:04+02:00";
 
@@ -18,18 +30,18 @@
       business: "经营管理", businessOverview: "经营总览", bp: "BP达成", analysis: "经营分析", valueChain: "价值链测算",
       settlement: "结算台账", admin: "专业与管理", workspace: "职能工作台", prototype: "样机管理", system: "系统管理",
       localTest: "本地 Roadmap 测试", contextSubtitle: "产品组合、目标上市时间与项目执行联动", account: "当前账号",
-      language: "界面语言", reset: "重置测试", localOnly: "仅本地", presentation: "演示模式", addProduct: "新增产品",
+      language: "界面语言", reset: "恢复基准", localOnly: "云端同步", presentation: "演示模式", addProduct: "新增产品",
       portfolioItems: "产品节点", allLines: "全部产品线", newProducts: "新品", plannedLaunch: "规划上市", upgrades: "升级产品",
       transitionTrack: "替代与升级路径", eolProducts: "EOL", historyScope: "历史范围", weeklyUpdates: "本周更新",
       roadmapView: "路线图", updateLedger: "更新台账", versionHistory: "版本历史", projectSearch: "产品 / 型号", timeline: "时间线",
-      sourceCopy: "源 Roadmap 只读副本", sourceCopyDetail: "所有测试修改只保存在当前浏览器，不写入源文件或云端。",
+      sourceCopy: "团队 Roadmap 已同步", sourceCopyDetail: "业务修改自动保存到云端并生成版本；个人筛选和视图偏好仅保存在当前浏览器。",
       cardScale: "卡片大小", showWeekly: "显示本周更新", structureOverview: "结构总览", preciseLayout: "精确坐标",
       axisHint: "横轴为目标上市时间，纵轴为规划零售价。点击产品查看项目与历史。", updateLedgerSubtitle: "按产品集中查看和录入周度更新",
       editWeek: "编辑本周", week: "周次", status: "状态", historySubtitle: "Roadmap 版本与原始周度归档统一查看",
       immutable: "历史不可覆盖", sourceArchives: "源周度归档", sourceArchiveSubtitle: "由原 Roadmap 完整导入的中英文历史",
       openLedger: "打开台账", overview: "概览", projectExecution: "项目执行", changes: "变更历史", masterDataRule: "必须从 Master Data 选择，型号和名称不可自由创建。",
       masterProduct: "Master Data 产品", selectMasterData: "选择后自动带出型号、名称和品类", productLine: "产品线", lifecycle: "生命周期",
-      targetLaunch: "目标上市", rrp: "规划 RRP (€)", cancel: "取消", saveDraft: "保存测试草稿", autosave: "输入自动保存为测试草稿",
+      targetLaunch: "目标上市", rrp: "规划 RRP (€)", cancel: "取消", saveDraft: "保存草稿", autosave: "输入自动保存为团队草稿",
       publishWeek: "保存并生成版本"
     },
     en: {
@@ -40,18 +52,18 @@
       business: "Business Management", businessOverview: "Business Overview", bp: "BP Achievement", analysis: "Business Analysis", valueChain: "Value Chain Simulation",
       settlement: "Settlement Ledger", admin: "Professional & Admin", workspace: "Functional Workspace", prototype: "Prototype Management", system: "System Management",
       localTest: "Local Roadmap Test", contextSubtitle: "Product portfolio, target launch timing and project execution", account: "Current account",
-      language: "Interface language", reset: "Reset test", localOnly: "Local only", presentation: "Presentation", addProduct: "Add product",
+      language: "Interface language", reset: "Restore baseline", localOnly: "Cloud synced", presentation: "Presentation", addProduct: "Add product",
       portfolioItems: "Portfolio items", allLines: "All product lines", newProducts: "New products", plannedLaunch: "Planned launches", upgrades: "Upgrades",
       transitionTrack: "Replacement and upgrade paths", eolProducts: "EOL", historyScope: "Historical scope", weeklyUpdates: "Weekly updates",
       roadmapView: "Roadmap", updateLedger: "Update ledger", versionHistory: "Version history", projectSearch: "Product / model", timeline: "Timeline",
-      sourceCopy: "Read-only Roadmap copy", sourceCopyDetail: "Test changes stay in this browser and never write to the source or cloud.",
+      sourceCopy: "Team Roadmap synced", sourceCopyDetail: "Business changes save to the cloud with version history; personal filters and views stay in this browser.",
       cardScale: "Card size", showWeekly: "Show weekly update", structureOverview: "Structure", preciseLayout: "Precise",
       axisHint: "The horizontal axis is target launch timing and the vertical axis is planned retail price. Select a product for project and history details.", updateLedgerSubtitle: "Review and enter weekly updates by product",
       editWeek: "Edit this week", week: "Week", status: "Status", historySubtitle: "Review Roadmap versions and source weekly archives together",
       immutable: "Immutable history", sourceArchives: "Source weekly archives", sourceArchiveSubtitle: "Complete Chinese and English history imported from the source Roadmap",
       openLedger: "Open ledger", overview: "Overview", projectExecution: "Project execution", changes: "Change history", masterDataRule: "Select from Master Data; model and product name cannot be created as free text.",
       masterProduct: "Master Data product", selectMasterData: "Selection fills model, name and category automatically", productLine: "Product line", lifecycle: "Lifecycle",
-      targetLaunch: "Target launch", rrp: "Planned RRP (€)", cancel: "Cancel", saveDraft: "Save test draft", autosave: "Inputs autosave as a local test draft",
+      targetLaunch: "Target launch", rrp: "Planned RRP (€)", cancel: "Cancel", saveDraft: "Save draft", autosave: "Inputs autosave as a team draft",
       publishWeek: "Save and create version"
     }
   };
@@ -122,8 +134,24 @@
   let productImageDraft = { productId: "", value: "" };
   let timelineInitialised = false;
   let panState = null;
+  let lastSharedSnapshot = "";
+  let sharedStateNeedsSeed = false;
 
   document.addEventListener("DOMContentLoaded", init);
+
+  function canEditRoadmap() {
+    return ROADMAP_ACCESS === "edit" || ROADMAP_ACCESS === "manage";
+  }
+
+  function canManageRoadmap() {
+    return ROADMAP_ACCESS === "manage";
+  }
+
+  function showAccessDenied() {
+    showToast(state?.language === "en"
+      ? "Your Product Roadmap permission is view only."
+      : "当前产品路线图权限为只读，无法执行此操作。");
+  }
 
   async function init() {
     document.documentElement.classList.toggle("embedded", EMBEDDED_MODE);
@@ -143,6 +171,8 @@
       state = loadState(sourceSlides);
       normaliseState();
       if (EMBEDDED_MODE && ["zh", "en"].includes(EMBEDDED_LANGUAGE)) state.language = EMBEDDED_LANGUAGE;
+      applyAccessMode();
+      if (sharedStateNeedsSeed && canEditRoadmap()) persistState({ forceShared: true });
       applyLanguage();
       renderAll();
     } catch (error) {
@@ -172,14 +202,22 @@
     });
 
     dom.resetTestButton.addEventListener("click", () => {
-      const message = state.language === "zh" ? "仅重置本地 Roadmap 测试数据？源文件不会受影响。" : "Reset only the local Roadmap test data? The source will not be affected.";
+      if (!canManageRoadmap()) return showAccessDenied();
+      const message = state.language === "zh" ? "以源基准创建新的团队 Roadmap 版本？历史版本不会删除。" : "Create a new team Roadmap version from the source baseline? Existing history will remain.";
       if (!window.confirm(message)) return;
-      localStorage.removeItem(STORAGE_KEY);
-      state = makeInitialState(sourceSlides);
+      const preferences = personalRoadmapState(state);
+      const baseline = makeInitialState(sourceSlides);
+      baseline.versions = [...state.versions, createVersionRecord(baseline, {
+        titleZh: "管理员恢复 Roadmap 基准",
+        titleEn: "Administrator restored Roadmap baseline",
+        changes: [{ fieldZh: "团队 Roadmap", fieldEn: "Team Roadmap", detailZh: "从源基准创建新版本，历史记录保持不变", detailEn: "Created a new version from the source baseline; history remains intact" }]
+      })];
+      state = { ...baseline, ...preferences };
       normaliseState();
+      persistState({ forceShared: true });
       applyLanguage();
       renderAll();
-      showToast(state.language === "zh" ? "本地测试已恢复到只读源基准" : "Local test restored to the read-only source baseline");
+      showToast(state.language === "zh" ? "已从源基准创建新的团队版本" : "A new team version was created from the source baseline");
     });
 
     dom.presentButton.addEventListener("click", togglePresentation);
@@ -210,7 +248,7 @@
     dom.hideWeeklyPanelButton.addEventListener("click", () => setWeeklyPanelHidden(true));
     dom.showWeeklyPanelButton.addEventListener("click", () => setWeeklyPanelHidden(false));
     dom.weeklyLanguageButton.addEventListener("click", flipWeeklyLanguage);
-    dom.weeklyEditButton.addEventListener("click", () => { weeklyEditing = true; renderWeeklyPanel(); });
+    dom.weeklyEditButton.addEventListener("click", () => { if (!canEditRoadmap()) return showAccessDenied(); weeklyEditing = true; renderWeeklyPanel(); });
     dom.weeklyCancelButton.addEventListener("click", () => { weeklyEditing = false; renderWeeklyPanel(); });
     dom.weeklyHistoryToggle.addEventListener("change", () => { state.weeklyHistoryVisible = dom.weeklyHistoryToggle.checked; persistState(); renderWeeklyPanel(); });
     dom.weeklyInlineForm.addEventListener("submit", saveInlineWeeklyUpdates);
@@ -226,7 +264,7 @@
       event.preventDefault();
       handleWeeklyDisplayClick(event);
     });
-    dom.editWeeklyButton.addEventListener("click", () => { setView("roadmap"); setWeeklyPanelHidden(false); weeklyEditing = true; renderWeeklyPanel(); });
+    dom.editWeeklyButton.addEventListener("click", () => { if (!canEditRoadmap()) return showAccessDenied(); setView("roadmap"); setWeeklyPanelHidden(false); weeklyEditing = true; renderWeeklyPanel(); });
     dom.openLedgerButton.addEventListener("click", () => { closeDrawers(); setView("updates"); });
     dom.drawerBackdrop.addEventListener("click", closeDrawers);
     dom.imageLightboxClose.addEventListener("click", () => dom.imageLightbox.close());
@@ -267,6 +305,18 @@
         switchLine(event.key === "ArrowRight" ? 1 : -1);
       }
     });
+
+    window.addEventListener("storage", event => {
+      if (event.storageArea !== localStorage || event.key !== STORAGE_KEY || !event.newValue) return;
+      try {
+        const remote = JSON.parse(event.newValue);
+        if (!validSharedRoadmapState(remote)) return;
+        state = { ...state, ...sharedRoadmapState(remote), ...personalRoadmapState(state) };
+        normaliseState();
+        lastSharedSnapshot = JSON.stringify(sharedRoadmapState(state));
+        renderAll();
+      } catch {}
+    });
   }
 
   function makeInitialState(slides) {
@@ -281,7 +331,7 @@
       }))
     }));
     const initial = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       masterCatalogVersion: 2,
       language: "zh",
       activeLineId: cleanSlides[0]?.id || "",
@@ -290,6 +340,7 @@
       view: "roadmap",
       search: "",
       selectedProductId: "",
+      selectedVersionId: "",
       productTab: "overview",
       slides: cleanSlides,
       weeklyDrafts: {},
@@ -315,11 +366,47 @@
   }
 
   function loadState(slides) {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (saved?.schemaVersion === 1 && Array.isArray(saved.slides) && saved.slides.length) return saved;
-    } catch {}
-    return makeInitialState(slides);
+    const initial = makeInitialState(slides);
+    const shared = readStoredJson(STORAGE_KEY);
+    const legacy = readStoredJson(LEGACY_STORAGE_KEY);
+    const preferences = readStoredJson(PREFERENCES_KEY);
+    const sharedSource = validSharedRoadmapState(shared)
+      ? shared
+      : validSharedRoadmapState(legacy) ? legacy : null;
+    const preferenceSource = preferences && typeof preferences === "object"
+      ? preferences
+      : legacy && typeof legacy === "object" ? personalRoadmapState(legacy) : {};
+    const loaded = {
+      ...initial,
+      ...(sharedSource ? sharedRoadmapState(sharedSource) : {}),
+      ...preferenceSource
+    };
+    sharedStateNeedsSeed = !validSharedRoadmapState(shared);
+    lastSharedSnapshot = sharedSource ? JSON.stringify(sharedRoadmapState(loaded)) : "";
+    return loaded;
+  }
+
+  function readStoredJson(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "null"); }
+    catch { return null; }
+  }
+
+  function validSharedRoadmapState(value) {
+    return Boolean(value && typeof value === "object" && Array.isArray(value.slides) && value.slides.length);
+  }
+
+  function sharedRoadmapState(value = state) {
+    return {
+      schemaVersion: 2,
+      masterCatalogVersion: Number(value?.masterCatalogVersion || 2),
+      slides: structuredCloneSafe(value?.slides || []),
+      weeklyDrafts: structuredCloneSafe(value?.weeklyDrafts || {}),
+      versions: structuredCloneSafe(value?.versions || [])
+    };
+  }
+
+  function personalRoadmapState(value = state) {
+    return Object.fromEntries(PREFERENCE_FIELDS.map(key => [key, structuredCloneSafe(value?.[key])]).filter(([, item]) => item !== undefined));
   }
 
   function normaliseState() {
@@ -351,9 +438,42 @@
     if (!state.slides.some(slide => slide.id === state.activeLineId)) state.activeLineId = state.slides[0]?.id || "";
   }
 
-  function persistState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch { showToast(state.language === "zh" ? "本地存储空间不足，测试修改未保存" : "Local storage is full; test changes were not saved"); }
+  function persistState(options = {}) {
+    try {
+      const preferences = JSON.stringify(personalRoadmapState(state));
+      if (localStorage.getItem(PREFERENCES_KEY) !== preferences) localStorage.setItem(PREFERENCES_KEY, preferences);
+      if (!canEditRoadmap()) return;
+      const shared = JSON.stringify(sharedRoadmapState(state));
+      if (options.forceShared || shared !== lastSharedSnapshot) {
+        localStorage.setItem(STORAGE_KEY, shared);
+        lastSharedSnapshot = shared;
+        sharedStateNeedsSeed = false;
+      }
+    } catch {
+      showToast(state.language === "zh" ? "浏览器缓存空间不足，当前修改尚未同步" : "Browser storage is full; this change has not been synced");
+    }
+  }
+
+  function applyAccessMode() {
+    document.documentElement.dataset.roadmapAccess = ROADMAP_ACCESS;
+    const editControls = [dom.weeklyEditButton, dom.editWeeklyButton, dom.drawerEditButton];
+    const manageControls = [dom.addProductButton, dom.resetTestButton];
+    editControls.forEach(control => { if (control) control.hidden = !canEditRoadmap(); });
+    manageControls.forEach(control => { if (control) control.hidden = !canManageRoadmap(); });
+    renderAccessNotice();
+  }
+
+  function renderAccessNotice() {
+    const title = document.getElementById("roadmapSyncTitle");
+    const detail = document.getElementById("roadmapSyncDetail");
+    const badge = document.getElementById("roadmapAccessBadge");
+    if (!title || !detail || !badge || !state) return;
+    const labels = state.language === "en"
+      ? { view: "View only", edit: "Can edit", manage: "Manage & publish" }
+      : { view: "只读", edit: "可编辑", manage: "管理发布" };
+    title.textContent = COPY[state.language].sourceCopy;
+    detail.textContent = COPY[state.language].sourceCopyDetail;
+    badge.textContent = labels[ROADMAP_ACCESS];
   }
 
   function applyLanguage() {
@@ -366,6 +486,7 @@
     document.querySelectorAll("[data-placeholder-zh]").forEach(element => {
       element.placeholder = state.language === "zh" ? element.dataset.placeholderZh : element.dataset.placeholderEn;
     });
+    renderAccessNotice();
   }
 
   function renderAll() {
@@ -946,6 +1067,7 @@
   function renderWeeklyPanel() {
     const slide = activeSlide();
     if (!slide) return;
+    if (!canEditRoadmap()) weeklyEditing = false;
     const language = state.weeklyLanguage;
     const copy = PANEL_COPY[language];
     const side = slide.updates?.[language] || slide.updates?.zh || { productUpdates: [], archives: [] };
@@ -955,6 +1077,7 @@
     dom.weeklyLanguageButton.textContent = copy.flipText;
     dom.weeklyLanguageButton.title = copy.flipTitle;
     dom.weeklyEditButton.textContent = copy.edit;
+    dom.weeklyEditButton.hidden = !canEditRoadmap();
     dom.weeklyHistoryLabel.textContent = copy.history;
     dom.weeklyHistoryToggle.checked = state.weeklyHistoryVisible;
     dom.weeklyPeriod.textContent = formatWeeklyPeriod(side, language);
@@ -1033,7 +1156,8 @@
 
   function renderWeeklyArchive(record, copy) {
     const groups = [...groupWeeklyUpdates(record.productUpdates || []).values()];
-    return `<section class="weekly-history-week"><div class="weekly-history-head"><strong>${escapeHtml(formatWeeklyPeriod(record, state.weeklyLanguage))}</strong><div class="weekly-history-actions"><span>${escapeHtml(record.meta || copy.archived)}</span><button class="weekly-history-delete" data-delete-weekly-history="${escapeAttr(record.weekKey || "")}" type="button" title="${escapeAttr(copy.deleteHistory)}">×</button></div></div>${groups.map(group => renderWeeklyGroup(group, false)).join("")}</section>`;
+    const deleteControl = canManageRoadmap() ? `<button class="weekly-history-delete" data-delete-weekly-history="${escapeAttr(record.weekKey || "")}" type="button" title="${escapeAttr(copy.deleteHistory)}">×</button>` : "";
+    return `<section class="weekly-history-week"><div class="weekly-history-head"><strong>${escapeHtml(formatWeeklyPeriod(record, state.weeklyLanguage))}</strong><div class="weekly-history-actions"><span>${escapeHtml(record.meta || copy.archived)}</span>${deleteControl}</div></div>${groups.map(group => renderWeeklyGroup(group, false)).join("")}</section>`;
   }
 
   function groupWeeklyUpdates(updates) {
@@ -1058,6 +1182,7 @@
     if (imageButton) { openImageLightbox(imageButton.dataset.openWeeklyImage, imageButton.getAttribute("aria-label")); return; }
     const deleteButton = event.target.closest("[data-delete-weekly-history]");
     if (deleteButton) {
+      if (!canManageRoadmap()) return showAccessDenied();
       const copy = PANEL_COPY[state.weeklyLanguage];
       const key = deleteButton.dataset.deleteWeeklyHistory;
       if (!window.confirm(`${copy.confirmDeleteHistory}\n${key.replace("-", " ")}`)) return;
@@ -1116,9 +1241,13 @@
   async function appendWeeklyFiles(entry, files) {
     const list = entry?.querySelector("[data-weekly-image-list]");
     if (!list) return;
-    const values = await Promise.all(files.map(fileToDataUrl));
-    list.insertAdjacentHTML("beforeend", values.filter(Boolean).map(renderWeeklyImageThumb).join(""));
-    updateInlineWeeklyCount();
+    try {
+      const values = await Promise.all(files.map(optimiseProductImage));
+      list.insertAdjacentHTML("beforeend", values.filter(Boolean).map(renderWeeklyImageThumb).join(""));
+      updateInlineWeeklyCount();
+    } catch (error) {
+      showToast(error.message || String(error));
+    }
   }
 
   function fileToDataUrl(file) {
@@ -1132,6 +1261,7 @@
 
   async function saveInlineWeeklyUpdates(event) {
     event.preventDefault();
+    if (!canEditRoadmap()) return showAccessDenied();
     const slide = activeSlide();
     const language = state.weeklyLanguage;
     const side = slide.updates[language];
@@ -1239,15 +1369,16 @@
     if (!version) { dom.versionDetail.innerHTML = ""; return; }
     const snapshot = version.snapshot || { total: 0, statuses: {}, mapped: 0, updates: 0 };
     const changes = version.changes || [];
-    const canRestore = version.id !== state.versions.at(-1)?.id;
+    const canRestore = canManageRoadmap() && version.id !== state.versions.at(-1)?.id;
     dom.versionDetail.innerHTML = `<div class="section-heading compact-heading"><div><h3>v${version.number} · ${escapeHtml(state.language === "zh" ? version.titleZh : version.titleEn)}</h3><span>${escapeHtml(formatDateTime(version.createdAt))} · ${escapeHtml(version.actor || "System")}</span></div>${canRestore ? `<button class="button" type="button" data-restore-version="${escapeAttr(version.id)}">${state.language === "zh" ? "以此版本创建恢复草稿" : "Create restoration draft"}</button>` : ""}</div><div class="version-metrics"><div><span>${state.language === "zh" ? "产品节点" : "Items"}</span><strong>${snapshot.total || 0}</strong></div><div><span>${state.language === "zh" ? "新品 / 升级" : "New / upgrade"}</span><strong>${(snapshot.statuses?.new || 0) + (snapshot.statuses?.upgrade || 0)}</strong></div><div><span>${state.language === "zh" ? "已映射 Master Data" : "Master Data mapped"}</span><strong>${snapshot.mapped || 0}</strong></div><div><span>${state.language === "zh" ? "历史更新" : "Archived updates"}</span><strong>${snapshot.updates || 0}</strong></div></div><div class="change-list">${changes.length ? changes.map(change => `<div class="change-row"><span>${escapeHtml(state.language === "zh" ? change.fieldZh : change.fieldEn)}</span><strong>${escapeHtml(state.language === "zh" ? change.detailZh : change.detailEn)}</strong></div>`).join("") : `<div class="change-row"><span>${state.language === "zh" ? "版本说明" : "Version note"}</span><strong>${state.language === "zh" ? "没有字段级变化说明" : "No field-level change note"}</strong></div>`}</div>`;
     dom.versionDetail.querySelector("[data-restore-version]")?.addEventListener("click", event => restoreVersion(event.currentTarget.dataset.restoreVersion));
   }
 
   function restoreVersion(versionId) {
+    if (!canManageRoadmap()) return showAccessDenied();
     const version = state.versions.find(item => item.id === versionId);
     if (!version?.snapshot?.items) return;
-    const message = state.language === "zh" ? "恢复会生成一个新的本地测试版本，不会覆盖历史或源文件。继续？" : "Restoration creates a new local test version and never overwrites history or the source. Continue?";
+    const message = state.language === "zh" ? "恢复会生成一个新的团队版本，不会覆盖历史或源文件。继续？" : "Restoration creates a new team version and never overwrites history or the source. Continue?";
     if (!window.confirm(message)) return;
     const snapshotMap = new Map(version.snapshot.items.map(item => [item.id, item]));
     state.slides.forEach(slide => {
@@ -1291,6 +1422,7 @@
   }
 
   function openProductMapping(productId) {
+    if (!canEditRoadmap()) return showAccessDenied();
     state.selectedProductId = productId;
     state.productTab = "overview";
     productEditing = true;
@@ -1330,15 +1462,18 @@
     const fitOptions = [["contain", state.language === "zh" ? "完整显示" : "Fit"], ["cover", state.language === "zh" ? "填满裁切" : "Fill"], ["scale-down", state.language === "zh" ? "原始尺寸" : "Natural"]];
     const positionOptions = [["center", state.language === "zh" ? "居中" : "Centre"], ["top", state.language === "zh" ? "靠上" : "Top"], ["bottom", state.language === "zh" ? "靠下" : "Bottom"], ["left", state.language === "zh" ? "靠左" : "Left"], ["right", state.language === "zh" ? "靠右" : "Right"]];
     const editPreview = resolveImage(productImageDraft.value);
-    const form = `<form class="detail-form compact" id="productEditForm"><label class="field full"><span>${state.language === "zh" ? "关联 Master Data 产品" : "Linked Master Data product"}</span><span class="master-combobox"><input name="masterMapping" value="${escapeAttr(masterValue)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="productMasterResults" placeholder="${escapeAttr(state.language === "zh" ? `输入或展开选择，当前共 ${masterData.length} 个产品` : `Type or open the list of ${masterData.length} products`)}"><button class="master-combobox-toggle" type="button" data-product-master-toggle aria-label="${escapeAttr(state.language === "zh" ? "展开 Master Data 产品" : "Open Master Data products")}">⌄</button><span class="master-combobox-results" id="productMasterResults" role="listbox" hidden></span></span><small>${state.language === "zh" ? "点击输入框即可浏览完整目录；输入型号、名称或品类可筛选，留空可取消映射。" : "Select the field to browse the full catalog; filter by model, name or category, or clear to unlink."}</small></label><label class="field full"><span>${state.language === "zh" ? "Roadmap 产品名称" : "Roadmap product name"}</span><input name="name" value="${escapeAttr(product.name || "")}" required></label><label class="field"><span>${COPY[state.language].lifecycle}</span><select name="status">${["launched", "upgrade", "new", "eol"].map(status => `<option value="${status}" ${product.status === status ? "selected" : ""}>${STATUS_COPY[state.language][status]}</option>`).join("")}</select></label><label class="field"><span>${COPY[state.language].targetLaunch}</span><input name="launchDate" value="${escapeAttr(product.launchDate || "")}" placeholder="2027 Q1 / 2027-03-15"></label><label class="field"><span>${COPY[state.language].rrp}</span><input name="price" type="number" min="0" step="0.01" value="${Number(product.plannedPrice || 0)}"></label><label class="field span-3"><span>${state.language === "zh" ? "产品参数" : "Specifications"}</span><textarea name="specs" rows="3">${escapeHtml(product.specs || "")}</textarea></label><label class="field span-3"><span>KSP</span><textarea name="ksp" rows="3">${escapeHtml(product.ksp || "")}</textarea></label><section class="product-image-editor span-3"><div class="product-image-editor-head"><strong>${state.language === "zh" ? "产品图片" : "Product image"}</strong><span>${state.language === "zh" ? "支持上传替换并调整卡片内显示" : "Upload, replace and tune the card image"}</span></div><div class="product-image-editor-body"><button class="product-image-preview ${editPreview ? "" : "empty"}" type="button" data-edit-image-preview aria-label="${escapeAttr(state.language === "zh" ? "查看当前图片" : "View current image")}">${editPreview ? `<img src="${escapeAttr(editPreview)}" alt="" style="${imageDisplayStyle(product)}">` : `<span>${escapeHtml(initials(product.name))}</span>`}</button><div class="product-image-controls"><div class="product-image-actions"><button class="button" type="button" data-upload-product-image>${state.language === "zh" ? "上传 / 替换" : "Upload / replace"}</button><button class="icon-button subtle" type="button" data-remove-product-image aria-label="${escapeAttr(state.language === "zh" ? "移除图片" : "Remove image")}" title="${escapeAttr(state.language === "zh" ? "移除图片" : "Remove image")}">×</button><input type="file" data-product-image-file accept="image/png,image/jpeg,image/webp" hidden></div><label class="field compact-image-path"><span>${state.language === "zh" ? "图片地址或本地路径" : "Image URL or local path"}</span><input name="imagePath" value="${escapeAttr(/^data:/i.test(productImageDraft.value) ? "" : productImageDraft.value)}" placeholder="https://... / product-images/image1.png"></label><div class="image-display-controls"><label class="field"><span>${state.language === "zh" ? "适配方式" : "Fit"}</span><select name="imageFit">${fitOptions.map(([value, label]) => `<option value="${value}" ${product.imageFit === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><label class="field"><span>${state.language === "zh" ? "焦点位置" : "Focus"}</span><select name="imagePosition">${positionOptions.map(([value, label]) => `<option value="${value}" ${product.imagePosition === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><label class="field image-scale-field"><span>${state.language === "zh" ? "缩放" : "Scale"} <output data-image-scale-output>${product.imageScale}%</output></span><input name="imageScale" type="range" min="70" max="140" step="5" value="${product.imageScale}"></label></div><small>${state.language === "zh" ? "上传图片会压缩后保存在本地测试草稿；推荐使用透明或白底产品图。" : "Uploads are compressed into the local test draft; transparent or white-background product images work best."}</small></div></div></section><div class="drawer-edit-actions full"><button class="button" type="button" data-cancel-product-edit>${state.language === "zh" ? "取消" : "Cancel"}</button><button class="button primary" type="submit">${state.language === "zh" ? "保存并生成版本" : "Save and create version"}</button></div></form>`;
-    dom.productDrawerContent.innerHTML = `<div class="product-hero compact">${heroImage}<div class="product-hero-copy"><div class="product-hero-title"><div><strong>${escapeHtml(product.name)}</strong><span>${escapeHtml(mappingLabel)}</span></div><span class="status-tag ${escapeAttr(product.status)}">${STATUS_COPY[state.language][product.status]}</span></div><div class="product-hero-actions"><button class="button" type="button" data-map-roadmap-product>${master ? (state.language === "zh" ? "更换映射" : "Change mapping") : (state.language === "zh" ? "关联 Master Data" : "Link Master Data")}</button><button class="button primary" type="button" data-edit-roadmap-product>${state.language === "zh" ? "编辑" : "Edit"}</button></div></div></div>${productEditing ? form : overview}`;
+    const form = `<form class="detail-form compact" id="productEditForm"><label class="field full"><span>${state.language === "zh" ? "关联 Master Data 产品" : "Linked Master Data product"}</span><span class="master-combobox"><input name="masterMapping" value="${escapeAttr(masterValue)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="productMasterResults" placeholder="${escapeAttr(state.language === "zh" ? `输入或展开选择，当前共 ${masterData.length} 个产品` : `Type or open the list of ${masterData.length} products`)}"><button class="master-combobox-toggle" type="button" data-product-master-toggle aria-label="${escapeAttr(state.language === "zh" ? "展开 Master Data 产品" : "Open Master Data products")}">⌄</button><span class="master-combobox-results" id="productMasterResults" role="listbox" hidden></span></span><small>${state.language === "zh" ? "点击输入框即可浏览完整目录；输入型号、名称或品类可筛选，留空可取消映射。" : "Select the field to browse the full catalog; filter by model, name or category, or clear to unlink."}</small></label><label class="field full"><span>${state.language === "zh" ? "Roadmap 产品名称" : "Roadmap product name"}</span><input name="name" value="${escapeAttr(product.name || "")}" required></label><label class="field"><span>${COPY[state.language].lifecycle}</span><select name="status">${["launched", "upgrade", "new", "eol"].map(status => `<option value="${status}" ${product.status === status ? "selected" : ""}>${STATUS_COPY[state.language][status]}</option>`).join("")}</select></label><label class="field"><span>${COPY[state.language].targetLaunch}</span><input name="launchDate" value="${escapeAttr(product.launchDate || "")}" placeholder="2027 Q1 / 2027-03-15"></label><label class="field"><span>${COPY[state.language].rrp}</span><input name="price" type="number" min="0" step="0.01" value="${Number(product.plannedPrice || 0)}"></label><label class="field span-3"><span>${state.language === "zh" ? "产品参数" : "Specifications"}</span><textarea name="specs" rows="3">${escapeHtml(product.specs || "")}</textarea></label><label class="field span-3"><span>KSP</span><textarea name="ksp" rows="3">${escapeHtml(product.ksp || "")}</textarea></label><section class="product-image-editor span-3"><div class="product-image-editor-head"><strong>${state.language === "zh" ? "产品图片" : "Product image"}</strong><span>${state.language === "zh" ? "支持上传替换并调整卡片内显示" : "Upload, replace and tune the card image"}</span></div><div class="product-image-editor-body"><button class="product-image-preview ${editPreview ? "" : "empty"}" type="button" data-edit-image-preview aria-label="${escapeAttr(state.language === "zh" ? "查看当前图片" : "View current image")}">${editPreview ? `<img src="${escapeAttr(editPreview)}" alt="" style="${imageDisplayStyle(product)}">` : `<span>${escapeHtml(initials(product.name))}</span>`}</button><div class="product-image-controls"><div class="product-image-actions"><button class="button" type="button" data-upload-product-image>${state.language === "zh" ? "上传 / 替换" : "Upload / replace"}</button><button class="icon-button subtle" type="button" data-remove-product-image aria-label="${escapeAttr(state.language === "zh" ? "移除图片" : "Remove image")}" title="${escapeAttr(state.language === "zh" ? "移除图片" : "Remove image")}">×</button><input type="file" data-product-image-file accept="image/png,image/jpeg,image/webp" hidden></div><label class="field compact-image-path"><span>${state.language === "zh" ? "图片地址或本地路径" : "Image URL or local path"}</span><input name="imagePath" value="${escapeAttr(/^data:/i.test(productImageDraft.value) ? "" : productImageDraft.value)}" placeholder="https://... / product-images/image1.png"></label><div class="image-display-controls"><label class="field"><span>${state.language === "zh" ? "适配方式" : "Fit"}</span><select name="imageFit">${fitOptions.map(([value, label]) => `<option value="${value}" ${product.imageFit === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><label class="field"><span>${state.language === "zh" ? "焦点位置" : "Focus"}</span><select name="imagePosition">${positionOptions.map(([value, label]) => `<option value="${value}" ${product.imagePosition === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><label class="field image-scale-field"><span>${state.language === "zh" ? "缩放" : "Scale"} <output data-image-scale-output>${product.imageScale}%</output></span><input name="imageScale" type="range" min="70" max="140" step="5" value="${product.imageScale}"></label></div><small>${state.language === "zh" ? "上传图片会压缩后保存到团队 Roadmap；推荐使用透明或白底产品图。" : "Uploads are compressed and saved to the team Roadmap; transparent or white-background product images work best."}</small></div></div></section><div class="drawer-edit-actions full"><button class="button" type="button" data-cancel-product-edit>${state.language === "zh" ? "取消" : "Cancel"}</button><button class="button primary" type="submit">${state.language === "zh" ? "保存并生成版本" : "Save and create version"}</button></div></form>`;
+    const editActions = canEditRoadmap()
+      ? `<div class="product-hero-actions"><button class="button" type="button" data-map-roadmap-product>${master ? (state.language === "zh" ? "更换映射" : "Change mapping") : (state.language === "zh" ? "关联 Master Data" : "Link Master Data")}</button><button class="button primary" type="button" data-edit-roadmap-product>${state.language === "zh" ? "编辑" : "Edit"}</button></div>`
+      : `<span class="read-only-note">${state.language === "zh" ? "只读" : "View only"}</span>`;
+    dom.productDrawerContent.innerHTML = `<div class="product-hero compact">${heroImage}<div class="product-hero-copy"><div class="product-hero-title"><div><strong>${escapeHtml(product.name)}</strong><span>${escapeHtml(mappingLabel)}</span></div><span class="status-tag ${escapeAttr(product.status)}">${STATUS_COPY[state.language][product.status]}</span></div>${editActions}</div></div>${productEditing && canEditRoadmap() ? form : overview}`;
     dom.productDrawerContent.querySelector("[data-open-product-image]")?.addEventListener("click", event => openImageLightbox(event.currentTarget.dataset.openProductImage, product.name));
-    dom.productDrawerContent.querySelector("[data-map-roadmap-product]").addEventListener("click", () => {
+    dom.productDrawerContent.querySelector("[data-map-roadmap-product]")?.addEventListener("click", () => {
       productEditing = true;
       focusProductMaster = true;
       renderProductOverview(product, slide);
     });
-    dom.productDrawerContent.querySelector("[data-edit-roadmap-product]").addEventListener("click", () => {
+    dom.productDrawerContent.querySelector("[data-edit-roadmap-product]")?.addEventListener("click", () => {
       productEditing = true;
       focusProductMaster = false;
       renderProductOverview(product, slide);
@@ -1359,6 +1494,7 @@
 
   function saveProductEdit(event, product) {
     event.preventDefault();
+    if (!canEditRoadmap()) return showAccessDenied();
     const form = new FormData(event.currentTarget);
     const mappingText = String(form.get("masterMapping") || "").trim();
     const master = mappingText ? masterFromSelection(mappingText) : null;
@@ -1411,14 +1547,14 @@
     productImageDraft = { productId: "", value: "" };
     renderAll();
     openDrawer("product");
-    showToast(state.language === "zh" ? "产品更新已保存为本地测试版本" : "Product update saved as a local test version");
+    showToast(state.language === "zh" ? "产品更新已保存并同步团队版本" : "Product update saved and synced to the team version");
   }
 
   function renderProductProject(product) {
     const linked = Boolean(product.projectId);
     const stage = product.status === "eol" ? (state.language === "zh" ? "历史项目" : "Historical") : product.status === "launched" ? (state.language === "zh" ? "上市收尾" : "Launch closeout") : (state.language === "zh" ? "规划 / 项目准备" : "Planning / project setup");
     dom.productDrawerContent.innerHTML = `<div class="detail-grid"><div><span>${state.language === "zh" ? "项目编号" : "Project ID"}</span><strong>${escapeHtml(product.projectId || "--")}</strong></div><div><span>${state.language === "zh" ? "当前阶段" : "Current stage"}</span><strong>${stage}</strong></div><div><span>${state.language === "zh" ? "Roadmap 目标" : "Roadmap target"}</span><strong>${escapeHtml(product.launchDate || "--")}</strong></div><div><span>${state.language === "zh" ? "项目当前日期" : "Current project date"}</span><strong>${linked ? escapeHtml(product.launchDate || "--") : "--"}</strong></div></div><div class="detail-section"><h3>${state.language === "zh" ? "连接规则" : "Connection rule"}</h3><p>${state.language === "zh" ? "Roadmap 目标日期与项目执行日期分开保存。日期差异会提示复核，不会静默覆盖项目时间线。" : "Roadmap targets and project execution dates are stored separately. Variance prompts review and never silently overwrites the project timeline."}</p></div><div class="detail-actions"><button class="button ${linked ? "" : "primary"}" type="button" data-project-link>${linked ? (state.language === "zh" ? "查看项目跟进" : "Open Project Tracking") : (state.language === "zh" ? "创建关联项目草稿" : "Create linked project draft")}</button></div>`;
-    dom.productDrawerContent.querySelector("[data-project-link]").addEventListener("click", () => showToast(linked ? (state.language === "zh" ? `将打开项目跟进并定位 ${product.projectId}` : `Would open Project Tracking at ${product.projectId}`) : (state.language === "zh" ? "关联项目草稿已创建，仅用于本地交互测试" : "Linked project draft created for local interaction testing only")));
+    dom.productDrawerContent.querySelector("[data-project-link]").addEventListener("click", () => showToast(linked ? (state.language === "zh" ? `将打开项目跟进并定位 ${product.projectId}` : `Would open Project Tracking at ${product.projectId}`) : (state.language === "zh" ? "关联项目草稿已创建，待进入项目跟进确认" : "Linked project draft created for confirmation in Project Tracking")));
   }
 
   function renderProductChanges(product) {
@@ -1429,6 +1565,7 @@
   }
 
   function openProductModal() {
+    if (!canManageRoadmap()) return showAccessDenied();
     dom.productForm.reset();
     dom.productLineSelect.innerHTML = state.slides.map(slide => `<option value="${escapeAttr(slide.id)}" ${slide.id === state.activeLineId ? "selected" : ""}>${escapeHtml(slide.label)}</option>`).join("");
     dom.newProductStatus.innerHTML = ["new", "upgrade", "launched", "eol"].map(status => `<option value="${status}">${STATUS_COPY[state.language][status]}</option>`).join("");
@@ -1447,6 +1584,7 @@
 
   function saveNewProduct(event) {
     event.preventDefault();
+    if (!canManageRoadmap()) return showAccessDenied();
     const master = selectedMasterRecord();
     if (!master) { showToast(state.language === "zh" ? "请从 Master Data 下拉选项中选择产品" : "Select a product from the Master Data options"); return; }
     if (state.slides.some(slide => slide.products.some(product => product.masterId === master.code))) { showToast(state.language === "zh" ? "该 Master Data 产品已存在于 Roadmap" : "This Master Data product already exists in the Roadmap"); return; }
@@ -1471,7 +1609,7 @@
     dom.productModal.close();
     renderAll();
     openProduct(product.id);
-    showToast(state.language === "zh" ? "产品已加入本地测试 Roadmap" : "Product added to the local test Roadmap");
+    showToast(state.language === "zh" ? "产品已加入团队 Roadmap" : "Product added to the team Roadmap");
   }
 
   function selectedMasterRecord() {
@@ -1479,6 +1617,7 @@
   }
 
   function openWeeklyModal() {
+    if (!canEditRoadmap()) return showAccessDenied();
     const slide = activeSlide();
     const side = currentSide(slide);
     const current = new Map((side?.productUpdates || []).map(update => [update.productId, update.text || ""]));
@@ -1490,6 +1629,7 @@
   }
 
   function autosaveWeeklyDraft() {
+    if (!canEditRoadmap()) return;
     const key = weeklyDraftKey(activeSlide().id);
     state.weeklyDrafts[key] = Object.fromEntries([...dom.weeklyEditor.querySelectorAll("[data-weekly-product]")].map(field => [field.dataset.weeklyProduct, field.value]));
     persistState();
@@ -1497,6 +1637,7 @@
 
   function saveWeeklyUpdates(event) {
     event.preventDefault();
+    if (!canEditRoadmap()) return showAccessDenied();
     const slide = activeSlide();
     const side = currentSide(slide);
     const week = todayIsoWeek();
@@ -1522,7 +1663,7 @@
     persistState();
     dom.weeklyModal.close();
     renderAll();
-    showToast(state.language === "zh" ? "周度更新已保存并生成本地测试版本" : "Weekly updates saved and a local test version was created");
+    showToast(state.language === "zh" ? "周度更新已保存并生成团队版本" : "Weekly updates saved and a team version was created");
   }
 
   function addVersion(input) {
@@ -1765,7 +1906,7 @@
         productImageDraft.value = await optimiseProductImage(file);
         pathInput.value = "";
         updatePreview();
-        showToast(state.language === "zh" ? "图片已压缩并加入本地草稿" : "Image compressed and added to the local draft");
+        showToast(state.language === "zh" ? "图片已压缩并加入团队草稿" : "Image compressed and added to the team draft");
       } catch (error) {
         showToast(error.message || String(error));
       } finally {
