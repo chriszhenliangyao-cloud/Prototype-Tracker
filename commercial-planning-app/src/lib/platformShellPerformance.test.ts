@@ -34,8 +34,13 @@ describe("commercial planning platform shell performance", () => {
     expect(roadmapApp).toContain('function ensureUniqueProductIds()');
     expect(roadmapApp).toContain('function migrateSlideProductReferences');
     expect(roadmapApp).toContain('function migrateVersionSnapshotIds');
-    expect(roadmapIndex).toContain('class="roadmap-sync-compact"');
+    expect(roadmapIndex).toContain('id="addProductButton"');
+    expect(roadmapIndex).not.toContain('class="roadmap-sync-compact"');
+    expect(roadmapIndex).not.toContain('id="roadmapSyncStatus"');
     expect(roadmapIndex).not.toContain('class="source-notice"');
+    expect(roadmapApp).toContain('function productMatchesSearch');
+    expect(roadmapApp).toContain('function deleteRoadmapProduct');
+    expect(roadmapApp).toContain('data-delete-roadmap-product');
     expect(roadmapApp).toContain('document.documentElement.classList.toggle("embedded", EMBEDDED_MODE)');
   });
 

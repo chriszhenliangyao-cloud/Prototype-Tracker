@@ -96,7 +96,6 @@
             </div>
             <div class="heading-actions">
               <button class="button" id="presentButton" type="button" data-copy="presentation">演示模式</button>
-              <button class="button primary" id="addProductButton" type="button" data-copy="addProduct">新增产品</button>
             </div>
           </section>
 
@@ -114,12 +113,7 @@
                 <input id="cardScaleInput" type="range" min="80" max="135" step="5" value="100" aria-label="产品卡片统一大小">
                 <output id="cardScaleValue" for="cardScaleInput">100%</output>
               </label>
-              <div class="roadmap-sync-compact" id="roadmapSyncStatus" role="status">
-                <span class="status-light"></span>
-                <strong id="roadmapSyncTitle">已同步</strong>
-                <span class="visually-hidden" id="roadmapSyncDetail">业务修改自动保存到云端并生成版本；个人筛选和视图偏好仅保存在当前浏览器。</span>
-                <span class="roadmap-access-badge" id="roadmapAccessBadge">只读</span>
-              </div>
+              <button class="button primary compact roadmap-add-product" id="addProductButton" type="button"><span aria-hidden="true">＋</span><span data-copy="addProduct">新增产品</span></button>
               <button class="button compact show-weekly-button" id="showWeeklyPanelButton" type="button" hidden><span data-copy="showWeekly">显示本周更新</span></button>
               <div class="view-switch" role="tablist" aria-label="视图">
                 <button class="view-button active" type="button" data-view="roadmap" data-copy="roadmapView">路线图</button>

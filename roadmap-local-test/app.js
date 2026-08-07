@@ -229,10 +229,19 @@
     document.querySelectorAll(".view-button").forEach(button => button.addEventListener("click", () => setView(button.dataset.view)));
     dom.productSearch.addEventListener("input", () => {
       state.search = dom.productSearch.value.trim();
+      if (findProductSearchResult(state.search, true)) {
+        locateSearchResult();
+        return;
+      }
       renderRoadmap();
       renderCardScale();
     });
     dom.productSearch.addEventListener("change", () => locateSearchResult());
+    dom.productSearch.addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      locateSearchResult();
+    });
 
     dom.cardScaleInput.addEventListener("input", () => {
       state.cardScale = clamp(dom.cardScaleInput.value, 80, Number(dom.cardScaleInput.max || 135));
@@ -540,22 +549,6 @@
     const manageControls = [dom.addProductButton, dom.resetTestButton];
     editControls.forEach(control => { if (control) control.hidden = !canEditRoadmap(); });
     manageControls.forEach(control => { if (control) control.hidden = !canManageRoadmap(); });
-    renderAccessNotice();
-  }
-
-  function renderAccessNotice() {
-    const status = document.getElementById("roadmapSyncStatus");
-    const title = document.getElementById("roadmapSyncTitle");
-    const detail = document.getElementById("roadmapSyncDetail");
-    const badge = document.getElementById("roadmapAccessBadge");
-    if (!title || !detail || !badge || !state) return;
-    const labels = state.language === "en"
-      ? { view: "View only", edit: "Can edit", manage: "Manage & publish" }
-      : { view: "只读", edit: "可编辑", manage: "管理发布" };
-    title.textContent = state.language === "en" ? "Synced" : "已同步";
-    detail.textContent = COPY[state.language].sourceCopyDetail;
-    badge.textContent = labels[ROADMAP_ACCESS];
-    if (status) status.title = `${COPY[state.language].sourceCopy}。${COPY[state.language].sourceCopyDetail}`;
   }
 
   function applyLanguage() {
@@ -568,7 +561,6 @@
     document.querySelectorAll("[data-placeholder-zh]").forEach(element => {
       element.placeholder = state.language === "zh" ? element.dataset.placeholderZh : element.dataset.placeholderEn;
     });
-    renderAccessNotice();
   }
 
   function renderAll() {
@@ -650,7 +642,27 @@
 
   function renderProductOptions() {
     const options = state.slides.flatMap(slide => (slide.products || []).map(product => ({ product, slide })));
-    dom.productOptions.innerHTML = options.map(({ product }) => `<option value="${escapeAttr(product.masterId ? `${product.masterId} · ${product.name}` : product.name)}"></option>`).join("");
+    dom.productOptions.innerHTML = options.map(({ product }) => `<option value="${escapeAttr(productOptionValue(product))}"></option>`).join("");
+  }
+
+  function productOptionValue(product) {
+    return product.masterId ? `${product.masterId} · ${product.name}` : product.name;
+  }
+
+  function productMatchesSearch(product, query) {
+    const tokens = normaliseText(query).split(" ").filter(Boolean);
+    if (!tokens.length) return true;
+    const haystack = normaliseText([product.masterId, product.name, product.specs, product.ksp].join(" "));
+    return tokens.every(token => haystack.includes(token));
+  }
+
+  function findProductSearchResult(query, exactOnly = false) {
+    const normalisedQuery = normaliseText(query);
+    if (!normalisedQuery) return null;
+    const records = state.slides.flatMap(slide => (slide.products || []).map(product => ({ slide, product })));
+    const exact = records.find(({ product }) => normaliseText(productOptionValue(product)) === normalisedQuery || normaliseText(product.masterId) === normalisedQuery);
+    if (exact || exactOnly) return exact || null;
+    return records.find(({ product }) => productMatchesSearch(product, query)) || null;
   }
 
   function renderRoadmap() {
@@ -658,11 +670,10 @@
     if (!slide) return;
     const previousScroll = dom.roadmapScroll.scrollLeft;
     const updatedIds = new Set((currentSide(slide)?.productUpdates || []).map(update => update.productId));
-    const search = normaliseText(state.search);
     const products = (slide.products || []).filter(product => {
       if (state.statusFilter === "updated" && !updatedIds.has(product.id)) return false;
       if (!["all", "updated"].includes(state.statusFilter) && product.status !== state.statusFilter) return false;
-      if (search && !normaliseText([product.name, product.masterId, product.specs, product.ksp].join(" ")).includes(search)) return false;
+      if (!productMatchesSearch(product, state.search)) return false;
       return true;
     });
 
@@ -1047,22 +1058,21 @@
   }
 
   function locateSearchResult() {
-    const search = normaliseText(dom.productSearch.value);
-    if (!search) return;
-    for (const slide of state.slides) {
-      const product = (slide.products || []).find(item => normaliseText([item.masterId, item.name].join(" ")).includes(search) || search.includes(normaliseText(item.masterId || item.name)));
-      if (!product) continue;
-      state.activeLineId = slide.id;
-      state.search = dom.productSearch.value.trim();
-      persistState();
-      renderAll();
-      requestAnimationFrame(() => {
-        const card = dom.roadmapCanvas.querySelector(`[data-product-id="${cssEscape(product.id)}"]`);
-        card?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-        card?.focus({ preventScroll: true });
-      });
-      return;
-    }
+    const query = dom.productSearch.value.trim();
+    if (!query) return;
+    const result = findProductSearchResult(query);
+    if (!result) return;
+    state.activeLineId = result.slide.id;
+    state.view = "roadmap";
+    state.statusFilter = "all";
+    state.search = query;
+    persistState();
+    renderAll();
+    requestAnimationFrame(() => {
+      const card = dom.roadmapCanvas.querySelector(`[data-product-id="${cssEscape(result.product.id)}"]`);
+      card?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      card?.focus({ preventScroll: true });
+    });
   }
 
   function renderCardScale() {
@@ -1546,7 +1556,7 @@
     const editPreview = resolveImage(productImageDraft.value);
     const form = `<form class="detail-form compact" id="productEditForm"><label class="field full"><span>${state.language === "zh" ? "关联 Master Data 产品" : "Linked Master Data product"}</span><span class="master-combobox"><input name="masterMapping" value="${escapeAttr(masterValue)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="productMasterResults" placeholder="${escapeAttr(state.language === "zh" ? `输入或展开选择，当前共 ${masterData.length} 个产品` : `Type or open the list of ${masterData.length} products`)}"><button class="master-combobox-toggle" type="button" data-product-master-toggle aria-label="${escapeAttr(state.language === "zh" ? "展开 Master Data 产品" : "Open Master Data products")}">⌄</button><span class="master-combobox-results" id="productMasterResults" role="listbox" hidden></span></span><small>${state.language === "zh" ? "点击输入框即可浏览完整目录；输入型号、名称或品类可筛选，留空可取消映射。" : "Select the field to browse the full catalog; filter by model, name or category, or clear to unlink."}</small></label><label class="field full"><span>${state.language === "zh" ? "Roadmap 产品名称" : "Roadmap product name"}</span><input name="name" value="${escapeAttr(product.name || "")}" required></label><label class="field"><span>${COPY[state.language].lifecycle}</span><select name="status">${["launched", "upgrade", "new", "eol"].map(status => `<option value="${status}" ${product.status === status ? "selected" : ""}>${STATUS_COPY[state.language][status]}</option>`).join("")}</select></label><label class="field"><span>${COPY[state.language].targetLaunch}</span><input name="launchDate" value="${escapeAttr(product.launchDate || "")}" placeholder="2027 Q1 / 2027-03-15"></label><label class="field"><span>${COPY[state.language].rrp}</span><input name="price" type="number" min="0" step="0.01" value="${Number(product.plannedPrice || 0)}"></label><label class="field span-3"><span>${state.language === "zh" ? "产品参数" : "Specifications"}</span><textarea name="specs" rows="3">${escapeHtml(product.specs || "")}</textarea></label><label class="field span-3"><span>KSP</span><textarea name="ksp" rows="3">${escapeHtml(product.ksp || "")}</textarea></label><section class="product-image-editor span-3"><div class="product-image-editor-head"><strong>${state.language === "zh" ? "产品图片" : "Product image"}</strong><span>${state.language === "zh" ? "支持上传替换并调整卡片内显示" : "Upload, replace and tune the card image"}</span></div><div class="product-image-editor-body"><button class="product-image-preview ${editPreview ? "" : "empty"}" type="button" data-edit-image-preview aria-label="${escapeAttr(state.language === "zh" ? "查看当前图片" : "View current image")}">${editPreview ? `<img src="${escapeAttr(editPreview)}" alt="" style="${imageDisplayStyle(product)}">` : `<span>${escapeHtml(initials(product.name))}</span>`}</button><div class="product-image-controls"><div class="product-image-actions"><button class="button" type="button" data-upload-product-image>${state.language === "zh" ? "上传 / 替换" : "Upload / replace"}</button><button class="icon-button subtle" type="button" data-remove-product-image aria-label="${escapeAttr(state.language === "zh" ? "移除图片" : "Remove image")}" title="${escapeAttr(state.language === "zh" ? "移除图片" : "Remove image")}">×</button><input type="file" data-product-image-file accept="image/png,image/jpeg,image/webp" hidden></div><label class="field compact-image-path"><span>${state.language === "zh" ? "图片地址或本地路径" : "Image URL or local path"}</span><input name="imagePath" value="${escapeAttr(/^data:/i.test(productImageDraft.value) ? "" : productImageDraft.value)}" placeholder="https://... / product-images/image1.png"></label><div class="image-display-controls"><label class="field"><span>${state.language === "zh" ? "适配方式" : "Fit"}</span><select name="imageFit">${fitOptions.map(([value, label]) => `<option value="${value}" ${product.imageFit === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><label class="field"><span>${state.language === "zh" ? "焦点位置" : "Focus"}</span><select name="imagePosition">${positionOptions.map(([value, label]) => `<option value="${value}" ${product.imagePosition === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><label class="field image-scale-field"><span>${state.language === "zh" ? "缩放" : "Scale"} <output data-image-scale-output>${product.imageScale}%</output></span><input name="imageScale" type="range" min="70" max="140" step="5" value="${product.imageScale}"></label></div><small>${state.language === "zh" ? "上传图片会压缩后保存到团队 Roadmap；推荐使用透明或白底产品图。" : "Uploads are compressed and saved to the team Roadmap; transparent or white-background product images work best."}</small></div></div></section><div class="drawer-edit-actions full"><button class="button" type="button" data-cancel-product-edit>${state.language === "zh" ? "取消" : "Cancel"}</button><button class="button primary" type="submit">${state.language === "zh" ? "保存并生成版本" : "Save and create version"}</button></div></form>`;
     const editActions = canEditRoadmap()
-      ? `<div class="product-hero-actions"><button class="button" type="button" data-map-roadmap-product>${master ? (state.language === "zh" ? "更换映射" : "Change mapping") : (state.language === "zh" ? "关联 Master Data" : "Link Master Data")}</button><button class="button primary" type="button" data-edit-roadmap-product>${state.language === "zh" ? "编辑" : "Edit"}</button></div>`
+      ? `<div class="product-hero-actions"><button class="button" type="button" data-map-roadmap-product>${master ? (state.language === "zh" ? "更换映射" : "Change mapping") : (state.language === "zh" ? "关联 Master Data" : "Link Master Data")}</button><button class="button primary" type="button" data-edit-roadmap-product>${state.language === "zh" ? "编辑" : "Edit"}</button>${canManageRoadmap() ? `<button class="button danger" type="button" data-delete-roadmap-product>${state.language === "zh" ? "删除" : "Delete"}</button>` : ""}</div>`
       : `<span class="read-only-note">${state.language === "zh" ? "只读" : "View only"}</span>`;
     dom.productDrawerContent.innerHTML = `<div class="product-hero compact">${heroImage}<div class="product-hero-copy"><div class="product-hero-title"><div><strong>${escapeHtml(product.name)}</strong><span>${escapeHtml(mappingLabel)}</span></div><span class="status-tag ${escapeAttr(product.status)}">${STATUS_COPY[state.language][product.status]}</span></div>${editActions}</div></div>${productEditing && canEditRoadmap() ? form : overview}`;
     dom.productDrawerContent.querySelector("[data-open-product-image]")?.addEventListener("click", event => openImageLightbox(event.currentTarget.dataset.openProductImage, product.name));
@@ -1560,6 +1570,7 @@
       focusProductMaster = false;
       renderProductOverview(product, slide);
     });
+    dom.productDrawerContent.querySelector("[data-delete-roadmap-product]")?.addEventListener("click", () => deleteRoadmapProduct(product.id));
     const editForm = dom.productDrawerContent.querySelector("#productEditForm");
     if (editForm) {
       editForm.addEventListener("submit", event => saveProductEdit(event, product));
@@ -1572,6 +1583,45 @@
         if (focusProductMaster) input?.select();
       });
     }
+  }
+
+  function deleteRoadmapProduct(productId) {
+    if (!canManageRoadmap()) return showAccessDenied();
+    const slide = slideForProduct(productId);
+    const product = productById(productId);
+    if (!slide || !product) return;
+    const message = state.language === "zh"
+      ? `确认从 Roadmap 删除“${product.name}”？\n\n该操作会生成新版本，但不会删除 Master Data、项目跟进数据或历史周报。`
+      : `Remove “${product.name}” from the Roadmap?\n\nThis creates a new version and does not delete Master Data, Project Tracking data or archived weekly updates.`;
+    if (!window.confirm(message)) return;
+
+    slide.products = (slide.products || []).filter(item => item.id !== productId);
+    slide.connections = (slide.connections || []).filter(connection => connection.fromId !== productId && connection.toId !== productId);
+    Object.values(slide.updates || {}).forEach(side => {
+      side.productUpdates = (side.productUpdates || []).filter(update => update.productId !== productId);
+    });
+    Object.values(state.weeklyDrafts || {}).forEach(draft => { delete draft[productId]; });
+    state.selectedProductId = "";
+    state.search = "";
+    dom.productSearch.value = "";
+    productEditing = false;
+    focusProductMaster = false;
+    productImageDraft = { productId: "", value: "" };
+    addVersion({
+      titleZh: `删除 ${product.name}`,
+      titleEn: `Removed ${product.name}`,
+      changes: [{
+        fieldZh: "删除 Roadmap 产品",
+        fieldEn: "Removed Roadmap product",
+        detailZh: `${product.masterId || "未映射"} · 已从 ${slide.label} 移除；Master Data、项目跟进及历史周报保留`,
+        detailEn: `${product.masterId || "Unmapped"} · Removed from ${slide.label}; Master Data, Project Tracking and archived weekly updates retained`,
+        productId
+      }]
+    });
+    persistState();
+    closeDrawers();
+    renderAll();
+    showToast(state.language === "zh" ? "产品已从 Roadmap 删除并生成新版本" : "Product removed from the Roadmap and a new version was created");
   }
 
   function saveProductEdit(event, product) {

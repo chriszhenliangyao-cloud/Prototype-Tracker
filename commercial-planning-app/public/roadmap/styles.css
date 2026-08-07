@@ -265,6 +265,8 @@ html.embedded .view-panel.active { min-height: 0; }
 .button:hover, .icon-button:hover { border-color: var(--blue); color: var(--blue); }
 .button.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
 .button.primary:hover { background: #1e52cf; color: #fff; }
+.button.danger { border-color: #efb6bc; background: #fff; color: var(--red); }
+.button.danger:hover { border-color: var(--red); background: var(--red-soft); color: #bd1f2d; }
 .button.compact { min-height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; }
 .button b { min-width: 17px; border-radius: 4px; padding: 1px 4px; background: var(--red-soft); color: var(--red); font-size: 9px; }
 .icon-button { width: 30px; height: 30px; display: grid; place-items: center; padding: 0; font-size: 18px; }
@@ -361,47 +363,10 @@ html.embedded .view-panel.active { min-height: 0; }
 .card-scale-control input { width: 76px; accent-color: var(--blue); }
 .card-scale-control output { width: 31px; color: var(--blue); font-size: 8px; font-weight: 800; text-align: right; }
 .card-scale-control[hidden] { display: none; }
+.roadmap-add-product { flex: 0 0 auto; white-space: nowrap; }
+.roadmap-add-product[hidden] { display: none; }
 .show-weekly-button { flex: 0 0 auto; }
 .show-weekly-button[hidden] { display: none; }
-.visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-  clip: rect(0 0 0 0) !important;
-  clip-path: inset(50%) !important;
-  white-space: nowrap !important;
-}
-
-.roadmap-sync-compact {
-  min-height: 26px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 0 0 auto;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  padding: 2px 4px 2px 6px;
-  background: #fff;
-  color: #426153;
-  font-size: 8px;
-  white-space: nowrap;
-}
-.roadmap-sync-compact .status-light { width: 6px; height: 6px; }
-.roadmap-sync-compact strong { font-size: 8px; }
-.roadmap-access-badge {
-  flex: 0 0 auto;
-  border: 1px solid #acd8c8;
-  border-radius: 4px;
-  padding: 1px 4px;
-  background: var(--green-soft);
-  color: #16795a;
-  font-size: 7px;
-  font-weight: 800;
-}
-html[data-roadmap-access="view"] .roadmap-sync-compact { color: #59677a; }
-html[data-roadmap-access="view"] .roadmap-sync-compact .status-light { background: #8b98aa; }
-html[data-roadmap-access="view"] .roadmap-access-badge { border-color: #cfd7e2; color: #637186; }
 
 .view-panel { display: none; }
 .view-panel.active { display: block; }
