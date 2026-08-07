@@ -1,9 +1,10 @@
 import { PlatformShell } from "@/components/platform/PlatformShell";
-import { requireUser } from "@/lib/auth/server";
+import { getCurrentSession } from "@/lib/auth/server";
 
 export default async function NativePlatformLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await requireUser("/platform/workbench");
+  // Pages own their login return paths so deep links survive authentication.
+  const session = await getCurrentSession();
   return <PlatformShell session={session}>{children}</PlatformShell>;
 }

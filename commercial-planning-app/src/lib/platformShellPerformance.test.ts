@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const platformShell = readFileSync(
@@ -33,5 +34,15 @@ describe("commercial planning platform shell performance", () => {
     expect(platformShell).toContain("applyPlatformNavigation();\n    const initialNativeRoute = nativePlatformRouteFor(activeModule);");
     expect(platformShell).toContain("window.location.replace(initialNativeRoute)");
     expect(platformShell).toContain("persistPlatformNavigation({ replace: true });\n    renderApp();\n    void loadMasterDataOptions()");
+  });
+
+  it("leaves deep-link authentication to each native page", () => {
+    const layout = readFileSync(
+      join(process.cwd(), "src/app/platform/layout.tsx"),
+      "utf8"
+    );
+
+    expect(layout).toContain("getCurrentSession");
+    expect(layout).not.toContain('requireUser("/platform/workbench")');
   });
 });

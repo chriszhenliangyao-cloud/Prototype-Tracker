@@ -124,7 +124,7 @@ export function PlatformShell({
   session
 }: {
   children: React.ReactNode;
-  session: AppSession;
+  session: AppSession | null;
 }) {
   const pathname = usePathname() || "/platform/workbench";
   const router = useRouter();
@@ -143,7 +143,9 @@ export function PlatformShell({
   const visibleGroups = navGroups.map((group) => ({
     ...group,
     items: group.items.filter(
-      (item) => !item.requiresMasterData || canEditMasterData(session.role)
+      (item) =>
+        !item.requiresMasterData ||
+        Boolean(session && canEditMasterData(session.role))
     )
   }));
 
@@ -224,10 +226,12 @@ export function PlatformShell({
             <span>{context[1]}</span>
           </div>
           <div className="native-platform-account">
-            <span className="native-platform-user" title={session.email}>
-              {session.name || session.email.split("@")[0]}
-              <small>{roleLabel(session.role, locale)}</small>
-            </span>
+            {session ? (
+              <span className="native-platform-user" title={session.email}>
+                {session.name || session.email.split("@")[0]}
+                <small>{roleLabel(session.role, locale)}</small>
+              </span>
+            ) : null}
             <label className="sr-only" htmlFor="native-platform-locale">
               {locale === "en-GB" ? "Interface language" : "界面语言"}
             </label>
@@ -240,9 +244,11 @@ export function PlatformShell({
               <option value="zh-CN">中文</option>
               <option value="en-GB">English</option>
             </select>
-            <a className="native-platform-signout" href="/auth/logout">
-              {locale === "en-GB" ? "Sign out" : "退出"}
-            </a>
+            {session ? (
+              <a className="native-platform-signout" href="/auth/logout">
+                {locale === "en-GB" ? "Sign out" : "退出"}
+              </a>
+            ) : null}
           </div>
         </header>
         <main className="native-platform-content">{children}</main>
