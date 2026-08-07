@@ -41,6 +41,12 @@ describe("commercial planning platform shell performance", () => {
     expect(roadmapApp).toContain('function productMatchesSearch');
     expect(roadmapApp).toContain('function deleteRoadmapProduct');
     expect(roadmapApp).toContain('data-delete-roadmap-product');
+    expect(roadmapApp).toContain('["2024 H1", LEGACY_YEAR_TIMELINE[2024].h1]');
+    expect(roadmapApp).toContain('["2024 H2", LEGACY_YEAR_TIMELINE[2024].h2]');
+    expect(roadmapApp).toContain('["2025 H1", LEGACY_YEAR_TIMELINE[2025].h1]');
+    expect(roadmapApp).toContain('["2025 H2", LEGACY_YEAR_TIMELINE[2025].h2]');
+    expect(roadmapApp).toContain('return `${year} H${today.getMonth() < 6 ? 1 : 2}`');
+    expect(roadmapApp).toContain("return range.h2");
     expect(roadmapApp).toContain('document.documentElement.classList.toggle("embedded", EMBEDDED_MODE)');
   });
 

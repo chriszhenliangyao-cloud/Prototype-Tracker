@@ -83,10 +83,16 @@
     2026: { "2024": 10.8, "2025": 27.4, "2026 Q1": 44, "2026 Q2": 60.7, "2026 Q3": 77.3, "2026 Q4": 93 },
     2027: { "2025": 10.8, "2026": 27.4, "2027 Q1": 44, "2027 Q2": 60.7, "2027 Q3": 77.3, "2027 Q4": 93 }
   };
+  const LEGACY_YEAR_TIMELINE = {
+    2024: { left: 4.3, right: 19.1, h1: 8, h2: 15.4 },
+    2025: { left: 19.1, right: 35.7, h1: 23.25, h2: 31.55 }
+  };
   const TIMELINE_2027_OFFSET = 65.6;
   const TIMELINE_RAW_END = 181.5;
   const CONTINUOUS_TIMELINE = [
-    ["2024", 10.8], ["2025", 27.4], ["2026 Q1", 44], ["2026 Q2", 60.7], ["2026 Q3", 77.3], ["2026 Q4", 93],
+    ["2024 H1", LEGACY_YEAR_TIMELINE[2024].h1], ["2024 H2", LEGACY_YEAR_TIMELINE[2024].h2],
+    ["2025 H1", LEGACY_YEAR_TIMELINE[2025].h1], ["2025 H2", LEGACY_YEAR_TIMELINE[2025].h2],
+    ["2026 Q1", 44], ["2026 Q2", 60.7], ["2026 Q3", 77.3], ["2026 Q4", 93],
     ["2027 Q1", 109.6], ["2027 Q2", 126.3], ["2027 Q3", 142.9], ["2027 Q4", 158.6], ["TBD", 175.2]
   ];
   const STRUCTURE_PRICE_THRESHOLDS = {
@@ -810,7 +816,8 @@
   function structureCurrentTimeKey() {
     const today = new Date();
     const year = today.getFullYear();
-    if (year < 2026) return String(year);
+    if (year < 2024) return "2024 H1";
+    if (year === 2024 || year === 2025) return `${year} H${today.getMonth() < 6 ? 1 : 2}`;
     if (year > 2027) return "2027 Q4";
     return `${year} Q${Math.floor(today.getMonth() / 3) + 1}`;
   }
@@ -818,10 +825,11 @@
   function renderTimeBands() {
     const leftEdge = 4.3;
     const marker = currentTimelineMarker();
+    const currentKey = structureCurrentTimeKey();
     return CONTINUOUS_TIMELINE.map(([label, rawCenter], index) => {
       const rawLeft = index === 0 ? leftEdge : (CONTINUOUS_TIMELINE[index - 1][1] + rawCenter) / 2;
       const rawRight = index === CONTINUOUS_TIMELINE.length - 1 ? TIMELINE_RAW_END : (rawCenter + CONTINUOUS_TIMELINE[index + 1][1]) / 2;
-      const current = label === "2026 Q3";
+      const current = label === currentKey;
       const displayLabel = label === "TBD" ? (state.language === "zh" ? "日期待定" : "TBD") : label;
       return `<div class="time-band ${index % 2 ? "alternate" : ""} ${current ? "current" : ""} ${label === "TBD" ? "undated" : ""}" style="left:${timelineRawPercent(rawLeft)}%;width:${timelineRawPercent(rawRight - rawLeft)}%"></div><span class="axis-label time" style="left:${timelineRawPercent(rawCenter)}%">${displayLabel}</span>`;
     }).join("") + `<div class="axis-x"></div><div class="axis-y"></div><div class="now-marker" style="left:${timelineRawPercent(marker.raw)}%"><span>${escapeHtml(marker.label)}</span></div>`;
@@ -1021,17 +1029,17 @@
     const day = Number(yearFirstMatch?.[3] || 15);
     const quarter = month ? Math.floor((month - 1) / 3) + 1 : Number(text.match(/Q\s*([1-4])/)?.[1] || 0);
     if (year === 2024 || year === 2025) {
-      const center = year === 2024 ? 10.8 : 27.4;
-      const left = year === 2024 ? 4.3 : (10.8 + 27.4) / 2;
-      const right = year === 2025 ? (27.4 + 44) / 2 : (10.8 + 27.4) / 2;
+      const range = LEGACY_YEAR_TIMELINE[year];
+      const half = Number(text.match(/H\s*([12])/)?.[1] || 0);
       if (month) {
         const start = Date.UTC(year, 0, 1);
         const end = Date.UTC(year + 1, 0, 1);
         const point = Date.UTC(year, clamp(month, 1, 12) - 1, clamp(day, 1, 31));
-        return left + (right - left) * clamp((point - start) / (end - start), 0, 1);
+        return range.left + (range.right - range.left) * clamp((point - start) / (end - start), 0, 1);
       }
-      if (quarter) return left + (right - left) * (quarter - .5) / 4;
-      return center;
+      if (quarter) return range.left + (range.right - range.left) * (quarter - .5) / 4;
+      if (half) return range[`h${half}`];
+      return range.h2;
     }
     if (year === 2026 || year === 2027) {
       if (!quarter) return (SOURCE_TIME_AXES[year][`${year} Q2`] + SOURCE_TIME_AXES[year][`${year} Q3`]) / 2 + (year === 2027 ? TIMELINE_2027_OFFSET : 0);
@@ -1881,9 +1889,8 @@
     const text = String(value || "").toUpperCase();
     const quarter = Number(text.match(/Q([1-4])/)?.[1] || 3);
     const axis = SOURCE_TIME_AXES[Number(year) === 2027 ? 2027 : 2026];
+    if (/2024|2025/.test(text)) return productTimeRaw({ launchDate: value, date: value });
     if (Number(year) === 2027) return axis[`2027 Q${quarter}`];
-    if (/2024/.test(text)) return axis["2024"];
-    if (/2025/.test(text)) return axis["2025"];
     return axis[`2026 Q${quarter}`];
   }
 
