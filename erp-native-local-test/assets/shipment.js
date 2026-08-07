@@ -168,7 +168,7 @@
 
   function header() {
     return h('div', { style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' } }, [
-      h('div', [h('h1', { style: { margin: 0, fontSize: '22px', fontWeight: 800 } }, '发货履约'),
+      h('div', [h('h1', { style: { margin: 0, fontSize: '22px', fontWeight: 800 } }, '发货操作'),
         h('div', { style: { fontSize: '13px', color: 'var(--c-text-dim)', marginTop: '4px', maxWidth: '760px' } }, '一条履约流水线管完整 PO 生命周期。发货记录以批次存储，同一 SKU 可分多次发运、各批独立日期与备注。')]),
       h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } }, [
         h('button.btn', { onclick: () => S.toast('PO 明细导出 · demo') }, 'PO 明细'),

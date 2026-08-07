@@ -29,7 +29,6 @@
         <button class="nav-item platform-existing" type="button" data-existing-module="sales"><span class="lbl" data-i18n="sales">产销管理</span></button>
         <button class="nav-item" type="button" data-module="forecast"><span class="lbl" data-i18n="forecast">预测管理</span><span class="nav-tag" data-i18n="native">原生</span></button>
         <button class="nav-item" type="button" data-module="logistic"><span class="lbl" data-i18n="logistic">物流交付</span><span class="nav-tag" data-i18n="native">原生</span></button>
-        <button class="nav-item" type="button" data-module="shipment"><span class="lbl" data-i18n="shipment">发货履约</span><span class="nav-tag" data-i18n="native">原生</span></button>
 
         <div class="nav-section" data-i18n="growth">市场增长</div>
         <button class="nav-item platform-existing" type="button" data-existing-module="launch"><span class="lbl" data-i18n="launch">新品上市</span></button>
@@ -71,7 +70,6 @@
           <select id="mobileModuleSelect" aria-label="选择测试模块">
             <option value="forecast">预测管理</option>
             <option value="logistic">物流交付</option>
-            <option value="shipment">发货履约</option>
             <option value="performance">经营分析</option>
           </select>
         </label>
@@ -98,7 +96,16 @@
       </div>
 
       <section class="content" aria-live="polite">
-        <div class="content-inner" id="view"></div>
+        <div class="content-inner">
+          <nav class="logistics-subnav" id="logisticsSubnav" aria-label="物流交付子模块" hidden>
+            <span class="logistics-subnav-title" data-i18n="logisticsWorkspace">物流交付</span>
+            <div class="logistics-subnav-tabs" role="tablist">
+              <button type="button" role="tab" data-logistics-view="logistic" data-i18n="shipmentSummary">发货汇总</button>
+              <button type="button" role="tab" data-logistics-view="shipment" data-i18n="shipmentOperation">发货操作</button>
+            </div>
+          </nav>
+          <div id="view"></div>
+        </div>
       </section>
     </main>
   </div>

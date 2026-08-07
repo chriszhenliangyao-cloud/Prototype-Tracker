@@ -5,8 +5,9 @@
 本测试版将以下四个模块放入同一个运营协同平台壳内，不使用 iframe：
 
 - 预测管理
-- 物流交付（库存、规格、RRP 与 FD 定价）
-- 发货履约（PO 状态看板与发货操作台）
+- 物流交付
+  - 发货汇总（原物流交付界面：库存、规格、RRP 与 FD 定价）
+  - 发货操作（原发货履约界面：PO 状态看板与发货操作台）
 - 经营分析（FCST Scorecard、Sales Review、Profitability）
 
 数据来自提供文件的只读快照。原始文件未被修改；演示中的编辑、发货和保存操作只在当前浏览器会话中生效，不写入协同平台数据库。
@@ -19,4 +20,4 @@
 python3 -m http.server 8942
 ```
 
-模块 URL 使用 `#module=forecast|logistic|shipment|performance`，刷新页面后会恢复当前模块。
+物流交付子模块 URL 使用 `#module=logistic&view=summary|operation`，刷新页面后会恢复当前子模块。

@@ -13,16 +13,20 @@
     logistic: {
       groupZh: "计划与交付",
       groupEn: "Planning & Delivery",
-      titleZh: "物流交付",
-      titleEn: "Logistics Delivery",
-      descriptionZh: "主数据、库存规格与渠道定价",
-      descriptionEn: "Master data, inventory specifications and channel pricing"
+      parentZh: "物流交付",
+      parentEn: "Logistics Delivery",
+      titleZh: "发货汇总",
+      titleEn: "Shipment Summary",
+      descriptionZh: "库存、规格与渠道定价汇总",
+      descriptionEn: "Inventory, specifications and channel pricing summary"
     },
     shipment: {
       groupZh: "计划与交付",
       groupEn: "Planning & Delivery",
-      titleZh: "发货履约",
-      titleEn: "Shipment Fulfilment",
+      parentZh: "物流交付",
+      parentEn: "Logistics Delivery",
+      titleZh: "发货操作",
+      titleEn: "Shipment Operations",
       descriptionZh: "PO 状态、批次发货与交付记录",
       descriptionEn: "PO status, shipment batches and delivery records"
     },
@@ -40,7 +44,7 @@
     "zh-CN": {
       brand: "运营协同平台", business: "欧洲业务运营", workbench: "我的工作台",
       planning: "计划与交付", projects: "项目跟进", sales: "产销管理", forecast: "预测管理",
-      logistic: "物流交付", shipment: "发货履约", growth: "市场增长", launch: "新品上市",
+      logistic: "物流交付", shipment: "发货操作", logisticsWorkspace: "物流交付", shipmentSummary: "发货汇总", shipmentOperation: "发货操作", growth: "市场增长", launch: "新品上市",
       campaigns: "营销活动", assets: "营销物料", collaboration: "协同中心", monthly: "月度促销审批",
       other: "其他审批", tasks: "我的待办", exceptions: "异常中心", businessManagement: "经营管理",
       overview: "经营总览", bp: "BP达成", performance: "经营分析", valueChain: "价值链测算",
@@ -50,7 +54,7 @@
     "en-GB": {
       brand: "Operations Hub", business: "Europe Business Operations", workbench: "My Workspace",
       planning: "Planning & Delivery", projects: "Project Tracking", sales: "Sales & Inventory", forecast: "Forecast Management",
-      logistic: "Logistics Delivery", shipment: "Shipment Fulfilment", growth: "Market Growth", launch: "New Product Launch",
+      logistic: "Logistics Delivery", shipment: "Shipment Operations", logisticsWorkspace: "Logistics Delivery", shipmentSummary: "Shipment Summary", shipmentOperation: "Shipment Operations", growth: "Market Growth", launch: "New Product Launch",
       campaigns: "Marketing Campaigns", assets: "Marketing Assets", collaboration: "Collaboration", monthly: "Monthly Promotion Approval",
       other: "Other Approvals", tasks: "My Tasks", exceptions: "Exception Centre", businessManagement: "Business Management",
       overview: "Business Overview", bp: "BP Achievement", performance: "Business Analysis", valueChain: "Value Chain Simulation",
@@ -65,11 +69,14 @@
   function moduleFromHash() {
     const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const requested = params.get("module");
+    if (requested === "logistic" && params.get("view") === "operation") return "shipment";
     return modules[requested] ? requested : "forecast";
   }
 
   function setHash(moduleKey, replace) {
-    const nextHash = `#module=${encodeURIComponent(moduleKey)}`;
+    const nextHash = moduleKey === "logistic" || moduleKey === "shipment"
+      ? `#module=logistic&view=${moduleKey === "shipment" ? "operation" : "summary"}`
+      : `#module=${encodeURIComponent(moduleKey)}`;
     if (window.location.hash === nextHash) return;
     if (replace) window.history.replaceState(null, "", nextHash);
     else window.history.pushState(null, "", nextHash);
@@ -88,10 +95,19 @@
     clearTransientUi();
     document.getElementById("renderStatus").textContent = locale === "en-GB" ? "Rendering..." : "正在呈现...";
     document.getElementById("view").replaceChildren();
+    const isLogisticsModule = moduleKey === "logistic" || moduleKey === "shipment";
     document.querySelectorAll("[data-module]").forEach((button) => {
-      button.classList.toggle("active", button.getAttribute("data-module") === moduleKey);
+      const buttonModule = button.getAttribute("data-module");
+      button.classList.toggle("active", buttonModule === moduleKey || (isLogisticsModule && buttonModule === "logistic"));
     });
-    document.getElementById("mobileModuleSelect").value = moduleKey;
+    const subnav = document.getElementById("logisticsSubnav");
+    subnav.hidden = !isLogisticsModule;
+    subnav.querySelectorAll("[data-logistics-view]").forEach((button) => {
+      const selected = button.getAttribute("data-logistics-view") === moduleKey;
+      button.classList.toggle("active", selected);
+      button.setAttribute("aria-selected", String(selected));
+    });
+    document.getElementById("mobileModuleSelect").value = isLogisticsModule ? "logistic" : moduleKey;
     updateContext(config);
     setHash(moduleKey, options && options.replace);
 
@@ -105,9 +121,12 @@
   function updateContext(config) {
     const english = locale === "en-GB";
     const group = english ? config.groupEn : config.groupZh;
+    const parent = english ? config.parentEn : config.parentZh;
     const title = english ? config.titleEn : config.titleZh;
     const description = english ? config.descriptionEn : config.descriptionZh;
-    document.getElementById("modulePath").innerHTML = `${escapeHtml(group)} <span class="sep">/</span> ${escapeHtml(title)}`;
+    document.getElementById("modulePath").innerHTML = parent
+      ? `${escapeHtml(group)} <span class="sep">/</span> ${escapeHtml(parent)} <span class="sep">/</span> ${escapeHtml(title)}`
+      : `${escapeHtml(group)} <span class="sep">/</span> ${escapeHtml(title)}`;
     document.getElementById("moduleDescription").textContent = description;
     document.getElementById("testModeDescription").textContent = english
       ? "Business data uses a read-only snapshot; edits remain in this browser session only."
@@ -154,6 +173,11 @@
 
   document.getElementById("mobileModuleSelect").addEventListener("change", (event) => {
     renderModule(event.target.value);
+  });
+
+  document.getElementById("logisticsSubnav").addEventListener("click", (event) => {
+    const viewButton = event.target.closest("[data-logistics-view]");
+    if (viewButton) renderModule(viewButton.getAttribute("data-logistics-view"));
   });
 
   document.getElementById("localeSelect").addEventListener("change", (event) => {

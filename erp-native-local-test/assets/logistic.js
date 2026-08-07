@@ -71,7 +71,7 @@
     const act = allSkus().filter(s => s.is_active).length, ina = allSkus().length - act
     return S.pageHeader({
       overline: (window.ROUTES && ROUTES.logistic.overline) || 'MASTER DATA · LOGISTICS',
-      title: '物流交付',
+      title: '发货汇总',
       pill: { text: `${act} 在售 · ${ina} 停用`, color: 'var(--c-success)' },
       actions: [
         h('button.btn', { onclick: openExport }, '导出台账'),

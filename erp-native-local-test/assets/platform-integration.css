@@ -203,6 +203,58 @@ button.top-control {
   max-width: none;
 }
 
+.logistics-subnav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: -2px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.logistics-subnav[hidden] {
+  display: none;
+}
+
+.logistics-subnav-title {
+  color: var(--c-text-dim);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.logistics-subnav-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  background: var(--c-surface-3);
+}
+
+.logistics-subnav-tabs button {
+  min-width: 92px;
+  min-height: 29px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--c-text-dim);
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.logistics-subnav-tabs button:hover {
+  color: var(--c-text);
+  background: rgba(255, 255, 255, .65);
+}
+
+.logistics-subnav-tabs button.active {
+  background: var(--c-surface);
+  color: var(--c-primary-text);
+  box-shadow: var(--shadow-sm);
+}
+
 .page-head {
   margin-bottom: 12px;
 }
@@ -307,5 +359,58 @@ table.tbl td {
   .page-head .ph-actions {
     width: 100%;
     margin-left: 0;
+  }
+
+  .sw-root > div:first-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px !important;
+  }
+
+  .sw-root > div:first-child > div:last-child {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .sw-root > div:first-child h1 {
+    font-size: 20px !important;
+  }
+
+  .hrail {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .hrail .hnode {
+    min-width: 0;
+  }
+
+  .sw-card {
+    padding: 10px !important;
+  }
+
+  .sw-card > div:first-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sw-card > div:first-child > div:last-child,
+  .sw-card .sw-search {
+    width: 100% !important;
+  }
+
+  .logistics-subnav {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .logistics-subnav-tabs {
+    flex: 1;
+  }
+
+  .logistics-subnav-tabs button {
+    flex: 1;
+    min-width: 0;
   }
 }

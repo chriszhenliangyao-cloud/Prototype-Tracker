@@ -5,7 +5,12 @@ const { pathToFileURL } = require("node:url");
 
 const root = __dirname;
 const entry = pathToFileURL(path.join(root, "index.html")).href;
-const moduleKeys = ["forecast", "logistic", "shipment", "performance"];
+const moduleCases = [
+  { module: "forecast", selector: '[data-module="forecast"]', hash: "#module=forecast" },
+  { module: "logistic", selector: '[data-module="logistic"]', hash: "#module=logistic&view=summary" },
+  { module: "shipment", selector: '[data-logistics-view="shipment"]', hash: "#module=logistic&view=operation" },
+  { module: "performance", selector: '[data-module="performance"]', hash: "#module=performance" }
+];
 
 (async () => {
   const installedChrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -23,27 +28,31 @@ const moduleKeys = ["forecast", "logistic", "shipment", "performance"];
   await desktop.waitForTimeout(400);
   const checks = [];
 
-  for (const moduleKey of moduleKeys) {
+  for (const moduleCase of moduleCases) {
     const startedAt = Date.now();
-    await desktop.locator(`[data-module="${moduleKey}"]`).click();
-    await desktop.waitForFunction((key) => {
-      return window.location.hash === `#module=${key}`
-        && document.querySelector(`[data-module="${key}"]`)?.classList.contains("active")
+    await desktop.locator(moduleCase.selector).click();
+    await desktop.waitForFunction(({ hash, module }) => {
+      const expectedNav = module === "shipment" ? "logistic" : module;
+      return window.location.hash === hash
+        && document.querySelector(`[data-module="${expectedNav}"]`)?.classList.contains("active")
         && document.querySelector("#renderStatus")?.textContent === "已就绪";
-    }, moduleKey);
+    }, moduleCase);
     checks.push({
-      module: moduleKey,
+      module: moduleCase.module,
       switchMs: Date.now() - startedAt,
       tableRows: await desktop.locator("table tbody tr").count()
     });
-    await desktop.screenshot({ path: path.join(root, `native-${moduleKey}.png`) });
+    await desktop.screenshot({ path: path.join(root, `native-${moduleCase.module}.png`) });
   }
 
+  await desktop.locator('[data-module="logistic"]').click();
+  await desktop.locator('[data-logistics-view="shipment"]').click();
   await desktop.reload({ waitUntil: "load" });
   await desktop.waitForTimeout(300);
   const desktopState = await desktop.evaluate(() => ({
     title: document.title,
     activeModule: document.querySelector(".nav-item.active")?.getAttribute("data-module"),
+    activeLogisticsView: document.querySelector("[data-logistics-view].active")?.getAttribute("data-logistics-view"),
     hash: window.location.hash,
     iframes: document.querySelectorAll("iframe").length,
     bodyWidth: document.body.scrollWidth,
@@ -58,11 +67,13 @@ const moduleKeys = ["forecast", "logistic", "shipment", "performance"];
     if (message.type() === "error") mobileErrors.push(message.text());
   });
   mobile.on("pageerror", (error) => mobileErrors.push(error.message));
-  await mobile.goto(`${entry}#module=forecast`, { waitUntil: "load" });
+  await mobile.goto(`${entry}#module=logistic&view=operation`, { waitUntil: "load" });
   await mobile.waitForTimeout(300);
   const mobileState = await mobile.evaluate(() => ({
     sidebarDisplay: getComputedStyle(document.querySelector(".platform-sidebar")).display,
     mobilePickerDisplay: getComputedStyle(document.querySelector(".mobile-module-picker")).display,
+    logisticsSubnavDisplay: getComputedStyle(document.querySelector("#logisticsSubnav")).display,
+    activeLogisticsView: document.querySelector("[data-logistics-view].active")?.getAttribute("data-logistics-view"),
     iframes: document.querySelectorAll("iframe").length,
     bodyWidth: document.body.scrollWidth,
     viewportWidth: window.innerWidth,
