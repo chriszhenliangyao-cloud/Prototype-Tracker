@@ -28,8 +28,14 @@ describe("commercial planning platform shell performance", () => {
     expect(roadmapApp).toContain('const MASTER_DATA_URL = "data/master-products.json"');
     expect(roadmapApp).toContain('const STORAGE_KEY = "productRoadmap.v1"');
     expect(roadmapApp).toContain('const PREFERENCES_KEY = "productRoadmapPreferences.v1"');
+    expect(roadmapApp).toContain("const ROADMAP_SCHEMA_VERSION = 3");
     expect(roadmapApp).toContain('function sharedRoadmapState');
     expect(roadmapApp).toContain('function canManageRoadmap');
+    expect(roadmapApp).toContain('function ensureUniqueProductIds()');
+    expect(roadmapApp).toContain('function migrateSlideProductReferences');
+    expect(roadmapApp).toContain('function migrateVersionSnapshotIds');
+    expect(roadmapIndex).toContain('class="roadmap-sync-compact"');
+    expect(roadmapIndex).not.toContain('class="source-notice"');
     expect(roadmapApp).toContain('document.documentElement.classList.toggle("embedded", EMBEDDED_MODE)');
   });
 

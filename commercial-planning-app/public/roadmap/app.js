@@ -13,6 +13,7 @@
   const STORAGE_KEY = "productRoadmap.v1";
   const PREFERENCES_KEY = "productRoadmapPreferences.v1";
   const LEGACY_STORAGE_KEY = "operationsPlanningRoadmapLocalTest.v1";
+  const ROADMAP_SCHEMA_VERSION = 3;
   const PREFERENCE_FIELDS = [
     "language", "activeLineId", "statusFilter", "year", "view", "search",
     "selectedProductId", "selectedVersionId", "productTab", "cardScale",
@@ -136,6 +137,7 @@
   let panState = null;
   let lastSharedSnapshot = "";
   let sharedStateNeedsSeed = false;
+  let sharedStateNeedsMigration = false;
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -172,7 +174,7 @@
       normaliseState();
       if (EMBEDDED_MODE && ["zh", "en"].includes(EMBEDDED_LANGUAGE)) state.language = EMBEDDED_LANGUAGE;
       applyAccessMode();
-      if (sharedStateNeedsSeed && canEditRoadmap()) persistState({ forceShared: true });
+      if ((sharedStateNeedsSeed || sharedStateNeedsMigration) && canEditRoadmap()) persistState({ forceShared: true });
       applyLanguage();
       renderAll();
     } catch (error) {
@@ -331,7 +333,7 @@
       }))
     }));
     const initial = {
-      schemaVersion: 2,
+      schemaVersion: ROADMAP_SCHEMA_VERSION,
       masterCatalogVersion: 2,
       language: "zh",
       activeLineId: cleanSlides[0]?.id || "",
@@ -397,7 +399,7 @@
 
   function sharedRoadmapState(value = state) {
     return {
-      schemaVersion: 2,
+      schemaVersion: ROADMAP_SCHEMA_VERSION,
       masterCatalogVersion: Number(value?.masterCatalogVersion || 2),
       slides: structuredCloneSafe(value?.slides || []),
       weeklyDrafts: structuredCloneSafe(value?.weeklyDrafts || {}),
@@ -411,6 +413,8 @@
 
   function normaliseState() {
     const previousMasterCatalogVersion = Number(state.masterCatalogVersion || 0);
+    if (ensureUniqueProductIds()) sharedStateNeedsMigration = true;
+    state.schemaVersion = ROADMAP_SCHEMA_VERSION;
     state.language = state.language === "en" ? "en" : "zh";
     state.view = ["roadmap", "updates", "history"].includes(state.view) ? state.view : "roadmap";
     state.statusFilter = STATUS_ORDER.includes(state.statusFilter) ? state.statusFilter : "all";
@@ -438,6 +442,81 @@
     if (!state.slides.some(slide => slide.id === state.activeLineId)) state.activeLineId = state.slides[0]?.id || "";
   }
 
+  function ensureUniqueProductIds() {
+    const usedIds = new Set();
+    const renames = [];
+    state.slides.forEach(slide => {
+      (slide.products || []).forEach(product => {
+        const originalId = String(product.id || "product");
+        if (!usedIds.has(originalId)) {
+          product.id = originalId;
+          usedIds.add(originalId);
+          return;
+        }
+        const base = `${slide.id || "line"}--${originalId}`.replace(/[^a-zA-Z0-9_-]+/g, "-");
+        let nextId = base;
+        let suffix = 2;
+        while (usedIds.has(nextId)) nextId = `${base}-${suffix++}`;
+        product.id = nextId;
+        usedIds.add(nextId);
+        renames.push({ slideId: slide.id, originalId, nextId, productName: product.name || "" });
+        migrateSlideProductReferences(slide, product, originalId, nextId);
+        migrateWeeklyDraftReference(slide.id, originalId, nextId);
+        if (state.activeLineId === slide.id && state.selectedProductId === originalId) state.selectedProductId = nextId;
+      });
+    });
+    if (!renames.length) return false;
+    migrateVersionSnapshotIds(renames);
+    return true;
+  }
+
+  function migrateSlideProductReferences(slide, product, originalId, nextId) {
+    (slide.connections || []).forEach(connection => {
+      if (connection.fromId === originalId) connection.fromId = nextId;
+      if (connection.toId === originalId) connection.toId = nextId;
+    });
+    ["zh", "en"].forEach(language => {
+      const side = slide.updates?.[language];
+      if (!side) return;
+      const updateGroups = [side.productUpdates || [], ...(side.archives || []).map(record => record.productUpdates || [])];
+      updateGroups.flat().forEach(update => {
+        if (update.productId !== originalId) return;
+        if (update.productName && product.name && update.productName !== product.name) return;
+        update.productId = nextId;
+      });
+    });
+  }
+
+  function migrateWeeklyDraftReference(slideId, originalId, nextId) {
+    Object.entries(state.weeklyDrafts || {}).forEach(([key, draft]) => {
+      if (!key.startsWith(`${slideId}:`) || !draft || typeof draft !== "object" || !(originalId in draft)) return;
+      if (!(nextId in draft)) draft[nextId] = draft[originalId];
+      delete draft[originalId];
+    });
+  }
+
+  function migrateVersionSnapshotIds(renames) {
+    const grouped = renames.reduce((map, item) => {
+      if (!map.has(item.originalId)) map.set(item.originalId, []);
+      map.get(item.originalId).push(item);
+      return map;
+    }, new Map());
+    (state.versions || []).forEach(version => {
+      const occurrence = new Map();
+      (version.snapshot?.items || []).forEach(item => {
+        const candidates = grouped.get(item.id);
+        if (!candidates?.length) return;
+        const count = occurrence.get(item.id) || 0;
+        if (count > 0) {
+          const matchingName = candidates.find(candidate => candidate.productName && candidate.productName === item.name);
+          if (matchingName) item.id = matchingName.nextId;
+          else if (candidates[count - 1]) item.id = candidates[count - 1].nextId;
+        }
+        occurrence.set(candidates[0].originalId, count + 1);
+      });
+    });
+  }
+
   function persistState(options = {}) {
     try {
       const preferences = JSON.stringify(personalRoadmapState(state));
@@ -448,6 +527,7 @@
         localStorage.setItem(STORAGE_KEY, shared);
         lastSharedSnapshot = shared;
         sharedStateNeedsSeed = false;
+        sharedStateNeedsMigration = false;
       }
     } catch {
       showToast(state.language === "zh" ? "浏览器缓存空间不足，当前修改尚未同步" : "Browser storage is full; this change has not been synced");
@@ -464,6 +544,7 @@
   }
 
   function renderAccessNotice() {
+    const status = document.getElementById("roadmapSyncStatus");
     const title = document.getElementById("roadmapSyncTitle");
     const detail = document.getElementById("roadmapSyncDetail");
     const badge = document.getElementById("roadmapAccessBadge");
@@ -471,9 +552,10 @@
     const labels = state.language === "en"
       ? { view: "View only", edit: "Can edit", manage: "Manage & publish" }
       : { view: "只读", edit: "可编辑", manage: "管理发布" };
-    title.textContent = COPY[state.language].sourceCopy;
+    title.textContent = state.language === "en" ? "Synced" : "已同步";
     detail.textContent = COPY[state.language].sourceCopyDetail;
     badge.textContent = labels[ROADMAP_ACCESS];
+    if (status) status.title = `${COPY[state.language].sourceCopy}。${COPY[state.language].sourceCopyDetail}`;
   }
 
   function applyLanguage() {
@@ -1695,7 +1777,7 @@
         statuses,
         mapped: products.filter(product => product.masterId).length,
         updates: archivedUpdates,
-        items: products.map(product => ({ id: product.id, name: product.name, status: product.status, launchDate: product.launchDate || "", plannedPrice: Number(product.plannedPrice || 0), ksp: product.ksp || "", masterId: product.masterId || "", projectId: product.projectId || "", roadmapYear: inferRoadmapYear(product), x: product.x, y: product.y }))
+        items: sourceState.slides.flatMap(slide => (slide.products || []).map(product => ({ slideId: slide.id, id: product.id, name: product.name, status: product.status, launchDate: product.launchDate || "", plannedPrice: Number(product.plannedPrice || 0), ksp: product.ksp || "", masterId: product.masterId || "", projectId: product.projectId || "", roadmapYear: inferRoadmapYear(product), x: product.x, y: product.y })))
       }
     };
   }
