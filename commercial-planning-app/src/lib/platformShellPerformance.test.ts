@@ -53,6 +53,25 @@ describe("commercial planning platform shell performance", () => {
     expect(platformShell).toContain('window.location.assign(nativeRoute)');
   });
 
+  it("enforces protected navigation and Master Data access outside role inheritance", () => {
+    const nativeShell = readFileSync(
+      join(process.cwd(), "src/components/platform/PlatformShell.tsx"),
+      "utf8"
+    );
+    const authServer = readFileSync(
+      join(process.cwd(), "src/lib/auth/server.ts"),
+      "utf8"
+    );
+
+    expect(platformShell).toContain('protectedModulePermissionForUser("roadmap"');
+    expect(platformShell).toContain('protectedModulePermissionForUser("master_data"');
+    expect(nativeShell).toContain('protectedModule: "roadmap"');
+    expect(nativeShell).toContain('protectedModule: "master_data"');
+    expect(authServer).toContain("getCurrentProtectedModulePermissions");
+    expect(authServer).toContain('getProtectedModulePermission("master_data")');
+    expect(authServer).toContain('getProtectedModulePermission("master_data")) === "manage"');
+  });
+
   it("prefetches native workspaces on intent without creating embedded documents", () => {
     expect(platformShell).toContain("scheduleCommercialPlanningIntentPreload");
     expect(platformShell).toContain('document.visibilityState !== "visible"');

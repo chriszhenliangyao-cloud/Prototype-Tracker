@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { previewMasterDataWorkbookBuffer } from "@/app/master-data/actions";
-import { canEditMasterData } from "@/lib/auth/roles";
-import { getCurrentSession } from "@/lib/auth/server";
+import {
+  canCurrentSessionEditMasterData,
+  getCurrentSession
+} from "@/lib/auth/server";
 
 type UploadedWorkbookFile = {
   name: string;
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
       { status: 401, headers: noStoreHeaders() }
     );
   }
-  if (!canEditMasterData(session.role)) {
+  if (!(await canCurrentSessionEditMasterData(session))) {
     return NextResponse.json(
       { message: "You do not have Master Data access." },
       { status: 403, headers: noStoreHeaders() }

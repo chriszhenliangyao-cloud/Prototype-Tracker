@@ -16,6 +16,7 @@ type NavItem = {
   legacy?: boolean;
   badge?: string;
   requiresMasterData?: boolean;
+  protectedModule?: "roadmap" | "master_data";
 };
 
 type NavGroup = {
@@ -33,7 +34,7 @@ const navGroups: NavGroup[] = [
     zh: "计划与交付",
     en: "Planning & Delivery",
     items: [
-      { key: "roadmap", zh: "产品路线图", en: "Product Roadmap", href: "/platform/index.html#module=roadmap", legacy: true },
+      { key: "roadmap", zh: "产品路线图", en: "Product Roadmap", href: "/platform/index.html#module=roadmap", legacy: true, protectedModule: "roadmap" },
       { key: "projects", zh: "项目跟进", en: "Project Tracking", href: "/platform/index.html#module=projects", legacy: true },
       { key: "sales", zh: "产销管理", en: "Sales & Inventory", href: "/platform/index.html#module=sales", legacy: true },
       { key: "forecast", zh: "预测管理", en: "Forecast Management", href: "/platform/index.html#module=forecast", legacy: true, badge: "Beta" },
@@ -79,7 +80,7 @@ const navGroups: NavGroup[] = [
     en: "Workspaces & Admin",
     items: [
       { key: "functions", zh: "职能工作台", en: "Function Workspaces", href: "/platform/index.html#module=functions", legacy: true },
-      { key: "system", zh: "系统管理", en: "System Management", href: "/platform/system/master-data", requiresMasterData: true }
+      { key: "system", zh: "系统管理", en: "System Management", href: "/platform/system/master-data", requiresMasterData: true, protectedModule: "master_data" }
     ]
   }
 ];
@@ -122,10 +123,12 @@ function roleLabel(role: AppSession["role"], locale: Locale) {
 
 export function PlatformShell({
   children,
-  session
+  session,
+  protectedModules = {}
 }: {
   children: React.ReactNode;
   session: AppSession | null;
+  protectedModules?: Partial<Record<"roadmap" | "master_data", "none" | "view" | "edit" | "manage">>;
 }) {
   const pathname = usePathname() || "/platform/workbench";
   const router = useRouter();
@@ -144,9 +147,12 @@ export function PlatformShell({
   const visibleGroups = navGroups.map((group) => ({
     ...group,
     items: group.items.filter(
-      (item) =>
-        !item.requiresMasterData ||
-        Boolean(session && canEditMasterData(session.role))
+      (item) => {
+        if (item.protectedModule && protectedModules[item.protectedModule] !== undefined) {
+          return protectedModules[item.protectedModule] !== "none";
+        }
+        return !item.requiresMasterData || Boolean(session && canEditMasterData(session.role));
+      }
     )
   }));
 

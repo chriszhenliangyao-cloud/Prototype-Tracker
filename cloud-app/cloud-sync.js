@@ -634,9 +634,10 @@
       role: membership.role,
       workspaceId,
       workspaceName: membership.workspaces?.name || "运营计划",
-      locale: ""
+      locale: "",
+      protectedModules: {}
     };
-    const [sessionSyncResult, platformRoleResponse, preferenceResponse, cloudRows] = await Promise.all([
+    const [sessionSyncResult, platformRoleResponse, preferenceResponse, protectedModuleResponse, cloudRows] = await Promise.all([
       connectCommercialPlanningSession(session, config.commercialPlanningUrl)
         .then(() => ({ ok: true }))
         .catch((error) => ({ ok: false, error })),
@@ -649,6 +650,9 @@
         .select("locale, timezone")
         .eq("user_id", session.user.id)
         .maybeSingle(),
+      supabase.rpc("get_my_protected_module_permissions", {
+        p_workspace_id: workspaceId
+      }),
       supabase.from("workspace_documents")
         .select("document_key, payload, version")
         .eq("workspace_id", workspaceId)
@@ -660,6 +664,14 @@
     if (!platformRoleResponse.error) identity.governanceRole = platformRoleResponse.data?.role || "";
     else console.warn("Platform governance role is not available yet", platformRoleResponse.error.message);
     identity.platformRole = identity.governanceRole || (membership.role === "admin" ? "super_admin" : "member");
+    if (!protectedModuleResponse.error) {
+      identity.protectedModules = Object.fromEntries((protectedModuleResponse.data || []).map((item) => [
+        item.module_key,
+        item.access_level || "none"
+      ]));
+    } else {
+      console.warn("Protected module permissions are not available yet", protectedModuleResponse.error.message);
+    }
     let preferencesAvailable = true;
     if (preferenceResponse.error) {
       preferencesAvailable = false;
@@ -972,6 +984,18 @@
       })
       .subscribe();
 
+    async function refreshIdentityProtectedModules() {
+      const response = await supabase.rpc("get_my_protected_module_permissions", {
+        p_workspace_id: workspaceId
+      });
+      if (response.error) throw response.error;
+      identity.protectedModules = Object.fromEntries((response.data || []).map((item) => [
+        item.module_key,
+        item.access_level || "none"
+      ]));
+      return identity.protectedModules;
+    }
+
     const permissionApi = {
       superAdminManagementAvailable: true,
       async listMembers() {
@@ -1033,6 +1057,7 @@
           identity.governanceRole = "super_admin";
           identity.platformRole = "super_admin";
         }
+        await refreshIdentityProtectedModules();
         return result;
       },
       async setSuperAdmin(email, enabled) {
@@ -1043,6 +1068,31 @@
           p_enabled: Boolean(enabled)
         });
         if (response.error) throw new Error(cloudErrorMessage(response.error, "超级管理员权限更新失败，请稍后重试。"));
+        return Array.isArray(response.data) ? response.data[0] : response.data;
+      },
+      async listProtectedModulePermissions() {
+        if (identity.platformRole !== "platform_owner") throw new Error("platform_owner_permission_required");
+        const response = await supabase.rpc("list_workspace_protected_module_permissions", {
+          p_workspace_id: workspaceId
+        });
+        if (response.error) throw new Error(cloudErrorMessage(response.error, "特殊模块权限加载失败，请稍后重试。"));
+        return response.data || [];
+      },
+      async setProtectedModulePermission(email, moduleKey, accessLevel, reason, expiresAt = null) {
+        if (identity.platformRole !== "platform_owner") throw new Error("platform_owner_permission_required");
+        const normalizedEmail = String(email || "").trim().toLowerCase();
+        const response = await supabase.rpc("set_workspace_protected_module_permission", {
+          p_workspace_id: workspaceId,
+          p_email: normalizedEmail,
+          p_module_key: String(moduleKey || ""),
+          p_access_level: String(accessLevel || "none"),
+          p_reason: String(reason || "").trim(),
+          p_expires_at: expiresAt || null
+        });
+        if (response.error) throw new Error(cloudErrorMessage(response.error, "特殊模块权限更新失败，请稍后重试。"));
+        if (normalizedEmail === identity.email.toLowerCase()) {
+          await refreshIdentityProtectedModules();
+        }
         return Array.isArray(response.data) ? response.data[0] : response.data;
       }
     };

@@ -16,6 +16,23 @@ import {
   getSupabaseAppSession
 } from "./supabase";
 
+export type ProtectedModuleKey =
+  | "roadmap"
+  | "master_data"
+  | "system_config"
+  | "permission_governance"
+  | "audit";
+
+export type ProtectedModuleAccess = "none" | "view" | "edit" | "manage";
+
+const protectedModuleKeys: ProtectedModuleKey[] = [
+  "roadmap",
+  "master_data",
+  "system_config",
+  "permission_governance",
+  "audit"
+];
+
 export const authStateCookieName = "vc_auth_state";
 export const authVerifierCookieName = "vc_auth_verifier";
 export const authReturnToCookieName = "vc_auth_return_to";
@@ -89,11 +106,60 @@ export async function requireUser(returnTo = "/") {
 
 export async function requireMasterDataEditor(returnTo = "/") {
   const session = await requireUser(returnTo);
-  if (!canEditMasterData(session.role)) {
+  if (!(await canCurrentSessionEditMasterData(session))) {
     redirect("/auth/forbidden");
   }
   return session;
 }
+
+export async function canCurrentSessionEditMasterData(session: AppSession) {
+  const config = getAuthConfig();
+  if (config.provider !== "supabase") return canEditMasterData(session.role);
+  return (await getProtectedModulePermission("master_data")) === "manage";
+}
+
+export async function getProtectedModulePermission(
+  moduleKey: ProtectedModuleKey
+): Promise<ProtectedModuleAccess> {
+  return (await getCurrentProtectedModulePermissions())[moduleKey] || "none";
+}
+
+export const getCurrentProtectedModulePermissions = cache(async (): Promise<
+  Partial<Record<ProtectedModuleKey, ProtectedModuleAccess>>
+> => {
+  const config = getAuthConfig();
+  if (!config.enabled) {
+    return Object.fromEntries(
+      protectedModuleKeys.map((key) => [key, "manage"])
+    ) as Record<ProtectedModuleKey, ProtectedModuleAccess>;
+  }
+  if (config.provider !== "supabase") return {};
+
+  const client = await createSupabaseServerClient(config);
+  const membership = await client
+    .from("workspace_members")
+    .select("workspace_id")
+    .limit(1)
+    .maybeSingle();
+  const workspaceId = membership.data?.workspace_id;
+  if (membership.error || !workspaceId) return {};
+
+  const response = await client.rpc("get_my_protected_module_permissions", {
+    p_workspace_id: workspaceId
+  });
+  if (response.error) return {};
+  return Object.fromEntries((response.data || []).map(
+    (item: { module_key?: string; access_level?: string }) => {
+      const access = String(item.access_level || "none");
+      return [
+        item.module_key,
+        ["none", "view", "edit", "manage"].includes(access)
+          ? access
+          : "none"
+      ];
+    }
+  )) as Partial<Record<ProtectedModuleKey, ProtectedModuleAccess>>;
+});
 
 export async function requireScenarioSaver() {
   const session = await requireUser();

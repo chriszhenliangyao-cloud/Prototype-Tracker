@@ -5477,6 +5477,29 @@
     .permission-template-table td:nth-child(4) { width: 31%; }
     .permission-template-table td:nth-child(5) { width: 12%; }
 
+    .protected-module-table {
+      min-width: 760px !important;
+    }
+
+    .protected-module-table th:nth-child(1) { width: 42%; }
+    .protected-module-table th:nth-child(2) { width: 20%; }
+    .protected-module-table th:nth-child(3) { width: 22%; }
+    .protected-module-table th:nth-child(4) { width: 16%; }
+
+    .protected-module-table td:first-child small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.35;
+    }
+
+    .permission-control-bar.protected-module-apply {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      margin: 9px 0 7px;
+    }
+
     .permission-scope-layout {
       display: grid;
       grid-template-columns: 210px minmax(0, 1fr);
@@ -7290,22 +7313,18 @@
       return "viewer";
     }
 
-    const ROADMAP_PERMISSION_LEVELS = ["none", "view", "edit", "manage"];
+    const PROTECTED_MODULE_PERMISSION_LEVELS = ["none", "view", "edit", "manage"];
+    const PROTECTED_MODULE_DEFINITIONS = [
+      { key: "roadmap", levels: ["none", "view", "edit", "manage"], zh: "产品路线图", en: "Product Roadmap", noteZh: "产品组合、周报、产品卡和版本发布", noteEn: "Portfolio, weekly updates, product cards and releases" },
+      { key: "master_data", levels: ["none", "manage"], zh: "Master Data", en: "Master Data", noteZh: "产品、市场、价格、成本和利润主数据", noteEn: "Product, market, price, cost and margin master data" },
+      { key: "system_config", levels: ["none", "manage"], zh: "系统配置", en: "System Configuration", noteZh: "平台连接、模块配置和同步规则", noteEn: "Platform connections, module configuration and sync rules" },
+      { key: "permission_governance", levels: ["none", "view"], zh: "权限治理", en: "Permission Governance", noteZh: "特殊权限只读查看；授权变更始终仅限平台所有者", noteEn: "Read-only governance visibility; mutations always remain Owner-only" },
+      { key: "audit", levels: ["none", "view"], zh: "审计记录", en: "Audit Records", noteZh: "访问不可覆盖的权限与业务审计记录", noteEn: "Access immutable permission and business audit records" }
+    ];
 
-    function inferredRoadmapPermission(user, platformRole = user?.platformRole, functionalRoles = user?.functionalRoles || []) {
-      if (["platform_owner", "super_admin"].includes(platformRole)) return "manage";
-      if (platformRole === "auditor") return "view";
-      if (["permission_admin", "external"].includes(platformRole)) return "none";
-      if (functionalRoles.some((role) => ["plan_admin"].includes(role))) return "manage";
-      if (functionalRoles.some((role) => ["management", "pmo", "business_planning", "marketing_growth"].includes(role))) return "edit";
-      if (functionalRoles.some((role) => ["sales_forecast", "supply_planner"].includes(role))) return "view";
-      return "none";
-    }
-
-    function normalizeRoadmapPermission(value, user, platformRole, functionalRoles) {
-      return ROADMAP_PERMISSION_LEVELS.includes(value)
-        ? value
-        : inferredRoadmapPermission(user, platformRole, functionalRoles);
+    function normalizeProtectedModulePermission(value, platformRole = "member") {
+      if (platformRole === "platform_owner") return "manage";
+      return PROTECTED_MODULE_PERMISSION_LEVELS.includes(value) ? value : "none";
     }
 
     function normalizePermissionUser(user) {
@@ -7319,7 +7338,10 @@
         functionalRoles,
         modulePermissions: {
           ...(user.modulePermissions || {}),
-          roadmap: normalizeRoadmapPermission(user.modulePermissions?.roadmap, user, platformRole, functionalRoles)
+          ...Object.fromEntries(PROTECTED_MODULE_DEFINITIONS.map((module) => [
+            module.key,
+            normalizeProtectedModulePermission(user.modulePermissions?.[module.key], platformRole)
+          ]))
         },
         dataScopes: {
           markets: normalizePermissionScopeArray(user.dataScopes?.markets, ["all"]),
@@ -7384,7 +7406,7 @@
     }
 
     function canAccessSystemManagement(user = currentProjectUser()) {
-      return canManagePermissionsForUser(user);
+      return protectedModulePermissionForUser("master_data", user) !== "none";
     }
 
     function canCreateProjects(user = currentProjectUser()) {
@@ -7399,17 +7421,25 @@
     }
 
     function roadmapPermissionForUser(user = currentProjectUser()) {
+      return protectedModulePermissionForUser("roadmap", user);
+    }
+
+    function protectedModulePermissionForUser(moduleKey, user = currentProjectUser()) {
       if (!user || user.status !== "active") return "none";
-      if (isPlatformAdministrator(user)) return "manage";
-      return normalizeRoadmapPermission(user.modulePermissions?.roadmap, user, user.platformRole, user.functionalRoles || []);
+      if (user.platformRole === "platform_owner") return "manage";
+      const identity = window.cloudStore?.identity;
+      if (identity && normalizePermissionEmail(user.email) === normalizePermissionEmail(identity.email)) {
+        return normalizeProtectedModulePermission(identity.protectedModules?.[moduleKey], user.platformRole);
+      }
+      return normalizeProtectedModulePermission(user.modulePermissions?.[moduleKey], user.platformRole);
     }
 
     function canAccessModuleForUser(moduleKey, user = currentProjectUser()) {
       if (!user || user.status !== "active") return false;
       if (moduleKey === "home") return true;
       if (moduleKey === "roadmap") return roadmapPermissionForUser(user) !== "none";
+      if (moduleKey === "system") return canAccessSystemManagement(user);
       if (isPlatformAdministrator(user)) return true;
-      if (moduleKey === "system") return user.platformRole === "permission_admin";
       if (user.platformRole === "permission_admin") return ["tasks", "system"].includes(moduleKey);
       if (user.platformRole === "auditor") return moduleKey !== "system";
       if (user.platformRole === "external") return ["projects", "tasks"].includes(moduleKey);
@@ -7497,6 +7527,10 @@
         busyEmail: "",
         members: [],
         platformRoles: [],
+        protectedPermissions: [],
+        protectedDirty: {},
+        protectedReason: "",
+        protectedSaving: false,
         message: "",
         messageTone: "",
         newEmail: "",
@@ -7638,6 +7672,7 @@
           workstream: "all",
           role: identity.role === "admin" ? "super_admin" : "viewer",
           platformRole: identity.governanceRole === "platform_owner" ? "platform_owner" : identity.role === "admin" ? "super_admin" : "member",
+          modulePermissions: identity.protectedModules || {},
           scope: "all",
           status: "active",
           lastLogin: "刚刚"
@@ -7661,6 +7696,10 @@
           user.platformRole = "super_admin";
           cloudIdentityNeedsSync = true;
         }
+        user.modulePermissions = {
+          ...(user.modulePermissions || {}),
+          ...(identity.protectedModules || {})
+        };
         Object.assign(user, normalizePermissionUser(user));
       }
       projectState.activeUserId = userId;
@@ -11524,20 +11563,34 @@
       }
       if (projectState.adminModal === "permissions") renderProjectAdminModal();
       try {
-        const [members, platformRoles] = await Promise.all([
+        const [members, platformRoles, protectedPermissions] = await Promise.all([
           window.cloudStore?.identity?.role === "admin" ? permissionApi.listMembers() : Promise.resolve([]),
           permissionApi.listPlatformRoles().catch((error) => {
             console.warn("Platform governance roles unavailable", error);
             return [];
-          })
+          }),
+          isPlatformOwner() && permissionApi.listProtectedModulePermissions
+            ? permissionApi.listProtectedModulePermissions().catch((error) => {
+                console.warn("Protected module permissions unavailable", error);
+                return [];
+              })
+            : Promise.resolve([])
         ]);
         permissionCloudState.members = members;
         permissionCloudState.platformRoles = platformRoles;
+        permissionCloudState.protectedPermissions = protectedPermissions;
         const roleByEmail = new Map(platformRoles.map((item) => [normalizePermissionEmail(item.email), item.role]));
         members.forEach((member) => ensurePermissionDraftMember(member.email, member.role, member.activated_at, roleByEmail.get(normalizePermissionEmail(member.email)) || ""));
         platformRoles.forEach((item) => {
           const user = ensurePermissionDraftMember(item.email, "admin", null, item.role);
           if (user) user.platformRole = item.role;
+        });
+        protectedPermissions.forEach((item) => {
+          const user = ensurePermissionDraftMember(item.email, "editor", null, item.platform_role || "");
+          if (!user) return;
+          user.modulePermissions ||= {};
+          user.modulePermissions[item.module_key] = item.access_level || "none";
+          Object.assign(user, normalizePermissionUser(user));
         });
         if (projectState.permissionDraft) scheduleProjectFormAutosave("project-permissions", "permissions", projectState.permissionDraft);
         if (!options.preserveMessage) permissionCloudState.message = "";
@@ -11611,6 +11664,61 @@
       }
     }
 
+    async function saveProtectedModulePermissions() {
+      if (!isPlatformOwner()) {
+        showProjectToast("特殊模块权限只能由平台所有者修改。");
+        return;
+      }
+      const changes = Object.values(permissionCloudState.protectedDirty || {});
+      if (!changes.length) return;
+      const reason = permissionCloudState.protectedReason.trim();
+      if (reason.length < 4) {
+        showProjectToast("请填写清晰的特殊权限变更原因（至少4个字符）。");
+        return;
+      }
+      if (changes.some((change) => !change.email)) {
+        showProjectToast("目标成员必须先绑定 Google 邮箱。");
+        return;
+      }
+
+      permissionCloudState.protectedSaving = true;
+      permissionCloudState.message = "正在应用特殊模块权限...";
+      permissionCloudState.messageTone = "";
+      renderProjectAdminModal();
+      try {
+        if (window.cloudStore?.enabled) {
+          const permissionApi = window.cloudStore.permissions;
+          if (!permissionApi?.setProtectedModulePermission) throw new Error("特殊权限云端服务尚未就绪。");
+          for (const change of changes) {
+            const expiresAt = change.expiresAt ? `${change.expiresAt}T23:59:59.999Z` : null;
+            await permissionApi.setProtectedModulePermission(
+              change.email,
+              change.moduleKey,
+              change.accessLevel,
+              reason,
+              expiresAt
+            );
+          }
+        }
+        permissionCloudState.protectedDirty = {};
+        permissionCloudState.protectedReason = "";
+        permissionCloudState.message = `已应用 ${changes.length} 项特殊模块权限，审计记录已生成。`;
+        permissionCloudState.messageTone = "success";
+        if (window.cloudStore?.enabled) await loadPermissionCloudMembers({ preserveMessage: true });
+        else {
+          schedulePermissionAutosave();
+          renderProjectAdminModal();
+        }
+      } catch (error) {
+        permissionCloudState.message = error.message || "特殊模块权限更新失败，请稍后重试。";
+        permissionCloudState.messageTone = "error";
+        renderProjectAdminModal();
+      } finally {
+        permissionCloudState.protectedSaving = false;
+        if (projectState.adminModal === "permissions") renderProjectAdminModal();
+      }
+    }
+
     function permissionSelectedDraftUser() {
       const users = projectState.permissionDraft || [];
       let user = users.find((item) => item.id === permissionUiState.selectedUserId);
@@ -11630,10 +11738,10 @@
       const tabs = [
         ["members", "成员账号", "Members"],
         ["roles", "角色模板", "Role Templates"],
-        ["modules", "模块权限", "Module Access"],
         ["scopes", "数据范围", "Data Scopes"],
         ["approvals", "审批权限", "Approval Access"]
       ];
+      if (isPlatformOwner()) tabs.splice(2, 0, ["modules", "特殊模块权限", "Protected Modules"]);
       return `<div class="permission-tabs" role="tablist">${tabs.map(([key, zh, en]) => `<button class="permission-tab ${permissionUiState.activeTab === key ? "active" : ""}" role="tab" aria-selected="${permissionUiState.activeTab === key}" data-project-editor-action="permission-tab" data-permission-tab="${key}">${activeLocale === "en-GB" ? en : zh}</button>`).join("")}</div>`;
     }
 
@@ -11718,16 +11826,23 @@
     function renderPermissionModulesTab(users) {
       const selectedUser = permissionSelectedDraftUser();
       if (!selectedUser) return `<div class="permission-tab-panel"><div class="delay-warning">暂无可配置成员。</div></div>`;
-      const selectedUserLocked = !canEditPermissionUser(selectedUser);
-      const permission = roadmapPermissionForUser(selectedUser);
-      const lockAttributes = selectedUserLocked ? 'disabled title="受保护账号只能由平台所有者修改"' : "";
-      const levels = [
-        ["none", "无权限", "No access", "不显示产品路线图入口", "Hide Product Roadmap"],
-        ["view", "只读", "View only", "查看画布、产品详情、周报及版本历史", "View portfolio, details, weekly updates and history"],
-        ["edit", "可编辑", "Edit", "更新产品、图片、KSP及周度内容，自动写入团队云版本", "Edit products, images, KSP and weekly updates with cloud versioning"],
-        ["manage", "管理发布", "Manage", "包含编辑，并可新增产品、恢复版本及管理历史", "Includes editing, plus product creation, restoration and history management"]
-      ];
-      return `<div class="permission-tab-panel" role="tabpanel"><div class="permission-control-bar compact"><div><strong>${activeLocale === "en-GB" ? "Module-specific access" : "模块独立权限"}</strong><div class="permission-note">${activeLocale === "en-GB" ? "Roadmap access is evaluated independently from functional roles." : "产品路线图权限独立于职能角色计算，可单独收紧或提升。"}</div></div><div><strong>${escapeProjectHtml(selectedUser.name)} · ${activeLocale === "en-GB" ? levels.find((item) => item[0] === permission)?.[2] : levels.find((item) => item[0] === permission)?.[1]}</strong><div class="permission-note">${escapeProjectHtml(selectedUser.email || "--")}</div></div></div><div class="permission-scope-layout">${renderPermissionMemberList(users, selectedUser)}<div class="permission-scope-groups"><section class="permission-scope-group"><h4>${activeLocale === "en-GB" ? "Product Roadmap" : "产品路线图"}</h4><small>${activeLocale === "en-GB" ? "Controls module visibility and every data-changing operation." : "同时控制模块可见性和所有数据变更操作。"}</small><div class="permission-check-grid">${levels.map(([value, zh, en, noteZh, noteEn]) => `<label class="permission-check"><input type="radio" name="roadmapPermission" data-roadmap-permission="${value}" ${permission === value ? "checked" : ""} ${lockAttributes}><span><strong>${activeLocale === "en-GB" ? en : zh}</strong><small>${activeLocale === "en-GB" ? noteEn : noteZh}</small></span></label>`).join("")}</div></section><div class="permission-note">${activeLocale === "en-GB" ? "Platform Owner and Super Admin always retain Manage access. Database write checks enforce Edit/Manage access." : "平台所有者和超级管理员始终保留管理权限；数据库写入还会校验可编辑/管理权限。"}</div></div></div></div>`;
+      if (!isPlatformOwner()) return `<div class="permission-tab-panel"><div class="delay-warning">特殊模块权限仅由平台所有者管理。</div></div>`;
+      const selectedEmail = normalizePermissionEmail(selectedUser.email);
+      const targetIsOwner = selectedUser.platformRole === "platform_owner";
+      const levelLabels = activeLocale === "en-GB"
+        ? { none: "No access", view: "View", edit: "Edit", manage: "Manage" }
+        : { none: "无权限", view: "只读", edit: "可编辑", manage: "管理发布" };
+      const rows = PROTECTED_MODULE_DEFINITIONS.map((module) => {
+        const key = `${selectedEmail}:${module.key}`;
+        const cloudRow = permissionCloudState.protectedPermissions.find((item) => normalizePermissionEmail(item.email) === selectedEmail && item.module_key === module.key);
+        const pending = permissionCloudState.protectedDirty[key];
+        const access = targetIsOwner ? "manage" : pending?.accessLevel || protectedModulePermissionForUser(module.key, selectedUser);
+        const expiresAt = pending?.expiresAt ?? (cloudRow?.expires_at ? String(cloudRow.expires_at).slice(0, 10) : "");
+        const options = module.levels.map((level) => `<option value="${level}" ${access === level ? "selected" : ""}>${levelLabels[level]}</option>`).join("");
+        return `<tr><td><strong>${activeLocale === "en-GB" ? module.en : module.zh}</strong><small>${activeLocale === "en-GB" ? module.noteEn : module.noteZh}</small></td><td><select data-protected-module-permission="${module.key}" ${targetIsOwner ? 'disabled title="平台所有者固定为管理权限"' : ""}>${options}</select></td><td><input type="date" data-protected-module-expiry="${module.key}" value="${escapeProjectHtml(expiresAt)}" ${targetIsOwner || access === "none" ? "disabled" : ""}></td><td><span class="permission-access-state ${access === "none" ? "" : "active"}">${targetIsOwner ? (activeLocale === "en-GB" ? "Owner fixed" : "所有者固定") : cloudRow?.is_explicit ? (activeLocale === "en-GB" ? "Explicit grant" : "明确授权") : (activeLocale === "en-GB" ? "Not inherited" : "不继承角色")}</span></td></tr>`;
+      }).join("");
+      const dirtyCount = Object.keys(permissionCloudState.protectedDirty).filter((key) => key.startsWith(`${selectedEmail}:`)).length;
+      return `<div class="permission-tab-panel" role="tabpanel"><div class="permission-control-bar compact"><div><strong>${activeLocale === "en-GB" ? "Owner-governed protected access" : "平台所有者专属授权"}</strong><div class="permission-note">${activeLocale === "en-GB" ? "Super Admin and role templates do not inherit any protected module access." : "超级管理员和任何角色模板均不会自动获得以下模块权限。"}</div></div><div><strong>${escapeProjectHtml(selectedUser.name)} · ${escapeProjectHtml(selectedUser.email || "--")}</strong><div class="permission-note">${dirtyCount ? `${dirtyCount} ${activeLocale === "en-GB" ? "pending changes" : "项待应用"}` : (activeLocale === "en-GB" ? "No pending changes" : "暂无待应用变更")}</div></div></div><div class="permission-scope-layout">${renderPermissionMemberList(users, selectedUser)}<div><div class="permission-table-wrap"><table class="permission-table protected-module-table"><thead><tr><th>${activeLocale === "en-GB" ? "Protected module" : "特殊模块"}</th><th>${activeLocale === "en-GB" ? "Access" : "授权级别"}</th><th>${activeLocale === "en-GB" ? "Expiry (optional)" : "有效期（可选）"}</th><th>${activeLocale === "en-GB" ? "Source" : "授权来源"}</th></tr></thead><tbody>${rows}</tbody></table></div><div class="permission-control-bar protected-module-apply"><div class="permission-control-field" style="flex:1"><label>${activeLocale === "en-GB" ? "Change reason (required)" : "变更原因（必填）"}</label><input data-protected-module-reason value="${escapeProjectHtml(permissionCloudState.protectedReason)}" placeholder="${activeLocale === "en-GB" ? "Business reason, requester or approval reference" : "业务原因、申请人或审批依据"}" ${targetIsOwner ? "disabled" : ""}></div><button class="btn primary" data-project-editor-action="save-protected-modules" ${targetIsOwner || permissionCloudState.protectedSaving || !dirtyCount ? "disabled" : ""}>${permissionCloudState.protectedSaving ? (activeLocale === "en-GB" ? "Applying..." : "正在应用...") : (activeLocale === "en-GB" ? "Apply protected access" : "应用特殊权限")}</button></div><div class="permission-note">${activeLocale === "en-GB" ? "Owner access is fixed. Every grant and revocation is enforced by the database and written to immutable audit history." : "平台所有者权限固定；每次授权和撤销都由数据库强制校验，并写入不可覆盖的审计记录。"}</div></div></div></div>`;
     }
 
     function renderPermissionApprovalsTab(users) {
@@ -11752,7 +11867,7 @@
       const approvers = users.filter((user) => user.approval?.types?.length || user.approval?.authorities?.length).length;
       const owner = users.find((user) => user.platformRole === "platform_owner" && user.status === "active");
       const body = permissionUiState.activeTab === "roles" ? renderPermissionRoleTemplatesTab(users) : permissionUiState.activeTab === "modules" ? renderPermissionModulesTab(users) : permissionUiState.activeTab === "scopes" ? renderPermissionScopesTab(users) : permissionUiState.activeTab === "approvals" ? renderPermissionApprovalsTab(users) : renderPermissionMembersTab(users, authorizationMap, cloudReady, messageClass);
-      return `<section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle"><div class="modal-head"><div><h2 class="modal-title" id="permissionTitle">权限管理</h2><p class="modal-subtitle">按平台角色、职能角色、模块操作、数据范围和审批额度组合成员的最终权限</p></div><button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button></div><div class="modal-body"><div class="admin-context-strip"><span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">${platformRoleLabel(currentProjectUser()?.platformRole || "super_admin")}</span></span><span>平台所有者：${escapeProjectHtml(owner?.name || owner?.email || "待配置")} · 权限冲突最终裁决</span></div><div class="permission-summary"><div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div><div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div><div class="permission-summary-item"><span>Roadmap编辑/管理</span><strong>${users.filter((user) => ["edit", "manage"].includes(roadmapPermissionForUser(user))).length}</strong></div><div class="permission-summary-item"><span>审批及发布用户</span><strong>${approvers}</strong></div></div>${renderPermissionTabs()}${body}</div><div class="modal-foot"><span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">草稿仅保存在当前账号；平台所有者/超级管理员受保护，只有平台所有者可以修改。</span></span><div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存权限并生效</button></div></div></section>`;
+      return `<section class="modal project-editor-modal permission-manager-modal" role="dialog" aria-modal="true" aria-labelledby="permissionTitle"><div class="modal-head"><div><h2 class="modal-title" id="permissionTitle">权限管理</h2><p class="modal-subtitle">按平台角色、职能角色、特殊模块、数据范围和审批额度组合成员的最终权限</p></div><button class="icon-btn" data-project-editor-action="close" aria-label="关闭">×</button></div><div class="modal-body"><div class="admin-context-strip"><span>当前操作人：${currentProjectUser()?.name || "Ivy"} <span class="role-badge">${platformRoleLabel(currentProjectUser()?.platformRole || "super_admin")}</span></span><span>平台所有者：${escapeProjectHtml(owner?.name || owner?.email || "待配置")} · 特殊模块最终授权人</span></div><div class="permission-summary"><div class="permission-summary-item"><span>有效登录授权</span><strong>${permissionCloudState.loading ? "--" : permissionCloudState.members.length}</strong></div><div class="permission-summary-item"><span>工具内启用账号</span><strong>${users.filter((user) => user.status === "active").length}</strong></div><div class="permission-summary-item"><span>Roadmap编辑/管理</span><strong>${users.filter((user) => ["edit", "manage"].includes(roadmapPermissionForUser(user))).length}</strong></div><div class="permission-summary-item"><span>审批及发布用户</span><strong>${approvers}</strong></div></div>${renderPermissionTabs()}${body}</div><div class="modal-foot"><span>${autosaveStatusMarkup("project-permissions")} <span class="helper-note">普通权限按角色保存；特殊模块不继承超级管理员，只接受平台所有者的明确授权。</span></span><div style="display:flex;gap:7px"><button class="btn" data-project-editor-action="close">暂存并关闭</button><button class="btn primary" data-project-editor-action="save-permissions">保存普通权限并生效</button></div></div></section>`;
     }
 
     function schedulePermissionAutosave() {
@@ -13524,7 +13639,15 @@
         return;
       }
       if (action === "save-permissions") {
+        if (Object.keys(permissionCloudState.protectedDirty || {}).length) {
+          showProjectToast("请先在“特殊模块权限”中应用待处理的授权变更。");
+          return;
+        }
         void savePermissionConfiguration();
+        return;
+      }
+      if (action === "save-protected-modules") {
+        void saveProtectedModulePermissions();
         return;
       }
       if (action === "create-project") {
@@ -13576,6 +13699,47 @@
         if (permissionNewField === "role") permissionCloudState.newRole = target.value;
         return true;
       }
+      if (target.hasAttribute("data-protected-module-reason")) {
+        permissionCloudState.protectedReason = target.value;
+        return true;
+      }
+      const protectedModulePermission = target.getAttribute("data-protected-module-permission");
+      if (protectedModulePermission) {
+        const user = permissionSelectedDraftUser();
+        if (!isPlatformOwner() || !user || user.platformRole === "platform_owner") {
+          showProjectToast("特殊模块权限只能由平台所有者分配，且所有者权限不可降级。");
+          renderProjectAdminModal();
+          return true;
+        }
+        const email = normalizePermissionEmail(user.email);
+        const key = `${email}:${protectedModulePermission}`;
+        const prior = permissionCloudState.protectedDirty[key] || {};
+        user.modulePermissions ||= {};
+        user.modulePermissions[protectedModulePermission] = target.value;
+        permissionCloudState.protectedDirty[key] = {
+          email,
+          moduleKey: protectedModulePermission,
+          accessLevel: target.value,
+          expiresAt: target.value === "none" ? "" : prior.expiresAt || ""
+        };
+        renderProjectAdminModal();
+        return true;
+      }
+      const protectedModuleExpiry = target.getAttribute("data-protected-module-expiry");
+      if (protectedModuleExpiry) {
+        const user = permissionSelectedDraftUser();
+        if (!isPlatformOwner() || !user || user.platformRole === "platform_owner") return true;
+        const email = normalizePermissionEmail(user.email);
+        const key = `${email}:${protectedModuleExpiry}`;
+        permissionCloudState.protectedDirty[key] = {
+          email,
+          moduleKey: protectedModuleExpiry,
+          accessLevel: protectedModulePermissionForUser(protectedModuleExpiry, user),
+          expiresAt: target.value
+        };
+        renderProjectAdminModal();
+        return true;
+      }
       const userField = target.getAttribute("data-project-user-field");
       if (userField && projectState.permissionDraft) {
         const user = projectState.permissionDraft[Number(target.getAttribute("data-user-index"))];
@@ -13592,22 +13756,6 @@
         return true;
       }
       const permissionScopeField = target.getAttribute("data-permission-scope-field");
-      const roadmapPermission = target.getAttribute("data-roadmap-permission");
-      if (roadmapPermission) {
-        const user = permissionSelectedDraftUser();
-        if (!canEditPermissionUser(user)) {
-          showProjectToast("受保护账号只能由平台所有者修改。");
-          renderProjectAdminModal();
-          return true;
-        }
-        if (user && ROADMAP_PERMISSION_LEVELS.includes(roadmapPermission)) {
-          user.modulePermissions ||= {};
-          user.modulePermissions.roadmap = roadmapPermission;
-          schedulePermissionAutosave();
-          renderProjectAdminModal();
-        }
-        return true;
-      }
       if (permissionScopeField) {
         const user = permissionSelectedDraftUser();
         if (!canEditPermissionUser(user)) {

@@ -1,24 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { canEditMasterData } from "@/lib/auth/roles";
-import { getSessionFromCookieValue } from "@/lib/auth/server";
-import { sessionCookieName } from "@/lib/auth/sessionCookie";
+import {
+  canCurrentSessionEditMasterData,
+  getCurrentSession
+} from "@/lib/auth/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = getSessionFromCookieValue(
-    request.cookies.get(sessionCookieName)?.value
-  );
+  const session = await getCurrentSession();
 
   if (!session) {
     return NextResponse.json({ message: "Please sign in again." }, { status: 401 });
   }
 
-  if (!canEditMasterData(session.role)) {
+  if (!(await canCurrentSessionEditMasterData(session))) {
     return NextResponse.json(
       { message: "You do not have Master Data access." },
       { status: 403 }

@@ -21,6 +21,11 @@ const roadmapPermissionSource = readFileSync(
   "utf8"
 );
 
+const protectedModulePermissionSource = readFileSync(
+  new URL("../../../supabase/migrations/20260807170000_protected_module_permissions.sql", import.meta.url),
+  "utf8"
+);
+
 const cloudSyncSource = readFileSync(
   new URL("../../public/cloud-sync.js", import.meta.url),
   "utf8"
@@ -77,7 +82,21 @@ describe("platform owner governance", () => {
     expect(roadmapPermissionSource).toContain("roadmap_write_permission_required");
     expect(roadmapPermissionSource).toContain("permission not in ('edit', 'manage')");
     expect(roadmapPermissionSource).toContain("set search_path = pg_catalog");
-    expect(platformSource).toContain('data-roadmap-permission="${value}"');
     expect(cloudSyncSource).toContain('"productRoadmap.v1"');
+  });
+
+  it("keeps protected modules outside Super Admin inheritance", () => {
+    expect(protectedModulePermissionSource).toContain("workspace_protected_module_grants");
+    expect(protectedModulePermissionSource).toContain("private.resolve_workspace_protected_module_permission");
+    expect(protectedModulePermissionSource).toContain("owner_role.role = 'platform_owner'");
+    expect(protectedModulePermissionSource).toContain("platform_owner_permission_required");
+    expect(protectedModulePermissionSource).toContain("protectedModulePermissions.v1");
+    expect(protectedModulePermissionSource).toContain("Migrated from explicit Roadmap access");
+    expect(protectedModulePermissionSource).not.toContain("super_admin' then return 'manage");
+    expect(platformSource).toContain("PROTECTED_MODULE_DEFINITIONS");
+    expect(platformSource).toContain("超级管理员和任何角色模板均不会自动获得以下模块权限");
+    expect(platformSource).toContain('data-project-editor-action="save-protected-modules"');
+    expect(cloudSyncSource).toContain('supabase.rpc("set_workspace_protected_module_permission"');
+    expect(cloudSyncSource).toContain('supabase.rpc("get_my_protected_module_permissions"');
   });
 });

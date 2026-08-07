@@ -3,9 +3,10 @@ import {
   applyMasterDataWorkbookBuffer,
   type ImportActionState
 } from "@/app/master-data/actions";
-import { getSessionFromCookieValue } from "@/lib/auth/server";
-import { canEditMasterData } from "@/lib/auth/roles";
-import { sessionCookieName } from "@/lib/auth/sessionCookie";
+import {
+  canCurrentSessionEditMasterData,
+  getCurrentSession
+} from "@/lib/auth/server";
 import { masterDataImportErrorMessage } from "@/lib/masterDataImportError";
 
 type UploadedWorkbookFile = {
@@ -18,9 +19,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
-  const session = getSessionFromCookieValue(
-    request.cookies.get(sessionCookieName)?.value
-  );
+  const session = await getCurrentSession();
 
   if (!session) {
     return NextResponse.json(errorState("Please sign in again."), {
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  if (!canEditMasterData(session.role)) {
+  if (!(await canCurrentSessionEditMasterData(session))) {
     return NextResponse.json(errorState("You do not have Master Data access."), {
       status: 403
     });
