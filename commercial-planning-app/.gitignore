@@ -1,0 +1,11 @@
+.next/
+node_modules/
+prisma/dev.db
+prisma/dev.db-journal
+prisma/schema.generated.postgres.prisma
+prisma/bootstrap.sql
+.env
+.env.local
+coverage/
+.vercel
+.env*

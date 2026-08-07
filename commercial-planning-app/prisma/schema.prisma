@@ -1,0 +1,746 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  GTM_LEADER
+  GM
+  ADMIN
+  FINANCE
+  SALES_MANAGER
+  KA_OWNER
+  VIEWER
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductLifecycleStatus {
+  LAUNCHED
+  UNLAUNCHED
+  EOL
+}
+
+enum ScenarioType {
+  NORMAL
+  PROMOTION
+}
+
+enum SettlementMode {
+  INVOICE_DISCOUNT
+  REBATE_CLAIM
+}
+
+enum ScenarioStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum WarningLevel {
+  GOOD
+  WARNING
+  CRITICAL
+}
+
+enum PromotionPlanStatus {
+  DRAFT
+  SUBMITTED
+  FIRST_APPROVED
+  APPROVED
+  REJECTED
+}
+
+enum PromotionPlanApprovalRole {
+  NONE
+  FIRST_APPROVER
+  FINAL_APPROVER
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  role      UserRole
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  scenarios Scenario[]
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model Country {
+  id                 String               @id @default(cuid())
+  name               String
+  code               String               @unique
+  vatRate            Decimal
+  currency           String
+  status             RecordStatus         @default(ACTIVE)
+  effectiveDate      DateTime
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  logisticsCosts     LogisticsCost[]
+  productRrps        ProductCountryRrp[]
+  operationalMargins OperationalMargin[]
+  channelMargins     ChannelMargin[]
+  fdMargins          FdMargin[]
+  scenarios          Scenario[]
+
+  @@map("countries")
+}
+
+model CurrencyExchangeRate {
+  id                String       @id @default(cuid())
+  currency          String       @unique
+  exchangeRateToEur Decimal
+  status            RecordStatus @default(ACTIVE)
+  effectiveDate     DateTime
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@map("currency_exchange_rates")
+}
+
+model Product {
+  id              String                 @id @default(cuid())
+  sku             String                 @unique
+  name            String
+  category        String
+  capacity        String?
+  lifecycleStatus ProductLifecycleStatus @default(LAUNCHED)
+  launchedAt      DateTime?
+  plannedLaunchAt DateTime?
+  status          RecordStatus           @default(ACTIVE)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  bomCosts        BomCost[]
+  countryRrps     ProductCountryRrp[]
+  scenarios       Scenario[]
+
+  @@map("products")
+}
+
+model BomCost {
+  id            String       @id @default(cuid())
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  bomCost       Decimal
+  bomCostRmb    Decimal?
+  currency      String
+  effectiveDate DateTime
+  status        RecordStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([productId, status])
+  @@map("bom_costs")
+}
+
+model LogisticsCost {
+  id            String       @id @default(cuid())
+  countryId     String
+  country       Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  category      String
+  productSize   String
+  logisticsCost Decimal
+  currency      String
+  effectiveDate DateTime
+  status        RecordStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([countryId, category, productSize, status])
+  @@map("logistics_costs")
+}
+
+model ProductCountryRrp {
+  id            String       @id @default(cuid())
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  countryId     String
+  country       Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  rrpLocal      Decimal
+  rrpEur        Decimal
+  currency      String
+  effectiveDate DateTime
+  status        RecordStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([productId, countryId, effectiveDate])
+  @@index([productId, countryId, status])
+  @@map("product_country_rrps")
+}
+
+model OperationalMargin {
+  id              String       @id @default(cuid())
+  countryId       String
+  country         Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  retailerName    String
+  fdName          String
+  incoterms       String
+  category        String
+  kaBuyingMargin  Decimal
+  kaFrontMargin   Decimal
+  kaBackMargin    Decimal
+  fdMargin        Decimal
+  effectiveDate   DateTime
+  status          RecordStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([countryId, retailerName, fdName, incoterms, category, effectiveDate])
+  @@index([countryId, retailerName, fdName, category, status])
+  @@map("operational_margins")
+}
+
+model ChannelMargin {
+  id                String       @id @default(cuid())
+  countryId         String
+  country           Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  channelName       String
+  kaName            String
+  category          String
+  normalFrontMargin Decimal
+  normalBackMargin  Decimal
+  promoFrontMargin  Decimal
+  promoBackMargin   Decimal
+  effectiveDate     DateTime
+  status            RecordStatus @default(ACTIVE)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  scenarios         Scenario[]
+
+  @@index([countryId, channelName, kaName, category, status])
+  @@map("channel_margins")
+}
+
+model FdMargin {
+  id             String       @id @default(cuid())
+  countryId      String
+  country        Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  fdName         String
+  channelName    String
+  category       String
+  normalFdMargin Decimal
+  promoFdMargin  Decimal
+  effectiveDate  DateTime
+  status         RecordStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  scenarios      Scenario[]
+
+  @@index([countryId, fdName, channelName, category, status])
+  @@map("fd_margins")
+}
+
+model Scenario {
+  id              String          @id @default(cuid())
+  name            String
+  type            ScenarioType
+  countryId       String
+  country         Country         @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  productId       String
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  channelMarginId String
+  channelMargin   ChannelMargin   @relation(fields: [channelMarginId], references: [id], onDelete: Restrict)
+  fdMarginId      String
+  fdMargin        FdMargin        @relation(fields: [fdMarginId], references: [id], onDelete: Restrict)
+  settlementMode  SettlementMode?
+  status          ScenarioStatus  @default(DRAFT)
+  createdById     String
+  createdBy       User            @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  input           ScenarioInput?
+  result          ScenarioResult?
+
+  @@index([type, status])
+  @@index([countryId, productId])
+  @@map("scenarios")
+}
+
+model ScenarioInput {
+  id                 String   @id @default(cuid())
+  scenarioId         String   @unique
+  scenario           Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  normalRrp          Decimal?
+  promoRrp           Decimal?
+  vatRate            Decimal
+  normalFrontMargin  Decimal
+  normalBackMargin   Decimal
+  normalFdMargin     Decimal
+  promoFrontMargin   Decimal?
+  promoBackMargin    Decimal?
+  promoFdMargin      Decimal?
+  bomCost            Decimal
+  logisticsCost      Decimal
+  promoVolume        Int?
+  overrideReason     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("scenario_inputs")
+}
+
+model ScenarioResult {
+  id                         String       @id @default(cuid())
+  scenarioId                 String       @unique
+  scenario                   Scenario     @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  rrpExVat                   Decimal?
+  promoRrpExVat              Decimal?
+  priceAfterFrontMargin      Decimal?
+  kaBuyingPrice              Decimal?
+  fdBuyingPrice              Decimal?
+  promoPriceAfterFrontMargin Decimal?
+  rebatePerUnit              Decimal?
+  totalRebate                Decimal?
+  promoKaNewBuyingPrice      Decimal?
+  promoFdNetPrice            Decimal?
+  gp                         Decimal?
+  gpPercent                  Decimal?
+  np                         Decimal?
+  npPercent                  Decimal?
+  warningLevel               WarningLevel
+  createdAt                  DateTime     @default(now())
+  updatedAt                  DateTime     @updatedAt
+
+  @@map("scenario_results")
+}
+
+model MasterDataArchive {
+  id                String   @id @default(cuid())
+  source            String
+  sourceReference   String?
+  title             String
+  message           String
+  workbookFileName  String
+  workbookBytes     Bytes
+  driveStatus       String   @default("NOT_CONFIGURED")
+  driveFileId       String?
+  driveUrl          String?
+  createdByEmail    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([createdAt])
+  @@map("master_data_archives")
+}
+
+model UserCountryAccess {
+  id                         String                    @id @default(cuid())
+  email                      String
+  label                      String?
+  countryCode                String
+  role                       UserRole                  @default(VIEWER)
+  approvalRole               PromotionPlanApprovalRole @default(NONE)
+  receivesPromotionPlanEmail Boolean                   @default(false)
+  status                     RecordStatus              @default(ACTIVE)
+  createdByEmail             String?
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+
+  @@unique([email, countryCode])
+  @@index([email])
+  @@index([countryCode, status])
+  @@index([approvalRole])
+  @@map("user_country_accesses")
+}
+
+model PromotionPlanEntry {
+  id               String   @id @default(cuid())
+  planYear         Int
+  planMonth        Int
+  countryCode      String
+  retailerName     String
+  promotionName    String?
+  fdName           String
+  incoterms        String
+  category         String
+  productSku       String
+  productName      String?
+  promoRrpLocal    Decimal?
+  promoRrpEur      Decimal?
+  promoFrontMargin Decimal?
+  dealType         String   @default("NORMAL")
+  promoFdMargin    Decimal?
+  dealNote         String?
+  promoVolume      Int?
+  promoStartDate   DateTime?
+  promoEndDate     DateTime?
+  snapshotCurrency String?
+  snapshotLifecycleStatus ProductLifecycleStatus?
+  snapshotRrpLocal Decimal?
+  snapshotRrpEur Decimal?
+  snapshotVatRate Decimal?
+  snapshotBaseFrontMargin Decimal?
+  snapshotKaBuyingMargin Decimal?
+  snapshotKaBackMargin Decimal?
+  snapshotFdMargin Decimal?
+  snapshotTransportCost Decimal?
+  snapshotBomCost Decimal?
+  createdByEmail   String?
+  updatedByEmail   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([planYear, planMonth, countryCode, retailerName, fdName, incoterms, productSku])
+  @@index([planYear, planMonth])
+  @@map("promotion_plan_entries")
+}
+
+model BusinessPlanEntry {
+  id                   String   @id @default(cuid())
+  planYear             Int
+  planMonth            Int
+  countryCode          String
+  retailerName         String
+  fdName               String
+  incoterms            String
+  category             String
+  productSku           String
+  productName          String?
+  channelProfileId     String?
+  promoPriceLocal      Decimal?
+  promoDiscountPercent Decimal?
+  siUnits              Int      @default(0)
+  soUnits              Int      @default(0)
+  source               String   @default("MASTER_DATA")
+  snapshotCurrency     String?
+  snapshotRrpLocal     Decimal?
+  snapshotRrpEur       Decimal?
+  snapshotKaBuyingMargin Decimal?
+  snapshotKaFrontMargin Decimal?
+  snapshotKaBackMargin Decimal?
+  snapshotFdMargin     Decimal?
+  snapshotBomCost      Decimal?
+  snapshotLogisticsCost Decimal?
+  createdByEmail       String?
+  updatedByEmail       String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([planYear, planMonth, countryCode, retailerName, fdName, incoterms, productSku])
+  @@index([planYear, countryCode])
+  @@index([channelProfileId])
+  @@map("business_plan_entries")
+}
+
+model BusinessPlanActualEntry {
+  id                String   @id @default(cuid())
+  planYear          Int
+  planMonth         Int
+  countryCode       String
+  customerName      String
+  poNumber          String
+  poDate            DateTime
+  productModel      String?
+  productName       String?
+  sourceLineKey     String
+  siUnits           Decimal  @default(0)
+  siValueEur        Decimal  @default(0)
+  sourceFileName    String?
+  importedByEmail   String?
+  importedAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([planYear, planMonth, countryCode])
+  @@index([planYear, countryCode, customerName])
+  @@index([planYear, countryCode, productModel])
+  @@index([planYear, countryCode, poNumber])
+  @@map("business_plan_actual_entries")
+}
+
+model BusinessPlanChannelProfile {
+  id                   String   @id @default(cuid())
+  planYear             Int
+  countryCode          String
+  retailerName         String
+  fdName               String
+  incoterms            String
+  kaBuyingMargin       Decimal
+  kaFrontMargin        Decimal
+  kaBackMargin         Decimal
+  fdMargin             Decimal
+  createdByEmail       String?
+  updatedByEmail       String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  productOverrides     BusinessPlanChannelProductOverride[]
+
+  @@unique([planYear, countryCode, retailerName, fdName, incoterms])
+  @@index([planYear, countryCode])
+  @@map("business_plan_channel_profiles")
+}
+
+model BusinessPlanChannelProductOverride {
+  id                   String   @id @default(cuid())
+  channelProfileId     String
+  productSku           String
+  rrpLocal             Decimal?
+  rrpEur               Decimal?
+  currency             String?
+  kaBuyingMargin       Decimal?
+  kaFrontMargin        Decimal?
+  kaBackMargin         Decimal?
+  fdMargin             Decimal?
+  bomCost              Decimal?
+  logisticsCost        Decimal?
+  createdByEmail       String?
+  updatedByEmail       String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  channelProfile       BusinessPlanChannelProfile @relation(fields: [channelProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([channelProfileId, productSku])
+  @@index([channelProfileId])
+  @@map("business_plan_channel_product_overrides")
+}
+
+model BusinessPlanYearStatus {
+  id                   String              @id @default(cuid())
+  planYear             Int
+  countryCode          String
+  status               PromotionPlanStatus @default(DRAFT)
+  submittedByEmail     String?
+  firstApprovedByEmail String?
+  approvedByEmail      String?
+  rejectedByEmail      String?
+  submittedAt          DateTime?
+  firstApprovedAt      DateTime?
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  notes                String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@unique([planYear, countryCode])
+  @@index([status])
+  @@map("business_plan_year_statuses")
+}
+
+model PromotionPlanMonthStatus {
+  id               String              @id @default(cuid())
+  planYear         Int
+  planMonth        Int
+  countryCode      String
+  status           PromotionPlanStatus @default(DRAFT)
+  submittedByEmail String?
+  firstApprovedByEmail String?
+  approvedByEmail  String?
+  rejectedByEmail  String?
+  submittedAt      DateTime?
+  firstApprovedAt  DateTime?
+  approvedAt       DateTime?
+  rejectedAt       DateTime?
+  notes            String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@unique([planYear, planMonth, countryCode])
+  @@index([planYear, planMonth])
+  @@map("promotion_plan_month_statuses")
+}
+
+model PromotionPlanArchive {
+  id               String   @id @default(cuid())
+  planYear         Int?
+  planMonth        Int?
+  source           String
+  sourceReference  String?
+  title            String
+  message          String
+  workbookFileName String
+  workbookBytes    Bytes
+  driveStatus      String   @default("NOT_CONFIGURED")
+  driveFileId      String?
+  driveUrl         String?
+  createdByEmail   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([planYear, planMonth])
+  @@map("promotion_plan_archives")
+}
+
+model PromotionPlanEmailRecipient {
+  id             String       @id @default(cuid())
+  email          String
+  label          String?
+  countryCode    String       @default("GLOBAL")
+  status         RecordStatus @default(ACTIVE)
+  createdByEmail String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([email, countryCode])
+  @@index([countryCode, status])
+  @@map("promotion_plan_email_recipients")
+}
+
+model PromotionPlanEmailNotification {
+  id             String   @id @default(cuid())
+  archiveId      String?
+  planYear       Int
+  planMonth      Int
+  countryCodes   String
+  toEmails       String
+  ccEmails       String
+  status         String
+  provider       String   @default("SES")
+  attemptCount   Int      @default(0)
+  lastAttemptAt  DateTime?
+  messageId      String?
+  errorMessage   String?
+  sentAt         DateTime?
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([planYear, planMonth])
+  @@index([archiveId])
+  @@map("promotion_plan_email_notifications")
+}
+
+model ApprovalNotification {
+  id             String   @id @default(cuid())
+  requestType    String
+  requestId      String?
+  planYear       Int?
+  planMonth      Int?
+  countryCodes   String
+  stage          String
+  event          String
+  toEmails       String
+  ccEmails       String
+  status         String
+  provider       String   @default("SES")
+  attemptCount   Int      @default(0)
+  lastAttemptAt  DateTime?
+  messageId      String?
+  errorMessage   String?
+  sentAt         DateTime?
+  remindAfterAt  DateTime?
+  lastReminderAt DateTime?
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([requestType, planYear, planMonth])
+  @@index([requestId])
+  @@index([status, remindAfterAt])
+  @@map("approval_notifications")
+}
+
+model OtherApprovalRequest {
+  id                   String              @id @default(cuid())
+  title                String
+  countryCode          String
+  channelName          String
+  feeType              String
+  description          String
+  tableData            String
+  status               PromotionPlanStatus @default(DRAFT)
+  workflowState        String              @default("ACTIVE")
+  duplicateOfRequestId String?
+  submittedByEmail     String?
+  firstApprovedByEmail String?
+  approvedByEmail      String?
+  rejectedByEmail      String?
+  submittedAt          DateTime?
+  firstApprovedAt      DateTime?
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  notes                String?
+  createdByEmail       String?
+  updatedByEmail       String?
+  revision             Int                 @default(1)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  attachments          OtherApprovalAttachment[]
+  audits               OtherApprovalRequestAudit[]
+
+  @@index([countryCode, status])
+  @@index([countryCode, workflowState])
+  @@index([duplicateOfRequestId])
+  @@index([createdAt])
+  @@map("other_approval_requests")
+}
+
+model OtherApprovalRequestAudit {
+  id             String               @id @default(cuid())
+  requestId      String
+  request        OtherApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  event          String
+  revision       Int
+  note           String?
+  changedFields  String?
+  previousValues String?
+  nextValues     String?
+  actorEmail     String?
+  createdAt      DateTime             @default(now())
+
+  @@index([requestId, createdAt])
+  @@index([requestId, revision])
+  @@map("other_approval_request_audits")
+}
+
+model OtherApprovalAttachment {
+  id              String               @id @default(cuid())
+  requestId       String
+  request         OtherApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  fileName        String
+  contentType     String
+  sizeBytes       Int
+  fileBytes       Bytes
+  uploadedByEmail String?
+  createdAt       DateTime             @default(now())
+
+  @@index([requestId])
+  @@map("other_approval_attachments")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  entityType String
+  entityId   String
+  fieldName  String
+  oldValue   String?
+  newValue   String?
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+model AutosaveDraft {
+  id        String   @id @default(cuid())
+  userEmail String
+  workspace String
+  scope     String
+  payload   String
+  revision  Int      @default(1)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userEmail, workspace, scope])
+  @@index([userEmail, expiresAt])
+  @@map("autosave_drafts")
+}

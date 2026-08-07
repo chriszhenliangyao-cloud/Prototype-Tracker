@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>ERP 模块原生整合测试 · 运营协同平台</title>
+  <link rel="stylesheet" href="assets/module-base.css">
+  <link rel="stylesheet" href="assets/platform-integration.css">
+</head>
+<body>
+  <div class="app native-test-shell">
+    <aside class="sidebar platform-sidebar" aria-label="平台模块导航">
+      <div class="brand platform-brand">
+        <div class="logo" aria-hidden="true">OP</div>
+        <div>
+          <div class="brand-name" data-i18n="brand">运营协同平台</div>
+          <div class="brand-sub" data-i18n="business">欧洲业务运营</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="platformNav">
+        <button class="nav-item platform-existing" type="button" data-existing-module="home">
+          <span class="lbl" data-i18n="workbench">我的工作台</span>
+        </button>
+
+        <div class="nav-section" data-i18n="planning">计划与交付</div>
+        <button class="nav-item platform-existing" type="button" data-existing-module="projects"><span class="lbl" data-i18n="projects">项目跟进</span><span class="nav-badge red">34</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="sales"><span class="lbl" data-i18n="sales">产销管理</span></button>
+        <button class="nav-item" type="button" data-module="forecast"><span class="lbl" data-i18n="forecast">预测管理</span><span class="nav-tag" data-i18n="native">原生</span></button>
+        <button class="nav-item" type="button" data-module="logistic"><span class="lbl" data-i18n="logistic">物流交付</span><span class="nav-tag" data-i18n="native">原生</span></button>
+        <button class="nav-item" type="button" data-module="shipment"><span class="lbl" data-i18n="shipment">发货履约</span><span class="nav-tag" data-i18n="native">原生</span></button>
+
+        <div class="nav-section" data-i18n="growth">市场增长</div>
+        <button class="nav-item platform-existing" type="button" data-existing-module="launch"><span class="lbl" data-i18n="launch">新品上市</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="campaigns"><span class="lbl" data-i18n="campaigns">营销活动</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="assets"><span class="lbl" data-i18n="assets">营销物料</span></button>
+
+        <div class="nav-section" data-i18n="collaboration">协同中心</div>
+        <button class="nav-item platform-existing" type="button" data-existing-module="monthly"><span class="lbl" data-i18n="monthly">月度促销审批</span><span class="nav-badge zero">0</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="other"><span class="lbl" data-i18n="other">其他审批</span><span class="nav-badge zero">0</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="tasks"><span class="lbl" data-i18n="tasks">我的待办</span><span class="nav-badge red">4</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="exceptions"><span class="lbl" data-i18n="exceptions">异常中心</span><span class="nav-badge red">12</span></button>
+
+        <div class="nav-section" data-i18n="businessManagement">经营管理</div>
+        <button class="nav-item platform-existing" type="button" data-existing-module="overview"><span class="lbl" data-i18n="overview">经营总览</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="bp"><span class="lbl" data-i18n="bp">BP达成</span></button>
+        <button class="nav-item" type="button" data-module="performance"><span class="lbl" data-i18n="performance">经营分析</span><span class="nav-tag" data-i18n="native">原生</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="value-chain"><span class="lbl" data-i18n="valueChain">价值链测算</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="settlement"><span class="lbl" data-i18n="settlement">结算台账</span></button>
+
+        <div class="nav-section" data-i18n="management">专业与管理</div>
+        <button class="nav-item platform-existing" type="button" data-existing-module="functional"><span class="lbl" data-i18n="functional">职能工作台</span></button>
+        <button class="nav-item platform-existing" type="button" data-existing-module="system"><span class="lbl" data-i18n="system">系统管理</span></button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span data-i18n="localTest">本地原生整合测试</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar platform-topbar">
+        <div class="crumb">
+          <div class="path" id="modulePath">计划与交付 <span class="sep">/</span> 预测管理</div>
+          <div class="desc" id="moduleDescription">销售预测输入、共识与版本管理</div>
+        </div>
+        <label class="mobile-module-picker">
+          <span class="sr-only">选择模块</span>
+          <select id="mobileModuleSelect" aria-label="选择测试模块">
+            <option value="forecast">预测管理</option>
+            <option value="logistic">物流交付</option>
+            <option value="shipment">发货履约</option>
+            <option value="performance">经营分析</option>
+          </select>
+        </label>
+        <div class="spacer"></div>
+        <div class="top-context" aria-label="测试环境状态">
+          <span class="data-source"><span class="sync-dot" aria-hidden="true"></span><span data-i18n="snapshot">本地快照 · 15张表</span></span>
+          <label class="top-control">
+            <span class="sr-only">界面语言</span>
+            <select id="localeSelect" aria-label="界面语言">
+              <option value="zh-CN">中文</option>
+              <option value="en-GB">English</option>
+            </select>
+          </label>
+          <button class="top-control account-control" type="button" id="accountButton" title="本地测试账号">payton.ppc · 平台所有者</button>
+        </div>
+      </header>
+
+      <div class="environment-strip" role="status">
+        <div>
+          <strong data-i18n="testMode">原生整合测试</strong>
+          <span id="testModeDescription">业务数据为只读快照；编辑操作仅保留在当前浏览器会话。</span>
+        </div>
+        <span class="render-status" id="renderStatus">已就绪</span>
+      </div>
+
+      <section class="content" aria-live="polite">
+        <div class="content-inner" id="view"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    window.ROUTES = {
+      forecast: { overline: "计划与交付 · FORECAST MANAGEMENT" },
+      logistic: { overline: "计划与交付 · LOGISTICS DELIVERY" },
+      shipment: { overline: "计划与交付 · SHIPMENT FULFILMENT" },
+      performance: { overline: "经营管理 · BUSINESS ANALYSIS" }
+    };
+  </script>
+  <script src="assets/data.js"></script>
+  <script src="assets/shared.js"></script>
+  <script src="assets/forecast.js"></script>
+  <script src="assets/logistic.js"></script>
+  <script src="assets/shipment.js"></script>
+  <script src="assets/performance.js"></script>
+  <script src="assets/platform-shell.js"></script>
+</body>
+</html>
