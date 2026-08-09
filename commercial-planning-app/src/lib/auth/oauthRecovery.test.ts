@@ -6,12 +6,13 @@ import {
 
 describe("Supabase OAuth recovery", () => {
   it("recovers from overwritten or missing PKCE verifier state", () => {
-    expect(isRecoverableSupabaseExchangeError({ code: "bad_code_verifier" })).toBe(true);
+    expect(isRecoverableSupabaseExchangeError({ code: "bad_code_verifier", status: 400 })).toBe(true);
     expect(isRecoverableSupabaseExchangeError({ code: "flow_state_not_found" })).toBe(true);
+    expect(isRecoverableSupabaseExchangeError({ code: "validation_failed", status: 400 })).toBe(true);
   });
 
   it("does not hide unrelated authentication failures", () => {
-    expect(isRecoverableSupabaseExchangeError({ code: "unexpected_failure" })).toBe(false);
+    expect(isRecoverableSupabaseExchangeError({ code: "unexpected_failure", status: 503 })).toBe(false);
     expect(isRecoverableSupabaseExchangeError(null)).toBe(false);
   });
 
