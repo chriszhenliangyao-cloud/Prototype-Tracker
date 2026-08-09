@@ -911,6 +911,12 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
   Summary.
 - The release contains navigation, layout and route changes only. It requires no
   schema migration, seed, import or application-data write.
+- Production deployment `dpl_4W4gbTeXoGUhwziCJVoGKTZ4CUUW` is `READY`, aliased
+  to `https://operations-planning-hub.vercel.app`, and reports release
+  `7459e0c86357`. Health, BP and Logistics Delivery route checks pass.
+- Exact read-only production data verification matched before and after release:
+  44 application tables, 4,246 rows and aggregate fingerprint
+  `39459090f594a7e80aa65d746dc6c08c`.
 
 ### Sidebar and Route Verification
 
