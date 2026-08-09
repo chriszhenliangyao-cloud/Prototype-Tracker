@@ -31,6 +31,11 @@ Maintain and extend the bilingual operations collaboration platform. The latest 
   Browser screenshots confirm one sidebar for the workbench and the embedded
   Forecast workspace. Database-backed legacy content requires the production
   Supabase public configuration and is verified after deployment.
+- Production deployment is ready at
+  `https://operations-planning-hub.vercel.app` with release header
+  `28eb8a6f8878`. The pre-release and post-release read-only database snapshots
+  both contain 44 application tables and 4,244 rows with the identical aggregate
+  fingerprint `4e55a5c40fa6d27713ea690708cf688a`; no production records changed.
 
 ## 2026-08-09 Cloud Release Candidate
 
