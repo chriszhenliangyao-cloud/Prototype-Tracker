@@ -5,6 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Cache-Control" content="no-store">
   <title>ERP 模块原生整合测试 · 运营协同平台</title>
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const embedded = params.get("embedded") === "1";
+      window.OPERATIONS_PLATFORM_EMBEDDED = embedded;
+      if (embedded) {
+        document.documentElement.classList.add("platform-embedded-module");
+        return;
+      }
+      if (!/^https?:$/.test(window.location.protocol)) return;
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const moduleKey = hashParams.get("module") || "forecast";
+      const logisticsView = hashParams.get("view") || "shipmentSummary";
+      const routes = {
+        forecast: "/platform/planning/forecast",
+        shipmentSummary: "/platform/planning/logistics?view=shipmentSummary",
+        shipment: "/platform/planning/logistics?view=shipment",
+        logistic: `/platform/planning/logistics?view=${encodeURIComponent(logisticsView)}`,
+        bp: "/platform/business/bp",
+        performance: "/platform/business/analysis",
+        businessReview: "/platform/business/analysis",
+        functions: "/platform/admin/functions",
+        prototypeManagement: "/platform/admin/prototypes"
+      };
+      window.location.replace(routes[moduleKey] || "/platform/workbench");
+    })();
+  </script>
   <link rel="stylesheet" href="assets/module-base.css">
   <link rel="stylesheet" href="assets/platform-integration.css">
   <link rel="stylesheet" href="assets/forecast.css?v=20260809-bp-context-4">

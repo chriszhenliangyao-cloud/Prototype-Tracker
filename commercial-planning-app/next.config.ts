@@ -6,6 +6,11 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const platformFrameAncestors =
   process.env.PLATFORM_FRAME_ANCESTORS?.trim() ||
   "'self' file: http://127.0.0.1:4173 http://localhost:4173";
+const platformRelease = (
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.NEXT_PUBLIC_PLATFORM_RELEASE ||
+  "local"
+).slice(0, 12);
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
@@ -13,8 +18,30 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/platform/index.html",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        source: "/platform-native/index.html",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
         source: "/(.*)",
         headers: [
+          {
+            key: "X-Platform-Release",
+            value: platformRelease
+          },
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000"

@@ -109,6 +109,32 @@ body {
   font-size: 9px;
 }
 
+.platform-embedded-module,
+.platform-embedded-module body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.platform-embedded-module .native-test-shell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+.platform-embedded-module .platform-sidebar,
+.platform-embedded-module .platform-topbar,
+.platform-embedded-module .environment-strip {
+  display: none !important;
+}
+
+.platform-embedded-module .native-test-shell > .main {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .platform-sidebar .sidebar-foot {
   padding: 9px 12px;
   font-size: 9px;

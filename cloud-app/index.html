@@ -5,6 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>产销计划管理工具</title>
   <link rel="icon" href="data:,">
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const embedded = params.get("embedded") === "1";
+      window.OPERATIONS_PLATFORM_EMBEDDED = embedded;
+      window.OPERATIONS_PLATFORM_CANONICAL_ROUTES = {
+        home: "/platform/workbench",
+        roadmap: "/platform/planning/roadmap",
+        projects: "/platform/planning/projects",
+        sales: "/platform/planning/sales",
+        forecast: "/platform/planning/forecast",
+        logistics: "/platform/planning/logistics",
+        "market-launch": "/platform/market/launch",
+        "market-campaign": "/platform/market/campaigns",
+        "market-assets": "/platform/market/assets",
+        "promo-approvals": "/platform/collaboration/monthly-approvals",
+        "other-approvals": "/platform/collaboration/other-approvals",
+        tasks: "/platform/collaboration/tasks",
+        exceptions: "/platform/collaboration/exceptions",
+        "business-overview": "/platform/business/overview",
+        "business-bp": "/platform/business/bp",
+        "business-analysis": "/platform/business/analysis",
+        "value-chain": "/platform/business/value-chain/on-sale",
+        settlements: "/platform/business/settlements",
+        functions: "/platform/admin/functions",
+        "prototype-management": "/platform/admin/prototypes",
+        system: "/platform/system/master-data"
+      };
+      if (embedded) {
+        document.documentElement.classList.add("platform-embedded-module");
+        return;
+      }
+      if (!/^https?:$/.test(window.location.protocol)) return;
+      const rawHash = window.location.hash.replace(/^#/, "");
+      const hashParams = new URLSearchParams(rawHash.includes("=") ? rawHash : `module=${rawHash || "home"}`);
+      const moduleKey = hashParams.get("module") || "home";
+      let target = window.OPERATIONS_PLATFORM_CANONICAL_ROUTES[moduleKey] || "/platform/workbench";
+      if (moduleKey === "value-chain" && hashParams.get("view") === "new-product") {
+        target = "/platform/business/value-chain/new-product";
+      }
+      window.location.replace(target);
+    })();
+  </script>
   <style>
     :root {
       color-scheme: light;
@@ -38,6 +81,39 @@
       background: var(--bg);
       color: var(--text);
       font-size: 12px;
+    }
+
+    html.platform-embedded-module,
+    html.platform-embedded-module body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html.platform-embedded-module .platform-shell {
+      display: block;
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+    }
+
+    html.platform-embedded-module .platform-sidebar,
+    html.platform-embedded-module .platform-header {
+      display: none !important;
+    }
+
+    html.platform-embedded-module .platform-main {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html.platform-embedded-module .platform-main > .app {
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      overflow: auto;
+      padding: 0;
     }
 
     button,
@@ -7496,10 +7572,10 @@
     let valueChainSimulationView = "on-sale";
     let commercialPlanningIntentTimer = null;
     const nativePlatformModuleRoutes = {
-      forecast: "/platform-native/index.html#module=forecast",
-      logistics: "/platform-native/index.html#module=logistic",
+      forecast: "/platform/planning/forecast",
+      logistics: "/platform/planning/logistics",
       "business-bp": "/platform/business/bp",
-      "business-analysis": "/platform-native/index.html#module=performance",
+      "business-analysis": "/platform/business/analysis",
       "promo-approvals": "/platform/collaboration/monthly-approvals",
       "other-approvals": "/platform/collaboration/other-approvals",
       system: "/platform/system/master-data"
@@ -8835,6 +8911,32 @@
       } catch {
         return pathname;
       }
+    }
+
+    function canonicalPlatformRouteFor(moduleKey, commercialRoute = "") {
+      let pathname = window.OPERATIONS_PLATFORM_CANONICAL_ROUTES?.[moduleKey] || "";
+      if (moduleKey === "value-chain") {
+        pathname = valueChainSimulationView === "new-product"
+          ? "/platform/business/value-chain/new-product"
+          : "/platform/business/value-chain/on-sale";
+      }
+      if (!pathname || !commercialRoute) return pathname;
+      try {
+        const source = new URL(commercialRoute, window.location.origin);
+        return `${pathname}${source.search}`;
+      } catch {
+        return pathname;
+      }
+    }
+
+    function navigateUnifiedPlatform(href) {
+      if (!href) return false;
+      if (window.OPERATIONS_PLATFORM_EMBEDDED && window.parent !== window) {
+        window.parent.postMessage({ type: "operations-platform:navigate", href }, window.location.origin);
+        return true;
+      }
+      window.location.assign(href);
+      return true;
     }
 
     function scheduleCommercialPlanningIntentPreload(moduleKey) {
@@ -14534,9 +14636,11 @@
         flushAutosave("inventory-adjustment");
         const requestedModule = moduleButton.getAttribute("data-module") || "home";
         const commercialRoute = moduleButton.getAttribute("data-commercial-route");
+        const canonicalRoute = canonicalPlatformRouteFor(requestedModule, commercialRoute || "");
+        if (window.OPERATIONS_PLATFORM_EMBEDDED && navigateUnifiedPlatform(canonicalRoute)) return;
         const nativeRoute = nativePlatformRouteFor(requestedModule, commercialRoute || "");
         if (nativeRoute) {
-          window.location.assign(nativeRoute);
+          navigateUnifiedPlatform(nativeRoute);
           return;
         }
         activeModule = requestedModule;

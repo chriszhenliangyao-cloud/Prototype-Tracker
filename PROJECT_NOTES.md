@@ -4,6 +4,34 @@
 
 Maintain and extend the bilingual operations collaboration platform. The latest native workspaces are now released as an authenticated read-only production pilot inside the unified cloud platform. Formal cloud modules and production records remain the source of truth until their corresponding native backend contracts pass authenticated UAT and explicit cutover acceptance.
 
+## 2026-08-09 Unified Platform Shell Release Candidate
+
+- Replaced the three competing navigation shells with one Next.js platform shell
+  and a single module registry. Every visible sidebar item now uses a canonical
+  `/platform/...` route; legacy and native static workspaces render only their
+  business content inside same-origin module containers.
+- Old `/platform/index.html#module=...` and
+  `/platform-native/index.html#module=...` bookmarks redirect before rendering
+  to the corresponding canonical route. Cross-module actions inside embedded
+  workspaces send navigation back to the parent shell instead of opening a
+  second interface.
+- Removed mixed `Beta`, `测试` and `试运行` labels from the visible platform
+  navigation. Only registry-controlled pilot modules display `试运行`; formal
+  modules have no test badge. The footer and HTTP response expose one release
+  identifier, while old shell HTML is revalidated to avoid stale mixed assets.
+- The root URL now redirects directly to `/platform/workbench`, so refresh keeps
+  the current canonical module instead of falling back to the old hash shell.
+  Approval badge counts come from one authenticated read-only summary endpoint.
+- This release contains no schema migration, seed, import or application data
+  mutation. The deployment gate uses an order-independent read-only fingerprint
+  across all 44 `public` and `commercial_planning` application tables before and
+  after release.
+- Local verification passes the unified-shell test suite, TypeScript, the
+  PostgreSQL-targeted Vercel build, copy-scope validation and `git diff --check`.
+  Browser screenshots confirm one sidebar for the workbench and the embedded
+  Forecast workspace. Database-backed legacy content requires the production
+  Supabase public configuration and is verified after deployment.
+
 ## 2026-08-09 Cloud Release Candidate
 
 - The latest native local workspaces are packaged into the unified Vercel app at

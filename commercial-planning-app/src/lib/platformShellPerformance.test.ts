@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const platformShell = readFileSync(
-  new URL("../../public/platform/index.html", import.meta.url),
+  new URL("../../../cloud-app/index.html", import.meta.url),
   "utf8"
 );
 
@@ -50,18 +50,39 @@ describe("commercial planning platform shell performance", () => {
     expect(roadmapApp).toContain('document.documentElement.classList.toggle("embedded", EMBEDDED_MODE)');
   });
 
-  it("opens copied commercial modules through native platform routes", () => {
-    expect(platformShell).toContain("const nativePlatformModuleRoutes = {");
-    expect(platformShell).toContain('"business-bp": "/platform/business/bp"');
-    expect(platformShell).toContain('"promo-approvals": "/platform/collaboration/monthly-approvals"');
-    expect(platformShell).toContain('"other-approvals": "/platform/collaboration/other-approvals"');
-    expect(platformShell).toContain('system: "/platform/system/master-data"');
-    expect(platformShell).toContain('window.location.assign(nativeRoute)');
+  it("uses canonical routes and embedded content without exposing another shell", () => {
+    const nativeShell = readFileSync(
+      join(process.cwd(), "src/components/platform/PlatformShell.tsx"),
+      "utf8"
+    );
+    const moduleRegistry = readFileSync(
+      join(process.cwd(), "src/lib/platform/modules.ts"),
+      "utf8"
+    );
+    const embeddedPage = readFileSync(
+      join(process.cwd(), "src/app/platform/[...modulePath]/page.tsx"),
+      "utf8"
+    );
+
+    expect(moduleRegistry).toContain('href: "/platform/planning/projects"');
+    expect(moduleRegistry).toContain('href: "/platform/planning/forecast"');
+    expect(moduleRegistry).toContain('href: "/platform/business/analysis"');
+    expect(moduleRegistry).toContain('?embedded=1#module=projects');
+    expect(moduleRegistry).toContain('?embedded=1#module=forecast');
+    expect(nativeShell).not.toContain('legacy?: boolean');
+    expect(nativeShell).not.toContain('/platform/index.html#module=');
+    expect(nativeShell).toContain('operations-platform:navigate');
+    expect(embeddedPage).toContain('findEmbeddedPlatformModule');
+    expect(embeddedPage).toContain('requireUser(pathname)');
   });
 
   it("enforces protected navigation and Master Data access outside role inheritance", () => {
     const nativeShell = readFileSync(
       join(process.cwd(), "src/components/platform/PlatformShell.tsx"),
+      "utf8"
+    );
+    const moduleRegistry = readFileSync(
+      join(process.cwd(), "src/lib/platform/modules.ts"),
       "utf8"
     );
     const authServer = readFileSync(
@@ -71,14 +92,15 @@ describe("commercial planning platform shell performance", () => {
 
     expect(platformShell).toContain('protectedModulePermissionForUser("roadmap"');
     expect(platformShell).toContain('protectedModulePermissionForUser("master_data"');
-    expect(nativeShell).toContain('protectedModule: "roadmap"');
-    expect(nativeShell).toContain('protectedModule: "master_data"');
+    expect(moduleRegistry).toContain('protectedModule: "roadmap"');
+    expect(moduleRegistry).toContain('protectedModule: "master_data"');
+    expect(nativeShell).toContain('protectedModules[item.protectedModule]');
     expect(authServer).toContain("getCurrentProtectedModulePermissions");
     expect(authServer).toContain('getProtectedModulePermission("master_data")');
     expect(authServer).toContain('getProtectedModulePermission("master_data")) === "manage"');
   });
 
-  it("prefetches native workspaces on intent without creating embedded documents", () => {
+  it("prefetches canonical routes and same-origin module runtimes on intent", () => {
     expect(platformShell).toContain("scheduleCommercialPlanningIntentPreload");
     expect(platformShell).toContain('document.visibilityState !== "visible"');
     expect(platformShell).toContain('link.rel = "prefetch"');
@@ -86,9 +108,18 @@ describe("commercial planning platform shell performance", () => {
     expect(platformShell).not.toContain("ensureCommercialPlanningFrame");
     expect(platformShell).not.toContain('document.createElement("iframe")');
     expect(platformShell).not.toContain("activateCommercialPlanningWorkspace");
+    const nativeShell = readFileSync(
+      join(process.cwd(), "src/components/platform/PlatformShell.tsx"),
+      "utf8"
+    );
+    expect(nativeShell).toContain("router.prefetch(item.href)");
+    expect(nativeShell).toContain('link.rel = "prefetch"');
   });
 
   it("restores legacy module navigation and redirects native modules before rendering", () => {
+    expect(platformShell).toContain("OPERATIONS_PLATFORM_CANONICAL_ROUTES");
+    expect(platformShell).toContain('params.get("embedded") === "1"');
+    expect(platformShell).toContain('window.location.replace(target)');
     expect(platformShell).toContain("platformNavigationFromHash");
     expect(platformShell).toContain("storedPlatformNavigation");
     expect(platformShell).toContain("persistPlatformNavigation");

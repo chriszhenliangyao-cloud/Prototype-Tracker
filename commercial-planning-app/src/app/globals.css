@@ -136,6 +136,13 @@ body:has(.native-platform-shell) > div > main {
   transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
+.native-platform-nav-item > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .native-platform-nav-item:hover {
   background: #eef3fb;
   color: #172033;
@@ -147,6 +154,13 @@ body:has(.native-platform-shell) > div > main {
   color: var(--platform-blue);
 }
 
+.native-platform-nav-meta {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+}
+
 .native-platform-nav-item small {
   flex: 0 0 auto;
   padding: 2px 4px;
@@ -154,6 +168,19 @@ body:has(.native-platform-shell) > div > main {
   background: #e9f7ef;
   color: #11845b;
   font-size: 8px;
+  line-height: 1.2;
+}
+
+.native-platform-nav-item small.count {
+  min-width: 16px;
+  background: #edf1f7;
+  color: #65738a;
+  text-align: center;
+}
+
+.native-platform-nav-item small.count.active {
+  background: #fff0f1;
+  color: #df2f3d;
 }
 
 .native-platform-sidebar-foot {
@@ -166,11 +193,27 @@ body:has(.native-platform-shell) > div > main {
   font-size: 8px;
 }
 
-.native-platform-sidebar-foot span {
+.native-platform-sidebar-foot > span:first-child {
+  flex: 0 0 auto;
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: #11845b;
+}
+
+.native-platform-release {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.native-platform-release small {
+  color: #8a97aa;
+  font-size: 7px;
+  font-weight: 600;
 }
 
 .native-platform-main {
@@ -285,6 +328,7 @@ body:has(.native-platform-shell) > div > main {
   gap: 8px;
 }
 
+.native-platform-module-frame,
 .native-platform-settlement-frame {
   display: block;
   width: 100%;

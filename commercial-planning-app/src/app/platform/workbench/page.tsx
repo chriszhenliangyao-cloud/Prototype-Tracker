@@ -18,8 +18,8 @@ export default function PlatformWorkbenchPage() {
           <span>跨模块个人执行清单</span>
         </div>
         <div className="native-workbench-quicklinks" aria-label="常用入口">
-          <Link href="/platform/index.html#module=projects">项目跟进</Link>
-          <Link href="/platform/index.html#module=sales">产销管理</Link>
+          <Link href="/platform/planning/projects">项目跟进</Link>
+          <Link href="/platform/planning/sales">产销管理</Link>
           <Link href="/platform/business/value-chain/on-sale">价值链测算</Link>
         </div>
       </section>

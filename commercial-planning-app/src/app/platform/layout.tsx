@@ -12,8 +12,15 @@ export default async function NativePlatformLayout({
   const protectedModules = session
     ? await getCurrentProtectedModulePermissions()
     : {};
+  const releaseId = process.env.VERCEL_GIT_COMMIT_SHA
+    || process.env.NEXT_PUBLIC_PLATFORM_RELEASE
+    || "local";
   return (
-    <PlatformShell session={session} protectedModules={protectedModules}>
+    <PlatformShell
+      session={session}
+      protectedModules={protectedModules}
+      releaseId={releaseId}
+    >
       {children}
     </PlatformShell>
   );

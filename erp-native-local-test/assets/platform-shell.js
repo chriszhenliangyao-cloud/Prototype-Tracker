@@ -107,18 +107,18 @@
   const existingPlatformRoutes = {
     home: "/platform/workbench",
     workbench: "/platform/workbench",
-    projects: "/platform/index.html#module=projects",
-    sales: "/platform/index.html#module=sales",
-    launch: "/platform/index.html#module=market-launch",
-    campaigns: "/platform/index.html#module=market-campaign",
-    assets: "/platform/index.html#module=market-assets",
+    projects: "/platform/planning/projects",
+    sales: "/platform/planning/sales",
+    launch: "/platform/market/launch",
+    campaigns: "/platform/market/campaigns",
+    assets: "/platform/market/assets",
     monthly: "/platform/collaboration/monthly-approvals",
     other: "/platform/collaboration/other-approvals",
-    tasks: "/platform/index.html#module=tasks",
-    exceptions: "/platform/index.html#module=exceptions",
-    overview: "/platform/index.html#module=business-overview",
+    tasks: "/platform/collaboration/tasks",
+    exceptions: "/platform/collaboration/exceptions",
+    overview: "/platform/business/overview",
     "value-chain": "/platform/business/value-chain/on-sale",
-    settlement: "/platform/index.html#module=settlements",
+    settlement: "/platform/business/settlements",
     system: "/platform/system/master-data"
   };
 
@@ -234,7 +234,11 @@
     if (existingButton) {
       const route = existingPlatformRoutes[existingButton.getAttribute("data-existing-module")];
       if (window.location.protocol === "https:" && route) {
-        window.location.assign(route);
+        if (window.OPERATIONS_PLATFORM_EMBEDDED && window.parent !== window) {
+          window.parent.postMessage({ type: "operations-platform:navigate", href: route }, window.location.origin);
+        } else {
+          window.location.assign(route);
+        }
         return;
       }
       window.S.toast(locale === "en-GB"
