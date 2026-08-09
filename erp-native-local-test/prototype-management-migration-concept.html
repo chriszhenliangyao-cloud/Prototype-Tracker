@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>样机管理迁移方案示例</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --soft-panel: #f8faff;
+      --line: #d9e2ef;
+      --line-strong: #c8d4e5;
+      --text: #172033;
+      --muted: #66758d;
+      --faint: #8e9bb0;
+      --blue: #2861e8;
+      --blue-soft: #edf3ff;
+      --green: #10845a;
+      --green-soft: #eaf8f1;
+      --orange: #d66a00;
+      --orange-soft: #fff5e8;
+      --red: #e32636;
+      --red-soft: #fff0f2;
+      --radius: 7px;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-size: 12px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-width: 1180px; min-height: 100vh; display: grid; grid-template-columns: 188px 1fr; }
+
+    .sidebar { background: #fff; border-right: 1px solid var(--line); padding: 14px 11px; }
+    .brand { display: flex; gap: 9px; align-items: center; padding: 0 2px 16px; border-bottom: 1px solid var(--line); }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; background: #182136; color: #fff; font-size: 12px; font-weight: 900; }
+    .brand strong, .brand small { display: block; }
+    .brand strong { font-size: 12px; }
+    .brand small { margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .nav-home { padding: 14px 9px 9px; color: var(--muted); font-weight: 700; }
+    .nav-group { margin-top: 8px; padding-top: 9px; border-top: 1px solid var(--line); }
+    .nav-label { padding: 0 9px 5px; color: var(--faint); font-size: 9px; font-weight: 800; }
+    .nav-item { width: 100%; height: 32px; display: flex; align-items: center; justify-content: space-between; border: 0; border-left: 3px solid transparent; background: transparent; color: #526078; padding: 0 8px; text-align: left; font-weight: 650; }
+    .nav-item.active { border-left-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
+    .badge-count { min-width: 19px; padding: 2px 5px; border-radius: 9px; background: var(--red-soft); color: var(--red); font-size: 9px; text-align: center; }
+
+    .main { min-width: 0; }
+    .topbar { height: 49px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px; background: #fff; border-bottom: 1px solid var(--line); }
+    .breadcrumb { font-size: 11px; font-weight: 800; }
+    .breadcrumb span { color: var(--muted); font-weight: 500; }
+    .account { display: flex; gap: 7px; align-items: center; }
+    .account-chip { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 6px 9px; color: var(--muted); }
+    .sync { color: var(--green); }
+
+    .page { padding: 13px 15px 18px; }
+    .page-head { min-height: 53px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .eyebrow { color: var(--blue); font-size: 9px; font-weight: 900; text-transform: uppercase; }
+    h1 { margin: 4px 0 2px; font-size: 22px; line-height: 1.1; letter-spacing: 0; }
+    .subtitle { color: var(--muted); }
+    .actions { display: flex; gap: 7px; }
+    .btn { height: 31px; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; color: var(--text); padding: 0 11px; font-weight: 750; }
+    .btn.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .btn.small { height: 27px; padding: 0 8px; font-size: 11px; }
+
+    .tabs { height: 40px; display: flex; gap: 25px; align-items: end; border: 1px solid var(--line); border-radius: var(--radius) var(--radius) 0 0; background: #fff; padding: 0 13px; }
+    .tab { height: 39px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); padding: 0 3px; font-weight: 800; }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    .filters { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(112px, .68fr)) auto; gap: 8px; align-items: end; padding: 9px 11px; border: 1px solid var(--line); border-top: 0; background: #fff; }
+    .field { display: grid; gap: 4px; min-width: 0; }
+    .field label { color: var(--muted); font-size: 9px; font-weight: 850; }
+    .field input, .field select { width: 100%; height: 30px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; color: var(--text); padding: 0 8px; font-weight: 650; }
+    .risk-toggle { height: 30px; display: flex; align-items: center; gap: 7px; white-space: nowrap; color: var(--muted); font-weight: 700; }
+    .switch { width: 30px; height: 17px; border-radius: 10px; background: #ccd6e5; padding: 2px; }
+    .switch::before { content: ""; display: block; width: 13px; height: 13px; border-radius: 50%; background: #fff; }
+
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 9px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; }
+    .metric { min-height: 68px; padding: 10px 13px; border-right: 1px solid var(--line); }
+    .metric:last-child { border-right: 0; }
+    .metric span, .metric small { display: block; color: var(--muted); }
+    .metric strong { display: block; margin: 3px 0 1px; font-size: 19px; }
+    .metric.alert strong { color: var(--red); }
+
+    .content { display: grid; grid-template-columns: minmax(0, 1fr) 282px; gap: 9px; margin-top: 9px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; overflow: hidden; }
+    .panel-head { min-height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { margin: 0; font-size: 13px; }
+    .panel-head span { color: var(--muted); font-size: 10px; }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { height: 43px; background: #f3f6fb; color: #53627a; font-size: 10px; text-align: left; padding: 7px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    th:last-child, td:last-child { border-right: 0; }
+    td { height: 76px; padding: 8px; vertical-align: middle; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    tr:last-child td { border-bottom: 0; }
+    td strong, td small { display: block; }
+    td strong { font-size: 11px; line-height: 1.35; }
+    td small { margin-top: 3px; color: var(--muted); font-size: 9px; line-height: 1.4; }
+    .project { border-left: 3px solid var(--green); }
+    tr.risk .project { border-left-color: var(--red); }
+    tr.watch .project { border-left-color: var(--orange); }
+    .model { font-size: 12px; font-weight: 850; }
+    .chip { display: inline-flex; align-items: center; min-height: 21px; padding: 2px 7px; border-radius: 5px; font-size: 9px; font-weight: 850; }
+    .chip.green { background: var(--green-soft); color: var(--green); }
+    .chip.blue { background: var(--blue-soft); color: var(--blue); }
+    .chip.orange { background: var(--orange-soft); color: var(--orange); }
+    .chip.red { background: var(--red-soft); color: var(--red); }
+    .chip.gray { background: #eef1f5; color: var(--muted); }
+    .progress-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+    .progress { height: 5px; border-radius: 3px; background: #e5eaf2; overflow: hidden; }
+    .progress i { display: block; height: 100%; background: var(--blue); }
+    .movement { padding-left: 8px; border-left: 2px solid var(--blue); }
+    .danger { color: var(--red); }
+    .warning { color: var(--orange); }
+
+    .queue-tabs { display: flex; gap: 5px; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+    .queue { display: grid; }
+    .queue-item { padding: 10px 11px; border-bottom: 1px solid var(--line); }
+    .queue-item:last-child { border-bottom: 0; }
+    .queue-top { display: flex; justify-content: space-between; gap: 8px; }
+    .queue-item h3 { margin: 5px 0 3px; font-size: 11px; line-height: 1.4; }
+    .queue-item p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
+    .queue-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; color: var(--muted); font-size: 9px; }
+
+    .sync-band { display: grid; grid-template-columns: 1fr auto 1.1fr auto 1fr; align-items: center; gap: 10px; margin-top: 9px; padding: 9px 12px; border: 1px solid #cbd9f6; border-radius: var(--radius); background: var(--blue-soft); }
+    .sync-node strong, .sync-node small { display: block; }
+    .sync-node small { margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .arrow { color: var(--blue); font-size: 18px; font-weight: 900; }
+    .owner { text-align: right; color: var(--muted); font-size: 9px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">OP</div><div><strong>运营协同平台</strong><small>欧洲业务运营</small></div></div>
+      <div class="nav-home">我的工作台</div>
+      <div class="nav-group"><div class="nav-label">计划与交付</div><button class="nav-item">项目跟进 <span class="badge-count">34</span></button><button class="nav-item">产销管理</button><button class="nav-item">预测管理</button><button class="nav-item">物流交付</button></div>
+      <div class="nav-group"><div class="nav-label">市场增长</div><button class="nav-item">新品上市</button><button class="nav-item">营销活动</button><button class="nav-item">营销物料</button></div>
+      <div class="nav-group"><div class="nav-label">协同中心</div><button class="nav-item">我的待办 <span class="badge-count">7</span></button><button class="nav-item">异常中心 <span class="badge-count">12</span></button></div>
+      <div class="nav-group"><div class="nav-label">专业与管理</div><button class="nav-item">职能工作台</button><button class="nav-item active">样机管理 <span class="badge-count">3</span></button><button class="nav-item">系统管理</button></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div class="breadcrumb">专业与管理 <span>/ 职能工作台 / 样机管理</span></div><div class="account"><span class="account-chip sync">● 已同步</span><span class="account-chip">中文⌄</span><span class="account-chip">payton.ppc · 平台所有者</span></div></header>
+      <div class="page">
+        <section class="page-head"><div><div class="eyebrow">PROTOTYPE OPERATIONS</div><h1>样机管理</h1><div class="subtitle">项目样机需求、实物流转与归还记录统一维护</div></div><div class="actions"><button class="btn">导出样机台账</button><button class="btn">打开项目跟进</button><button class="btn primary">＋ 新建样机需求</button></div></section>
+
+        <nav class="tabs"><button class="tab active">项目总览</button><button class="tab">样机流转</button><button class="tab">借用与归还</button><button class="tab">历史记录</button></nav>
+        <section class="filters">
+          <div class="field"><label>项目 / 型号</label><input value="" placeholder="输入或选择项目 / 型号"></div>
+          <div class="field"><label>项目阶段</label><select><option>全部阶段</option></select></div>
+          <div class="field"><label>样机类型</label><select><option>全部类型</option></select></div>
+          <div class="field"><label>流转状态</label><select><option>全部状态</option></select></div>
+          <div class="field"><label>负责人</label><select><option>全部负责人</option></select></div>
+          <div class="risk-toggle"><span class="switch"></span>仅看异常</div>
+        </section>
+
+        <section class="summary">
+          <div class="metric"><span>样机项目</span><strong>6</strong><small>当前跟进范围</small></div>
+          <div class="metric"><span>需求 / 已备齐</span><strong>28 / 19</strong><small>整体准备度 68%</small></div>
+          <div class="metric"><span>运输中</span><strong>5</strong><small>涉及 3 个项目</small></div>
+          <div class="metric"><span>待归还</span><strong>4</strong><small>2 件未来7天到期</small></div>
+          <div class="metric alert"><span>异常样机</span><strong>3</strong><small>逾期 1 · 阻塞 2</small></div>
+        </section>
+
+        <section class="content">
+          <div class="panel">
+            <div class="panel-head"><h2>项目样机台账</h2><span>6个项目 · 28件样机 · 按风险与DDL排序</span></div>
+            <table>
+              <colgroup><col style="width:16%"><col style="width:12%"><col style="width:13%"><col style="width:12%"><col style="width:14%"><col style="width:15%"><col style="width:10%"><col style="width:8%"></colgroup>
+              <thead><tr><th>项目 / 产品</th><th>样机需求</th><th>准备度</th><th>当前节点</th><th>数量 / 位置</th><th>最近流转</th><th>DDL / 负责人</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr class="risk"><td class="project"><span class="model">PX51</span><strong>MagPro Neo 10K Qi2.0</strong><small>试产 · 8月22日上市</small></td><td><strong>DVT2 工程样机</strong><small>需求 6件 · 市场/质量</small></td><td><div class="progress-row"><div class="progress"><i style="width:50%"></i></div><strong>3/6</strong></div><small>2项任务阻塞</small></td><td><span class="chip red">运输延误</span><small>等待法国签收</small></td><td><strong>在库 1 · 运输中 2</strong><small>深圳 1 · 法国 2</small></td><td><div class="movement"><strong>CN → FR · DHL</strong><small>ETA 8月12日 · 延误2天</small></div></td><td><strong class="danger">8月10日</strong><small>Evan</small></td><td><button class="btn small primary">处理</button></td></tr>
+                <tr class="watch"><td class="project"><span class="model">WAL101</span><strong>Leopard Fold Charger 100W</strong><small>DVT2 · 9月20日上市</small></td><td><strong>认证 / 展示样机</strong><small>需求 5件 · 认证/销售</small></td><td><div class="progress-row"><div class="progress"><i style="width:60%"></i></div><strong>3/5</strong></div><small>待补2件</small></td><td><span class="chip orange">测试中</span><small>EU插头安全预检</small></td><td><strong>实验室 2 · 借出 1</strong><small>Munich Lab · Nina</small></td><td><div class="movement"><strong>送检 · EVT-2608-14</strong><small>预计8月16日完成</small></div></td><td><strong class="warning">8月16日</strong><small>Nina</small></td><td><button class="btn small">查看</button></td></tr>
+                <tr><td class="project"><span class="model">WM321</span><strong>MagPro 3-in-1 Station</strong><small>DVT2 · 10月16日上市</small></td><td><strong>拍摄 / 渠道样机</strong><small>需求 7件 · 市场/销售</small></td><td><div class="progress-row"><div class="progress"><i style="width:71%"></i></div><strong>5/7</strong></div><small>按计划推进</small></td><td><span class="chip blue">已签收</span><small>待分配使用人</small></td><td><strong>法国办公室 5</strong><small>可用 2 · 已预约 3</small></td><td><div class="movement"><strong>FR仓 → Paris Office</strong><small>8月8日 · 已签收</small></div></td><td><strong>8月14日</strong><small>Evan</small></td><td><button class="btn small">查看</button></td></tr>
+                <tr><td class="project"><span class="model">PM61-Black</span><strong>MagPro Slim 10K Qi2.2</strong><small>DVT1 · 11月5日上市</small></td><td><strong>工程验证样机</strong><small>需求 4件 · 研发/质量</small></td><td><div class="progress-row"><div class="progress"><i style="width:100%"></i></div><strong>4/4</strong></div><small>全部备齐</small></td><td><span class="chip green">已完成</span><small>验证记录已归档</small></td><td><strong>研发 2 · 质量 2</strong><small>状态良好</small></td><td><div class="movement"><strong>样机归档</strong><small>8月5日 · Evan确认</small></div></td><td><strong>已完成</strong><small>Evan</small></td><td><button class="btn small">查看</button></td></tr>
+                <tr class="watch"><td class="project"><span class="model">P51L-P2</span><strong>Pocket 20K 45W Refresh</strong><small>项目立项 · 12月3日上市</small></td><td><strong>样机计划</strong><small>需求待确认 · 销售/市场</small></td><td><div class="progress-row"><div class="progress"><i style="width:10%"></i></div><strong>0/4</strong></div><small>待确认收件人</small></td><td><span class="chip gray">未开始</span><small>等待样机计划</small></td><td><strong>尚未生成实物</strong><small>数量待锁定</small></td><td><div class="movement"><strong>暂无流转</strong><small>下一步：确认需求</small></div></td><td><strong>9月5日</strong><small>Evan</small></td><td><button class="btn small">配置</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <aside class="panel">
+            <div class="panel-head"><h2>异常与临期</h2><span>3项</span></div>
+            <div class="queue-tabs"><span class="chip red">阻塞 2</span><span class="chip orange">临期 1</span><span class="chip gray">全部 3</span></div>
+            <div class="queue">
+              <article class="queue-item"><div class="queue-top"><span class="chip red">运输延误</span><strong class="danger">逾期2天</strong></div><h3>PX51 · DVT2样机法国签收延误</h3><p>DHL清关资料待补充，影响质量验证与拍摄排期。</p><div class="queue-foot"><span>Evan · DDL 8月10日</span><button class="btn small primary">处理</button></div></article>
+              <article class="queue-item"><div class="queue-top"><span class="chip red">需求阻塞</span><strong>今日</strong></div><h3>PX51 · 尚缺3件渠道样机</h3><p>首批样机不足，需确认追加生产和收件优先级。</p><div class="queue-foot"><span>Leo · DDL 8月10日</span><button class="btn small">查看</button></div></article>
+              <article class="queue-item"><div class="queue-top"><span class="chip orange">待归还</span><strong>3天</strong></div><h3>WAL101 · 认证样机借用到期</h3><p>Nina持有1件，归还后需转交销售团队。</p><div class="queue-foot"><span>Nina · DDL 8月13日</span><button class="btn small">提醒</button></div></article>
+            </div>
+          </aside>
+        </section>
+
+        <section class="sync-band">
+          <div class="sync-node"><strong>项目跟进</strong><small>项目、阶段、上市日期、样机准备度</small></div><div class="arrow">↔</div>
+          <div class="sync-node"><strong>样机管理 · 单一事实源</strong><small>需求、实物编号、寄送、签收、借用、归还与审计历史</small></div><div class="arrow">→</div>
+          <div class="sync-node"><strong>质量 / 研发 / 市场</strong><small>按用途接收任务与样机状态，不重复建账</small></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll('.tab').forEach((button) => button.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+    }));
+  </script>
+</body>
+</html>

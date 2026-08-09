@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = resolve(appRoot, "..", "cloud-app");
 const roadmapSourceRoot = resolve(appRoot, "..", "roadmap-local-test");
+const nativeWorkspaceSourceRoot = resolve(appRoot, "..", "erp-native-local-test");
 const publicRoot = resolve(appRoot, "public");
 const files = [
   ["index.html", "platform/index.html"],
@@ -34,6 +35,21 @@ if (await exists(roadmapSourceRoot)) {
     recursive: true,
     filter: (source) => !source.endsWith("SOURCE_MANIFEST.md")
   });
+}
+
+const nativeWorkspaceDestination = resolve(publicRoot, "platform-native");
+if (await exists(nativeWorkspaceSourceRoot)) {
+  await rm(nativeWorkspaceDestination, { recursive: true, force: true });
+  await mkdir(nativeWorkspaceDestination, { recursive: true });
+  await copyFile(
+    resolve(nativeWorkspaceSourceRoot, "index.html"),
+    resolve(nativeWorkspaceDestination, "index.html")
+  );
+  await cp(
+    resolve(nativeWorkspaceSourceRoot, "assets"),
+    resolve(nativeWorkspaceDestination, "assets"),
+    { recursive: true }
+  );
 }
 
 async function exists(path) {

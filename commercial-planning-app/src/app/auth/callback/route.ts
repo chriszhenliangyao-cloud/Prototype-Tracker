@@ -9,6 +9,7 @@ import {
   authFlowCookieName,
   readAuthFlowCookie
 } from "@/lib/auth/flowCookie";
+import { getPilotAccessCookieMaxAge } from "@/lib/auth/pilotAccess";
 import {
   authCookieOptions,
   authReturnToCookieName,
@@ -17,7 +18,10 @@ import {
   makeSessionCookie
 } from "@/lib/auth/server";
 import { normalizeAuthReturnTo } from "@/lib/auth/returnTo";
-import { sessionCookieName } from "@/lib/auth/sessionCookie";
+import {
+  createSessionCookie,
+  sessionCookieName
+} from "@/lib/auth/sessionCookie";
 import {
   createSupabaseRouteClient,
   getSupabaseAppSession
@@ -54,6 +58,12 @@ export async function GET(request: NextRequest) {
       response.headers.set(
         "location",
         new URL("/auth/forbidden?reason=not-authorized", config.appUrl).toString()
+      );
+    } else {
+      response.cookies.set(
+        sessionCookieName,
+        createSessionCookie(session, config.sessionSecret),
+        authCookieOptions(getPilotAccessCookieMaxAge(session.expiresAt))
       );
     }
     response.headers.set("cache-control", "no-store");

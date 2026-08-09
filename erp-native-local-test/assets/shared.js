@@ -86,6 +86,23 @@
     setTimeout(() => { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 300) }, 1800)
   }
 
+  const NAVIGATION_CONTEXT_KEY = 'erp-native-module-navigation-context'
+  S.navigate = function (moduleKey, context) {
+    try {
+      sessionStorage.setItem(NAVIGATION_CONTEXT_KEY, JSON.stringify({ moduleKey, context: context || {}, createdAt: Date.now() }))
+    } catch (error) { /* session storage is optional in local file mode */ }
+    const button = document.querySelector('[data-module="' + moduleKey + '"]')
+    if (button) button.click()
+  }
+  S.consumeNavigationContext = function (moduleKey) {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(NAVIGATION_CONTEXT_KEY) || 'null')
+      if (!saved || saved.moduleKey !== moduleKey || Date.now() - saved.createdAt > 30000) return null
+      sessionStorage.removeItem(NAVIGATION_CONTEXT_KEY)
+      return saved.context || null
+    } catch (error) { return null }
+  }
+
   // modal/drawer scaffolding
   S.overlay = function (kind, opts) {
     const scrim = S.h('div.scrim')

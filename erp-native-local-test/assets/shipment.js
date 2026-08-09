@@ -55,6 +55,11 @@
     .hnode .hl{font-size:12.5px;font-weight:600;color:var(--c-text);flex:1;white-space:nowrap}
     .hnode .hc{font-size:17px;font-weight:800;color:var(--c-text);font-variant-numeric:tabular-nums}
     .hnode.active .hc{color:var(--c-primary-text)}
+    .ship-console-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0;padding:10px;background:var(--c-surface-2);border:1px solid var(--c-border);border-radius:8px}
+    .ship-console-field label{display:block;margin:0 0 4px 2px;color:var(--c-text-dim);font-size:10px;font-weight:700}
+    .ship-console-field input,.ship-console-field select{width:100%;height:32px}
+    .ship-console-plan{border-left:3px solid var(--c-warn);background:#fffaf2}
+    @media(max-width:900px){.ship-console-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     `
     const el = document.createElement('style'); el.id = 'pos-style'; el.textContent = css; document.head.appendChild(el)
   }
@@ -82,8 +87,9 @@
   const cById = {}; (DATA.country || []).forEach(c => cById[c.id] = c)
   const kById = {}; (DATA.ka || []).forEach(k => kById[k.id] = k)
 
-  // OpsRow[]
-  const ROWS = (DATA.channel_po || []).map(r => {
+  // Shared PO and batch state. Shipment Summary and Shipment Operations read
+  // the same in-memory store so local test actions remain consistent.
+  const seedRows = () => (DATA.channel_po || []).map(r => {
     const s = sById[r.sku_id] || {}, c = cById[r.country_id] || {}, k = kById[r.ka_id] || {}
     return {
       id: r.id, po_date: r.po_date, po_number: r.po_number, notes: r.notes,
@@ -95,14 +101,41 @@
       turnover: r.turnover != null ? Number(r.turnover) : null, currency: r.currency || 'EUR',
     }
   })
-  // synthesize batches from line fields
-  let BID = 1
-  const BATCHES = []
-  ROWS.forEach(l => { if (l.delivered_qty > 0 || l.ship_date || l.delivery_date) BATCHES.push({ id: BID++, po_id: l.id, qty: l.delivered_qty > 0 ? l.delivered_qty : l.qty, ship_date: l.ship_date, delivery_date: l.delivery_date, notes: null }) })
+  const shipmentStore = window.ShipmentStore || { rows: seedRows(), batches: [], plans: [], nextBatchId: 1, revision: 0 }
+  const ROWS = shipmentStore.rows
+  const BATCHES = shipmentStore.batches
+  let BID = shipmentStore.nextBatchId || 1
+  if (!BATCHES.length) ROWS.forEach(l => {
+    if (l.delivered_qty > 0 || l.ship_date || l.delivery_date) {
+      BATCHES.push({ id: BID++, batch_ref: 'INIT-' + (l.po_number || l.id) + '-' + (l.ship_date || l.delivery_date || 'unknown'), po_id: l.id, qty: l.delivered_qty > 0 ? l.delivered_qty : l.qty, ship_date: l.ship_date, delivery_date: l.delivery_date, notes: null })
+    }
+  })
+  shipmentStore.nextBatchId = BID
+  if (!shipmentStore.plans.length) {
+    const seeds = [
+      { po: 'ACC-12678', category: '质量', reason: '质检复验未关闭', owner: 'Marta', original: '2026-08-15', next: '2026-08-22' },
+      { po: 'PC 26000419', category: '生产', reason: '产能冲突，部分货物顺延', owner: 'Owen', original: '2026-08-12', next: '2026-08-20' },
+      { po: 'ACC-12645', category: '研发', reason: '研发整改等待验证', owner: 'Leo', original: '2026-08-10', next: '2026-08-17' },
+    ]
+    seeds.forEach((seed, index) => {
+      const lines = ROWS.filter(row => row.po_number === seed.po)
+      if (!lines.length) return
+      shipmentStore.plans.push({
+        id: 'PLAN-' + (index + 1), po_number: seed.po, country_code: lines[0].country_code,
+        impact_qty: lines.reduce((sum, line) => sum + Math.max(0, line.qty - (line.delivered_qty || 0)), 0),
+        reason_category: seed.category, reason: seed.reason, owner: seed.owner,
+        original_ship_date: seed.original, next_ship_date: seed.next, status: 'open',
+        created_at: '2026-08-08T09:00:00Z', history: [{ at: '2026-08-08T09:00:00Z', action: '调整计划发货日期', from: seed.original, to: seed.next, reason: seed.reason }],
+      })
+    })
+  }
+  window.ShipmentStore = shipmentStore
   const batchesFor = id => BATCHES.filter(b => b.po_id === id)
 
   const stageOf = r => r.po_status === 'cancelled' ? 'cancelled' : r.po_status === 'partial' ? 'partial'
     : r.delivery_date ? 'delivered' : r.ship_date ? 'shipped' : r.po_status === 'new' ? 'new' : 'toship'
+  shipmentStore.batchesFor = batchesFor
+  shipmentStore.stageOf = stageOf
 
   // mimic DB trigger: recompute line from its batches
   function recalc(l) {
@@ -138,7 +171,22 @@
   // ── actions (local) ──
   function confirmPo(ids) { ids.forEach(id => { const l = ROWS.find(r => r.id === id); if (l) l.po_status = null }); paint() }
   function cancelPo(ids, n) { if (!confirm(`取消 ${n} 行 PO？\n仍计入总额，只是打上 Cancelled 状态标签。`)) return; ids.forEach(id => { const l = ROWS.find(r => r.id === id); if (l) l.po_status = 'cancelled' }); paint() }
-  function addBatches(defs) { defs.forEach(d => { BATCHES.push({ id: BID++, po_id: d.po_id, qty: d.qty, ship_date: d.ship_date, delivery_date: null, notes: null }); const l = ROWS.find(r => r.id === d.po_id); if (l) recalc(l) }); paint() }
+  function addBatches(defs) {
+    const batchRef = 'B' + String(BID).padStart(4, '0')
+    defs.forEach(d => {
+      BATCHES.push({
+        id: BID++, batch_ref: d.batch_ref || batchRef, po_id: d.po_id, qty: d.qty,
+        ship_date: d.ship_date, delivery_date: d.delivery_date || null,
+        warehouse: d.warehouse || '', transport_mode: d.transport_mode || '', carrier: d.carrier || '',
+        tracking_number: d.tracking_number || '', invoice_number: d.invoice_number || '', eta: d.eta || '', notes: d.notes || null,
+      })
+      const l = ROWS.find(r => r.id === d.po_id)
+      if (l) recalc(l)
+    })
+    shipmentStore.nextBatchId = BID
+    shipmentStore.revision += 1
+    paint()
+  }
   function markShipped(lines, key) { const b = lines.map(l => ({ po_id: l.id, qty: l.qty - (l.delivered_qty || 0), ship_date: dateOf(key) })).filter(x => x.qty > 0); if (!b.length) { alert('这些行已全部发完。'); return } addBatches(b) }
   function markPartial(l, key) { const inp = prompt(`部分发货 — 本次发货数量（共 ${l.qty}）：`, ''); if (inp == null) return; const n = Math.floor(Number(inp)); if (!Number.isFinite(n) || n <= 0 || n >= l.qty) { alert(`请输入 1 到 ${l.qty - 1} 之间的数量（整单发完请用 Mark shipped）。`); return } addBatches([{ po_id: l.id, qty: n, ship_date: dateOf(key) }]) }
   function shipRemaining(l, key) { const rem = l.qty - (l.delivered_qty || 0); if (rem <= 0) { alert('这一行已全部发完。'); return } if (!confirm(`把 ${l.sku_code} 的全部剩余量 ${rem} 在 ${dateOf(key)} 发出？\n发完该行将结清并归入 Shipped。`)) return; addBatches([{ po_id: l.id, qty: rem, ship_date: dateOf(key) }]) }
@@ -161,7 +209,7 @@
     S.clear(ROOT)
     const B = buckets()
     const wrap = h('div.sw-root')
-    wrap.append(header(), rail(B), rightPanel(B), weeklyLedger())
+    wrap.append(header(), rail(B), rightPanel(B))
     ROOT.append(wrap)
     const chip = document.getElementById('scope-chip'); if (chip) chip.textContent = STAGES[st.active].label
   }
@@ -384,10 +432,13 @@
   // ═══ 发货操作台 · cross-PO batch shipping console ═══
   function openShipConsole() {
     const o = S.overlay('modal', { title: '发货操作台 · 选择要发货的 PO（可跨 PO、可分批）' })
-    o.panel.style.width = '1120px'; o.panel.style.maxWidth = '96vw'; o.panel.style.maxHeight = '90vh'
+    o.panel.style.width = '1160px'; o.panel.style.maxWidth = '96vw'; o.panel.style.maxHeight = '94vh'
     const rem = l => l.qty - (l.delivered_qty || 0)
     const CC = [...new Set(ROWS.map(l => l.country_code).filter(Boolean))].sort()
-    const cs = { q: '', country: 'all', sel: {}, qtys: {}, date: today() }
+    const cs = {
+      q: '', country: 'all', sel: {}, qtys: {}, date: today(), warehouse: 'HQ', mode: 'Sea', eta: '',
+      carrier: '', tracking: '', invoice: '', notes: '', reasonCategory: '质量', reason: '', owner: '', nextDate: '',
+    }
     ROWS.forEach(l => { if (cs.qtys[l.id] == null) cs.qtys[l.id] = rem(l) })
     const shipRows = () => ROWS.filter(l => { const s = stageOf(l); if (!(s === 'new' || s === 'toship' || s === 'partial')) return false; if (rem(l) <= 0) return false; if (cs.country !== 'all' && l.country_code !== cs.country) return false; const q = cs.q.trim().toLowerCase(); return !q || ((l.po_number || '') + ' ' + l.sku_code + ' ' + (l.ka_name || '') + ' ' + l.sku_name).toLowerCase().includes(q) })
 
@@ -400,7 +451,7 @@
       summaryEl.textContent = `已选 ${ids.length} 个 SKU · 跨 ${pos.size} 个 PO · 共 ${fmtNum(units)} 件`
       confirmBtn.textContent = `确认发货 (${ids.length})`; confirmBtn.disabled = ids.length === 0
     }
-    const tableWrap = h('div', { style: { overflow: 'auto', maxHeight: '52vh', border: '1px solid var(--c-border)', borderRadius: '10px' } })
+    const tableWrap = h('div', { style: { overflow: 'auto', maxHeight: '34vh', border: '1px solid var(--c-border)', borderRadius: '8px' } })
     function drawTable() {
       const rows = shipRows(); const byPo = {}
       rows.forEach(l => { const k = l.po_number || ('id:' + l.id); (byPo[k] = byPo[k] || []).push(l) })
@@ -421,17 +472,65 @@
     }
     const searchI = h('input.lg-date', { placeholder: '搜索 PO / SKU / 渠道', style: { width: '220px' }, oninput: e => { cs.q = e.target.value; drawTable() } })
     const cSel = h('select.lg-date', { onchange: e => { cs.country = e.target.value; drawTable() } }, [h('option', { value: 'all' }, '全部国家')].concat(CC.map(c => h('option', { value: c }, c))))
-    o.body.append(h('div', { style: { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' } }, [searchI, cSel, h('span', { style: { color: 'var(--c-text-faint)', fontSize: '12px' } }, '勾选要发的 SKU，可跨多个 PO 一起发；每行数量可小于剩余量即为分批'), h('span.grow'), summaryEl]), tableWrap)
+    const field = (label, control) => h('div.ship-console-field', [h('label', label), control])
+    const select = (values, onChange) => h('select.lg-date', { onchange: e => onChange(e.target.value) }, values.map(value => h('option', { value }, value)))
+    const input = (type, placeholder, onInput, value) => h('input.lg-date', { type: type || 'text', placeholder: placeholder || '', value: value || '', oninput: e => onInput(e.target.value) })
+    const batchFields = h('div.ship-console-grid', [
+      field('发货日期', input('date', '', value => { cs.date = value }, cs.date)),
+      field('发货仓', select(['HQ', 'DE1', 'DE2', 'FR1'], value => { cs.warehouse = value })),
+      field('运输方式', select(['Sea', 'Rail', 'Air', 'Road', 'Courier'], value => { cs.mode = value })),
+      field('预计送达 ETA', input('date', '', value => { cs.eta = value })),
+      field('承运商', input('text', '承运商 / 货代', value => { cs.carrier = value })),
+      field('Tracking / Container', input('text', '追踪号或柜号', value => { cs.tracking = value })),
+      field('Invoice No.', input('text', '发票编号', value => { cs.invoice = value })),
+      field('批次备注', input('text', '本批次说明', value => { cs.notes = value })),
+    ])
+    const planFields = h('div.ship-console-grid.ship-console-plan', [
+      field('未发原因分类', select(['质量', '生产', '研发', '认证', '客户', '物流', '其他'], value => { cs.reasonCategory = value })),
+      field('原因说明', input('text', '分批或延期原因', value => { cs.reason = value })),
+      field('责任人', input('text', '负责人', value => { cs.owner = value })),
+      field('下一计划发货日', input('date', '', value => { cs.nextDate = value })),
+    ])
+    o.body.append(
+      h('div', { style: { display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' } }, [searchI, cSel, h('span', { style: { color: 'var(--c-text-faint)', fontSize: '11px' } }, '勾选SKU并填写本次发货数量；可跨PO、可分批'), h('span.grow'), summaryEl]),
+      batchFields, tableWrap,
+      h('div', { style: { marginTop: '10px', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700 } }, '未发余量与下一计划'),
+      planFields
+    )
     drawTable(); refreshSummary()
-    const dateI = h('input.lg-date', { type: 'date', max: today(), value: cs.date, onchange: e => cs.date = e.target.value })
     confirmBtn.onclick = () => {
       const ids = Object.keys(cs.sel).filter(k => cs.sel[k])
-      const b = ids.map(id => ({ po_id: +id, qty: cs.qtys[id] || 0, ship_date: cs.date })).filter(x => x.qty > 0)
+      const selectedLines = ids.map(id => ROWS.find(row => row.id === +id)).filter(Boolean)
+      const partialLines = selectedLines.filter(line => (cs.qtys[line.id] || 0) > 0 && (cs.qtys[line.id] || 0) < rem(line))
+      if (partialLines.length && (!cs.reason.trim() || !cs.nextDate)) { alert('存在未发余量时，请填写原因说明和下一计划发货日。'); return }
+      const b = selectedLines.map(line => ({
+        po_id: line.id, qty: cs.qtys[line.id] || 0, ship_date: cs.date,
+        warehouse: cs.warehouse, transport_mode: cs.mode, carrier: cs.carrier,
+        tracking_number: cs.tracking, invoice_number: cs.invoice, eta: cs.eta, notes: cs.notes,
+      })).filter(x => x.qty > 0)
       if (!b.length) { alert('请勾选要发货的 SKU 并填写数量。'); return }
       const pos = new Set(b.map(x => (ROWS.find(r => r.id === x.po_id) || {}).po_number))
+      const partialPos = [...new Set(partialLines.map(line => line.po_number).filter(Boolean))]
+      partialPos.forEach(poNumber => {
+        const lines = partialLines.filter(line => line.po_number === poNumber)
+        const poLines = ROWS.filter(line => line.po_number === poNumber)
+        const selectedIds = new Set(selectedLines.map(line => line.id))
+        const impact = poLines.reduce((sum, line) => {
+          const thisBatchQty = selectedIds.has(line.id) ? (cs.qtys[line.id] || 0) : 0
+          return sum + Math.max(0, rem(line) - thisBatchQty)
+        }, 0)
+        let plan = shipmentStore.plans.find(item => item.po_number === poNumber && item.status === 'open')
+        const oldDate = plan && plan.next_ship_date
+        if (!plan) {
+          plan = { id: 'PLAN-' + Date.now() + '-' + poNumber, po_number: poNumber, country_code: lines[0].country_code, status: 'open', created_at: new Date().toISOString(), history: [] }
+          shipmentStore.plans.push(plan)
+        }
+        Object.assign(plan, { impact_qty: impact, reason_category: cs.reasonCategory, reason: cs.reason.trim(), owner: cs.owner.trim() || '待分配', original_ship_date: oldDate || cs.date, next_ship_date: cs.nextDate })
+        plan.history.push({ at: new Date().toISOString(), action: '登记未发余量与下一计划', from: oldDate || cs.date, to: cs.nextDate, reason: cs.reason.trim() })
+      })
       addBatches(b); o.close(); S.toast(`已发货 ${b.length} 行，跨 ${pos.size} 个 PO`)
     }
-    o.foot.append(h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' } }, ['发货日期', dateI]), h('button.btn.b-grey', { onclick: o.close }, '取消'), confirmBtn)
+    o.foot.append(h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto', color: 'var(--c-text-dim)', fontSize: '11px' } }, [h('span', { style: { width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-success)' } }), '自动保存已开启 · 正式确认后生成批次记录']), h('button.btn.b-grey', { onclick: o.close }, '取消'), confirmBtn)
   }
 
   window.Modules = window.Modules || {}

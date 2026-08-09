@@ -69,7 +69,7 @@ const navGroups: NavGroup[] = [
     items: [
       { key: "overview", zh: "经营总览", en: "Business Overview", href: "/platform/index.html#module=business-overview", legacy: true },
       { key: "bp", zh: "BP达成", en: "BP Achievement", href: "/platform/business/bp" },
-      { key: "analysis", zh: "经营分析", en: "Business Analysis", href: "/platform/index.html#module=business-analysis", legacy: true },
+      { key: "analysis", zh: "经营分析复盘", en: "Business Analysis Review", href: "/platform/index.html#module=business-analysis", legacy: true },
       { key: "value-chain", zh: "价值链测算", en: "Value Chain Simulation", href: "/platform/business/value-chain/on-sale" },
       { key: "settlements", zh: "结算台账", en: "Settlement Ledger", href: "/platform/index.html#module=settlements", legacy: true }
     ]

@@ -1,6 +1,6 @@
 /* ============================================================================
    Performance — faithful static reproduction of the ERP /performance module.
-   FCST Scorecard + Review (Sales Review + Profitability P&L stack).
+   Business review workspace (Sales Review + Profitability P&L stack).
    Aggregations computed client-side from the real snapshot (approximated
    allocation for freight/CN; static FX). Read-only demo.
    ============================================================================ */
@@ -10,18 +10,9 @@
   const CAT_ORDER = ['Power bank', 'Charger', 'Cable', 'Wireless charger']
   const CN_TYPES = ['Rebate', 'Price Protection', 'Margin Protection', 'Quality', 'Delivery Fee', 'Other']
   const COLOR_WORDS = ['Black', 'White', 'Orange', 'Blue', 'Titan', 'DesertTitan', 'Red', 'LB', 'B', 'W', 'T', 'BU', 'D', 'O', 'R']
-  const SCORE_BANDS = [
-    { r: '90% – 110%', s: 100, lvl: 'Excellent', c: '#047857' },
-    { r: '70–89% / 111–130%', s: 80, lvl: 'Good', c: '#1d4ed8' },
-    { r: '50–69% / 131–150%', s: 60, lvl: 'Substandard', c: '#b45309' },
-    { r: '<50% / >150%', s: 40, lvl: 'Unacceptable', c: '#dc2626' },
-  ]
-
   // ── dims ──
-  const skus = () => (DATA.sku || []).filter(s => s.is_active).sort((a, b) => (a.sort_order - b.sort_order) || a.code.localeCompare(b.code))
   const countries = () => (DATA.country || []).filter(c => c.is_active && c.region === 'EU').sort((a, b) => a.sort_order - b.sort_order)
   const skuById = {}; (DATA.sku || []).forEach(s => skuById[s.id] = s)
-  const kaById = {}; (DATA.ka || []).forEach(k => kaById[k.id] = k)
   const cById = {}; (DATA.country || []).forEach(c => cById[c.id] = c)
   const cByCode = {}; (DATA.country || []).forEach(c => cByCode[c.code] = c)
 
@@ -47,7 +38,7 @@
   function init() {
     st = {
       year: 2026, q: 2, countryCode: countries()[0] ? countries()[0].code : 'FR',
-      tab: 'kpi', reviewSub: 'sales', hideZero: true,
+      tab: 'sales',
       pnlView: 'overview', logView: 'sku', metric: 'value', bpView: 'sku',
       openQ: null, sortModel: 'value', sortPo: 'value', expandRows: {},
     }
@@ -76,35 +67,6 @@
   }
   const freightByPo = (function () { const m = {}; (DATA.po_freight || []).forEach(f => { m[String(f.po_number).replace(/\.0$/, '')] = eur(f.delivery_fee, f.currency) }); return m })()
   const normPo = s => String(s == null ? '' : s).replace(/\.0$/, '')
-
-  // Scorecard forecast/achieve for one country
-  function scorecard(code) {
-    const C = cByCode[code]; if (!C) return null
-    const iso = monthsIso()
-    const fc = {}, ach = {}
-    // forecast: avg across runs of sum-across-channels
-    const byRun = {}
-    for (const cell of (DATA.forecast_cell || [])) {
-      const ka = kaById[cell.ka_id]; if (!ka || ka.country_id !== C.id) continue
-      const mi = iso.indexOf((cell.month || '').slice(0, 10)); if (mi < 0) continue
-      byRun[cell.sku_id] = byRun[cell.sku_id] || {}
-      byRun[cell.sku_id][mi] = byRun[cell.sku_id][mi] || {}
-      byRun[cell.sku_id][mi][cell.run_id] = (byRun[cell.sku_id][mi][cell.run_id] || 0) + (Number(cell.qty) || 0)
-    }
-    for (const sku in byRun) { fc[sku] = [0, 0, 0]; for (let mi = 0; mi < 3; mi++) { const runs = Object.values(byRun[sku][mi] || {}); fc[sku][mi] = runs.length ? runs.reduce((a, b) => a + b, 0) / runs.length : 0 } }
-    for (const p of posInQuarter(code)) { const mi = monthsYm().indexOf((p.po_date || '').slice(0, 7)); if (mi < 0) continue; ach[p.sku_id] = ach[p.sku_id] || [0, 0, 0]; ach[p.sku_id][mi] += Number(p.qty_ordered) || 0 }
-    return { fc, ach }
-  }
-  function scoreFor(fc, ach) {
-    if (fc <= 0 && ach <= 0) return null
-    if (fc <= 0) return 40
-    const a = Math.round(ach / fc * 100)
-    if (a >= 90 && a <= 110) return 100
-    if ((a >= 70 && a < 90) || (a > 110 && a <= 130)) return 80
-    if ((a >= 50 && a < 70) || (a > 130 && a <= 150)) return 60
-    return 40
-  }
-  const scoreColor = s => s == null ? '#d1d5db' : s >= 100 ? '#059669' : s >= 80 ? '#2563eb' : s >= 60 ? '#d97706' : '#dc2626'
 
   // P&L per country (Overview)
   function pnlRows() {
@@ -257,10 +219,10 @@
   let ROOT
   function render(root) { ROOT = root; if (!st) init(); if (st.openQ == null) st.openQ = st.q; paint() }
   function paint() {
+    if (!['sales', 'pnl'].includes(st.tab)) st.tab = 'sales'
     S.clear(ROOT)
     ROOT.append(headerBar(), selectorBar(), mainTabs())
-    if (st.tab === 'kpi') ROOT.append(kpiTab())
-    else if (st.tab === 'sales') ROOT.append(salesReview())
+    if (st.tab === 'sales') ROOT.append(salesReview())
     else ROOT.append(profitabilityStack())
     const chip = document.getElementById('scope-chip'); if (chip) chip.textContent = st.countryCode === 'ALL' ? 'All countries' : (st.countryCode)
   }
@@ -284,109 +246,17 @@
     const qSel = h('select', { onchange: e => { st.q = Number(e.target.value); st.openQ = st.q; paint() } }, [1, 2, 3, 4].map(q => h('option', { value: q, selected: q === st.q }, 'Q' + q)))
     const pills = [h('button', { class: 'btn sm' + (st.countryCode === 'ALL' ? ' primary' : ''), onclick: () => { st.countryCode = 'ALL'; paint() } }, 'All')]
       .concat(countries().map(c => h('button', { class: 'btn sm' + (st.countryCode === c.code ? ' primary' : ''), onclick: () => { st.countryCode = c.code; paint() } }, `${c.code}`)))
-    const chk = h('label', { style: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', marginLeft: 'auto' } }, [
-      h('input', { type: 'checkbox', checked: st.hideZero, onchange: e => { st.hideZero = e.target.checked; paint() } }), 'Hide empty SKUs'])
     return h('div.card', { style: { marginBottom: '12px' } }, h('div.card-body', h('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' } }, [
       h('span.field-label', 'Quarter'), ySel, qSel, h('span', { style: { color: 'var(--c-border-strong)' } }, '│'),
-      h('span.field-label', 'Country'), h('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } }, pills), chk,
+      h('span.field-label', 'Country'), h('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap' } }, pills),
     ])))
   }
 
   function mainTabs() {
     const tab = (v, label) => h('button', { class: st.tab === v ? 'active' : '', onclick: () => { st.tab = v; paint() } }, label)
     return h('div.tabline', { style: { marginBottom: '14px' } }, [
-      tab('kpi', 'FCST Scorecard'), tab('sales', 'Sales Review'), tab('pnl', 'Profitability (P&L)'),
+      tab('sales', 'Sales Review'), tab('pnl', 'Profitability (P&L)'),
     ])
-  }
-
-  // ── KPI / Scorecard tab ──
-  function kpiTab() {
-    if (st.countryCode === 'ALL') return h('div.card', h('div.card-body', h('div.empty', [h('div.ic', ''), 'The FCST Scorecard is shown per country. Pick a country above (All is for the Profitability view).'])))
-    const wrap = h('div')
-    wrap.append(scoringStandard(), scorecardCard())
-    return wrap
-  }
-  function scoringStandard() {
-    const d = h('details', { style: { marginBottom: '14px' } })
-    d.append(h('summary', { style: { cursor: 'pointer', fontWeight: 600, fontSize: '13px', padding: '10px 14px', background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: '9px' } }, 'Scoring standard — how the Score is calculated (click to expand)'))
-    const rows = SCORE_BANDS.map(b => h('tr', [h('td', b.r), h('td.num.strong', { style: { color: b.c } }, b.s), h('td', { style: { color: b.c, fontWeight: 600 } }, b.lvl)]))
-    d.append(h('div.card', { style: { marginTop: '8px' } }, h('div.card-body.flush', h('table.tbl', [h('thead', h('tr', [h('th', 'Accuracy Range'), h('th.num', 'Score'), h('th', 'Performance Level')])), h('tbody', rows)]))))
-    return d
-  }
-  function scorecardCard() {
-    const C = cByCode[st.countryCode]; const sc = scorecard(st.countryCode); const iso = monthsIso()
-    let rows = skus().map(s => {
-      const fc = (sc.fc[s.id] || [0, 0, 0]), ach = (sc.ach[s.id] || [0, 0, 0])
-      const fcT = fc.reduce((a, b) => a + b, 0), achT = ach.reduce((a, b) => a + b, 0)
-      return { s, fc, ach, fcT, achT }
-    })
-    if (st.hideZero) rows = rows.filter(r => r.fcT > 0 || r.achT > 0)
-    const ttl = { fc: [0, 0, 0], ach: [0, 0, 0], fcT: 0, achT: 0 }
-    rows.forEach(r => { for (let i = 0; i < 3; i++) { ttl.fc[i] += r.fc[i]; ttl.ach[i] += r.ach[i] } ttl.fcT += r.fcT; ttl.achT += r.achT })
-
-    const numOr = v => v > 0 ? S.fmtNum(v) : h('span.faint', '0')
-    const DIV = '2px solid var(--c-border-strong)'                 // 三大分组(FCST/Achieve/Achieve%)之间的分界线
-    const bl = i => i === 0 ? { style: { borderLeft: DIV } } : {}  // 每组第一列加左边界
-    const grp = (label, cls) => h('th', { colspan: 4, style: { textAlign: 'center', background: cls, borderLeft: DIV } }, label)
-    const h1 = h('tr', [h('th', { style: sticky(0, 90) }, 'Model'), h('th', { style: sticky(90, 180) }, 'Product Name'),
-      grp('FCST', '#eef2f7'), grp('Achieve', '#ecfdf5'), grp('Achieve %', '#fff7ed')])
-    const mh = () => [...iso.map((m, i) => h('th.num', bl(i), S.monthLabel(S.ym(m)))), h('th.num.strong', 'Q' + st.q)]
-    const h2 = h('tr', [h('th', { style: sticky(0, 90) }, ''), h('th', { style: sticky(90, 180) }, ''), ...mh(), ...mh(), ...mh()])
-
-    const body = rows.map(r => h('tr', [
-      h('td', { style: Object.assign({ fontFamily: 'var(--font-mono)', fontWeight: 700 }, sticky(0, 90)) }, r.s.code),
-      h('td', { style: Object.assign({ color: 'var(--c-text-dim)' }, sticky(90, 180)) }, r.s.name || '–'),
-      ...r.fc.map((v, i) => h('td.num', bl(i), numOr(Math.round(v)))), h('td.num.strong', numOr(Math.round(r.fcT))),
-      ...r.ach.map((v, i) => h('td.num', bl(i), numOr(v))), h('td.num.strong', numOr(r.achT)),
-      ...r.fc.map((v, i) => h('td.num', bl(i), S.pctText(S.pct(v, r.ach[i])))), h('td.num.strong', S.pctText(S.pct(r.fcT, r.achT))),
-    ]))
-    const tfoot = h('tfoot', [
-      h('tr', { style: { fontWeight: 700, background: 'var(--c-surface-3)' } }, [
-        h('td', { style: sticky(0, 90) }, 'TTL'), h('td', { style: sticky(90, 180) }, 'All SKUs'),
-        ...ttl.fc.map((v, i) => h('td.num', bl(i), S.fmtNum(v))), h('td.num', S.fmtNum(ttl.fcT)),
-        ...ttl.ach.map((v, i) => h('td.num', bl(i), S.fmtNum(v))), h('td.num', S.fmtNum(ttl.achT)),
-        ...ttl.fc.map((v, i) => h('td.num', bl(i), S.pctText(S.pct(v, ttl.ach[i])))), h('td.num', S.pctText(S.pct(ttl.fcT, ttl.achT))),
-      ]),
-      h('tr', { style: { fontWeight: 700 } }, [
-        h('td', { style: sticky(0, 90) }, 'Score'), h('td', { style: sticky(90, 180) }, 'by attainment'),
-        h('td', { colspan: 8, style: { borderLeft: DIV } }, ''),
-        ...ttl.fc.map((v, i) => { const s = scoreFor(v, ttl.ach[i]); return h('td.num', { style: Object.assign({ color: scoreColor(s) }, i === 0 ? { borderLeft: DIV } : {}) }, s == null ? '—' : s) }),
-        (function () { const s = scoreFor(ttl.fcT, ttl.achT); return h('td.num', { style: { color: scoreColor(s), borderLeft: '2px solid var(--c-border)' } }, s == null ? '—' : s) })(),
-      ]),
-    ])
-    const table = h('table.tbl', { style: { minWidth: '1100px' } }, [h('thead', [h1, h2]), h('tbody', rows.length ? body : [h('tr', h('td', { colspan: 14, style: { textAlign: 'center', padding: '30px', color: 'var(--c-text-faint)' } }, `No forecast / shipment data for ${st.countryCode} in ${st.year} Q${st.q}`))]), rows.length ? tfoot : null])
-    const card = h('div.card', h('div.card-body.flush', h('div', { style: { overflow: 'auto', maxHeight: '620px' } }, table)))
-    return card
-  }
-  function lineChart(ttl, iso, C) {
-    const W = 720, H = 260, pad = 34
-    const labels = iso.map(m => S.monthLabel(S.ym(m)))
-    const max = Math.max(1, ...ttl.fc, ...ttl.ach)
-    const x = i => pad + i * (W - pad * 2) / 2
-    const y = v => H - pad - v / max * (H - pad * 2)
-    const path = arr => arr.map((v, i) => (i ? 'L' : 'M') + x(i) + ' ' + y(v)).join(' ')
-    const dots = (arr, col) => arr.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${col}"/>`).join('')
-    const svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px">
-      ${[0, 0.5, 1].map(t => `<line x1="${pad}" y1="${y(max * t)}" x2="${W - pad}" y2="${y(max * t)}" stroke="#eee"/><text x="4" y="${y(max * t) + 4}" font-size="10" fill="#9ca3af">${S.fmtNum(max * t)}</text>`).join('')}
-      <path d="${path(ttl.fc)}" fill="none" stroke="#64748b" stroke-width="2"/>${dots(ttl.fc, '#64748b')}
-      <path d="${path(ttl.ach)}" fill="none" stroke="#059669" stroke-width="2"/>${dots(ttl.ach, '#059669')}
-      ${labels.map((l, i) => `<text x="${x(i)}" y="${H - 10}" font-size="11" fill="#6b7280" text-anchor="middle">${l}</text>`).join('')}
-    </svg>`
-    return h('div.card', { style: { marginTop: '16px' } }, [
-      h('div.card-head', [h('h2', `Monthly TTL — Forecast vs Achieve · ${C.flag_emoji} ${C.code} · ${st.year} Q${st.q}`)]),
-      h('div.card-body', [h('div', { html: svg }), h('div', { style: { display: 'flex', gap: '16px', fontSize: '12px', marginTop: '8px' } }, [
-        h('span', [h('span', { style: { color: '#64748b' } }, '━ '), 'Forecast']), h('span', [h('span', { style: { color: '#059669' } }, '━ '), 'Achieve'])])]),
-    ])
-  }
-
-  // ── Review tab ──
-  function reviewTab() {
-    const wrap = h('div')
-    wrap.append(S.seg(st.reviewSub, [{ v: 'sales', label: 'Sales Review' }, { v: 'pnl', label: 'Profitability (P&L)' }], v => { st.reviewSub = v; paint() }))
-    wrap.append(h('div', { style: { height: '14px' } }))
-    if (st.reviewSub === 'sales') wrap.append(salesReview())
-    else wrap.append(profitabilityStack())
-    return wrap
   }
 
   function salesReview() {

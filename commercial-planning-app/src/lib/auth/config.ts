@@ -41,7 +41,11 @@ const cognitoRequiredKeys = [
   "COGNITO_CLIENT_ID"
 ] as const;
 
-const supabaseRequiredKeys = ["APP_URL", "SUPABASE_URL"] as const;
+const supabaseRequiredKeys = [
+  "APP_URL",
+  "AUTH_SESSION_SECRET",
+  "SUPABASE_URL"
+] as const;
 
 export function isAuthRequired(env: Env = process.env) {
   return env.AUTH_REQUIRED === "1";

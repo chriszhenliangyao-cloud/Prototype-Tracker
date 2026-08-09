@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>经营分析优化示例 · 运营协同平台</title>
+  <style>
+    :root{--bg:#f4f7fb;--surface:#fff;--surface-2:#f7f9fc;--surface-3:#eef3fa;--line:#d8e2ef;--line-strong:#bdcbe0;--text:#182237;--dim:#63728a;--faint:#8b98aa;--blue:#2762e9;--blue-weak:#edf3ff;--green:#12845b;--green-weak:#eef9f4;--amber:#b96906;--amber-weak:#fff7eb;--red:#d92d42;--red-weak:#fff2f4;--sidebar:190px}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,"PingFang SC","Microsoft YaHei",Arial,sans-serif;font-size:12px;letter-spacing:0}button,select{font:inherit}button{cursor:pointer}.app{height:100vh;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}
+    aside{background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}.brand{height:64px;padding:12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}.logo{width:31px;height:31px;border-radius:6px;background:#182237;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800}.brand strong,.brand small{display:block}.brand strong{font-size:12px}.brand small{margin-top:2px;color:var(--dim);font-size:9px}
+    nav{padding:7px 8px;overflow:hidden}.group{padding:12px 8px 4px;color:#8b98aa;font-size:9px}.nav{width:100%;height:30px;border:0;border-left:2px solid transparent;border-radius:5px;padding:0 8px;background:transparent;color:#516179;text-align:left}.nav.active{border-left-color:var(--blue);background:var(--blue-weak);color:#1e58dc;font-weight:750}.badge{float:right;color:var(--red);font-size:9px}.foot{margin-top:auto;padding:10px 12px;border-top:1px solid var(--line);color:var(--dim);font-size:9px}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;background:var(--green)}
+    main{min-width:0;display:grid;grid-template-rows:52px 34px minmax(0,1fr)}.topbar{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:12px}.crumb strong{font-size:11px}.crumb span{margin-left:8px;color:var(--dim);font-size:9px}.spacer{flex:1}.top-chip{height:28px;border:1px solid var(--line);border-radius:5px;padding:0 9px;background:#fff;color:var(--dim);display:flex;align-items:center;gap:6px;font-size:10px}.sync{color:var(--green)}
+    .env{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #d5e2f4;background:#f6f9ff;color:var(--dim);font-size:10px}.env b{color:var(--blue)}.content{overflow:auto;padding:13px 16px 24px}.page{display:grid;gap:10px;max-width:1500px;margin:0 auto}.page-head{display:flex;align-items:flex-end;gap:12px}.title small,.title strong{display:block}.title small{color:#718099;font-size:9px;font-weight:750}.title strong{margin-top:3px;font-size:23px}.actions{margin-left:auto;display:flex;gap:7px}.btn{height:31px;border:1px solid var(--line-strong);border-radius:6px;padding:0 11px;background:#fff;color:#35445c;font-weight:650}.btn.primary{border-color:var(--blue);background:var(--blue);color:#fff}
+    .filters{display:grid;grid-template-columns:115px 120px 180px 180px minmax(250px,1fr);gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:7px;background:#fff}.field{display:grid;gap:3px}.field span{color:var(--dim);font-size:9px;font-weight:700}.field select,.field button{width:100%;height:30px;border:1px solid var(--line-strong);border-radius:5px;padding:0 8px;background:#fff;text-align:left;color:var(--text);font-weight:650}.source-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.source-line b{color:var(--dim);font-size:9px}.source{height:30px;display:flex;align-items:center;gap:5px;padding:0 8px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);font-size:9px}.source i{width:6px;height:6px;border-radius:50%;background:var(--green)}
+    .tabs{height:42px;display:flex;align-items:stretch;gap:24px;padding:0 12px;border:1px solid var(--line);border-radius:7px 7px 0 0;background:#fff}.tab{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--dim);font-weight:750}.tab.active{border-bottom-color:var(--blue);color:var(--blue)}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-top:0;background:#fff}.kpi{min-height:77px;padding:11px 14px;border-right:1px solid var(--line)}.kpi:last-child{border-right:0}.kpi span,.kpi small{display:block}.kpi span{color:var(--dim);font-size:9px;font-weight:700}.kpi strong{display:block;margin:5px 0 2px;font-size:20px}.kpi small{color:var(--dim);font-size:9px}.up{color:var(--green)}.down{color:var(--red)}.warn{color:var(--amber)}
+    .grid{display:grid;grid-template-columns:minmax(0,1.62fr) 360px;gap:10px;align-items:start}.panel{min-width:0;border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden}.panel-head{height:43px;display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line)}.panel-head h2{margin:0;font-size:13px}.panel-head span{margin-left:auto;color:var(--dim);font-size:9px}.bridge{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:12px}.step{position:relative;min-height:90px;padding:10px;border:1px solid var(--line);border-right:0;background:var(--surface-2)}.step:first-child{border-radius:6px 0 0 6px}.step:last-child{border-right:1px solid var(--line);border-radius:0 6px 6px 0}.step small,.step strong,.step em{display:block}.step small{color:var(--dim);font-size:9px}.step strong{margin-top:9px;font-size:17px}.step em{margin-top:4px;color:var(--dim);font-size:8px;font-style:normal}.step.cost{background:var(--red-weak)}.step.gp{background:var(--green-weak)}.step.np{background:#e8f6f0}.step.np strong{color:var(--green)}.step:after{content:"";position:absolute;left:10px;right:10px;bottom:8px;height:4px;border-radius:2px;background:#d9e1ec}.step.revenue:after{background:var(--blue)}.step.cost:after{background:var(--red)}.step.gp:after,.step.np:after{background:var(--green)}
+    .drivers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0 12px 12px}.driver{padding:8px 9px;border:1px solid var(--line);border-radius:5px}.driver b,.driver small{display:block}.driver b{font-size:10px}.driver small{margin-top:3px;color:var(--dim);font-size:8px}.issue-tabs{display:flex;gap:5px;padding:9px 10px;border-bottom:1px solid var(--line)}.issue-tabs span{padding:4px 7px;border:1px solid var(--line);border-radius:5px;background:var(--surface-2);font-size:9px}.issue-tabs .red{border-color:#f0b6bf;background:var(--red-weak);color:var(--red)}.issue{padding:10px 11px;border-bottom:1px solid var(--line)}.issue:last-child{border-bottom:0}.issue-top{display:flex;justify-content:space-between;gap:8px}.issue-top b{font-size:10px}.issue-top strong{font-size:10px}.issue p{margin:4px 0 0;color:var(--dim);font-size:9px;line-height:1.45}.issue-foot{display:flex;justify-content:space-between;margin-top:7px;color:var(--dim);font-size:8px}
+    .lower{display:grid;grid-template-columns:minmax(0,1.5fr) 420px;gap:10px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{height:43px;padding:8px 9px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:left;font-size:9px}th:last-child,td:last-child{border-right:0}tbody tr:last-child td{border-bottom:0}th{background:var(--surface-3);color:var(--dim);font-weight:750}td.num,th.num{text-align:right}td b,td small{display:block}td b{font-size:9px}td small{margin-top:2px;color:var(--dim);font-size:8px}.pill{display:inline-flex;align-items:center;min-height:21px;padding:2px 6px;border-radius:5px;border:1px solid var(--line);background:var(--surface-2);font-weight:750}.pill.red{border-color:#f0b6bf;background:var(--red-weak);color:var(--red)}.pill.amber{border-color:#efd09d;background:var(--amber-weak);color:var(--amber)}.pill.green{border-color:#bae3d1;background:var(--green-weak);color:var(--green)}
+    .actions-list{display:grid}.action-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:9px;align-items:center;min-height:61px;padding:9px 11px;border-bottom:1px solid var(--line)}.action-row:last-child{border-bottom:0}.num-circle{width:22px;height:22px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--dim);font-size:9px;font-weight:800}.action-row b,.action-row small{display:block}.action-row b{font-size:9px}.action-row small{margin-top:3px;color:var(--dim);font-size:8px;line-height:1.35}.action-row button{height:26px;border:1px solid var(--line-strong);border-radius:5px;background:#fff;color:#3a4960;font-size:9px;font-weight:700}
+    @media(max-width:1100px){.grid,.lower{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.source-line{grid-column:1/-1}.bridge{overflow:auto}.step{min-width:135px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand"><div class="logo">OP</div><div><strong>运营协同平台</strong><small>欧洲业务运营</small></div></div>
+      <nav>
+        <button class="nav">我的工作台</button>
+        <div class="group">计划与交付</div><button class="nav">产品路线图</button><button class="nav">项目跟进 <span class="badge">34</span></button><button class="nav">产销管理</button><button class="nav">预测管理</button><button class="nav">物流交付</button>
+        <div class="group">市场增长</div><button class="nav">新品上市</button><button class="nav">营销活动</button><button class="nav">营销物料</button>
+        <div class="group">协同中心</div><button class="nav">月度促销审批</button><button class="nav">其他审批</button><button class="nav">我的待办 <span class="badge">4</span></button><button class="nav">异常中心 <span class="badge">12</span></button>
+        <div class="group">经营管理</div><button class="nav">经营总览</button><button class="nav">BP达成</button><button class="nav active">经营分析</button><button class="nav">价值链测算</button><button class="nav">结算台账</button>
+        <div class="group">专业与管理</div><button class="nav">职能工作台</button><button class="nav">系统管理</button>
+      </nav>
+      <div class="foot"><span class="dot"></span>本地方案示例 · 原文件只读</div>
+    </aside>
+    <main>
+      <header class="topbar"><div class="crumb"><strong>经营管理 / 经营分析</strong><span>识别经营偏差、解释利润变化并推动行动闭环</span></div><div class="spacer"></div><div class="top-chip sync"><span class="dot"></span>数据已更新 · 08:45</div><div class="top-chip">中文⌄</div><div class="top-chip">payton.ppc · 平台所有者</div></header>
+      <div class="env"><div><b>分析口径</b> 有效PO为实际达成；取消PO不计入；金额统一按版本化FX换算为EUR</div><div>数据版本 2026-Q2-v3</div></div>
+      <div class="content"><div class="page">
+        <div class="page-head"><div class="title"><small>BUSINESS REVIEW</small><strong>经营分析</strong></div><div class="actions"><button class="btn">查看口径</button><button class="btn">导出复盘包</button><button class="btn primary">创建行动项</button></div></div>
+        <div class="filters">
+          <label class="field"><span>年度</span><select><option>2026</option></select></label>
+          <label class="field"><span>季度</span><select><option>Q2</option></select></label>
+          <label class="field"><span>市场范围</span><select><option>全部可见市场</option></select></label>
+          <label class="field"><span>对比基准</span><select><option>上一季度 Q1</option></select></label>
+          <div class="source-line"><b>关联模块</b><span class="source"><i></i>BP达成</span><span class="source"><i></i>物流交付</span><span class="source"><i></i>结算台账</span><span class="source"><i></i>Master Data</span></div>
+        </div>
+        <nav class="tabs"><button class="tab active">综合复盘</button><button class="tab">市场与渠道</button><button class="tab">产品与盈利</button><button class="tab">行动与复盘</button></nav>
+        <section class="kpis">
+          <div class="kpi"><span>季度收入</span><strong>€527.0K</strong><small class="down">较Q1 -7.7% · 24,483件</small></div>
+          <div class="kpi"><span>BP收入达成</span><strong>47.5%</strong><small class="down">距离目标 €582.6K</small></div>
+          <div class="kpi"><span>毛利润率</span><strong>30.6%</strong><small class="down">较Q1 -2.9pp</small></div>
+          <div class="kpi"><span>净利润率</span><strong>26.2%</strong><small class="down">较Q1 -7.3pp · CN €31.7K</small></div>
+        </section>
+        <div class="grid">
+          <section class="panel"><header class="panel-head"><h2>季度利润桥</h2><span>实际收入 → 净利润 · EUR</span></header>
+            <div class="bridge">
+              <div class="step revenue"><small>收入 Revenue</small><strong>€527.0K</strong><em>16个PO · 24,483件</em></div>
+              <div class="step cost"><small>− BOM</small><strong>€288.4K</strong><em>收入的54.7%</em></div>
+              <div class="step cost"><small>− 物流费用</small><strong>€77.3K</strong><em>13/16 PO有费用</em></div>
+              <div class="step gp"><small>= 毛利润</small><strong>€161.2K</strong><em>GP 30.6%</em></div>
+              <div class="step cost"><small>− Credit Note</small><strong>€31.7K</strong><em>收入的6.0%</em></div>
+              <div class="step np"><small>= 净利润</small><strong>€129.5K</strong><em>NP 26.2%</em></div>
+            </div>
+            <div class="drivers"><div class="driver"><b>收入变化</b><small class="down">较Q1 -€43.8K</small></div><div class="driver"><b>BOM影响</b><small>成本率 54.7%</small></div><div class="driver"><b>物流影响</b><small class="warn">3个PO缺费用</small></div><div class="driver"><b>扣款影响</b><small class="down">ES占 €17.3K</small></div></div>
+          </section>
+          <section class="panel"><header class="panel-head"><h2>关键偏差</h2><span>5项需要解释</span></header><div class="issue-tabs"><span class="red">重大 2</span><span>关注 3</span><span>全部 5</span></div>
+            <div class="issue"><div class="issue-top"><b>ES收入达成仅31.4%</b><strong class="down">-€421.8K</strong></div><p>销售规模不足，同时GP率23.9%、NP率16.4%，需要渠道和产品拆解。</p><div class="issue-foot"><span>负责人 María</span><span>8月12日</span></div></div>
+            <div class="issue"><div class="issue-top"><b>Credit Note抬升</b><strong class="down">€31.7K</strong></div><p>ES占54.7%，优先核对Price Protection与质量扣款归属。</p><div class="issue-foot"><span>财务 / 销售</span><span>待处理</span></div></div>
+            <div class="issue"><div class="issue-top"><b>PL缺少季度BP</b><strong class="warn">未配置</strong></div><p>已有€114.9K收入，但无法计算BP达成，需补齐目标口径。</p><div class="issue-foot"><span>经营计划</span><span>数据问题</span></div></div>
+          </section>
+        </div>
+        <div class="lower">
+          <section class="panel"><header class="panel-head"><h2>市场经营诊断</h2><span>点击市场查看渠道与产品贡献</span></header><div class="table-wrap"><table>
+            <thead><tr><th style="width:100px">市场</th><th class="num">收入</th><th class="num">BP达成</th><th class="num">GP率</th><th class="num">NP率</th><th>主要偏差</th><th style="width:92px">行动状态</th></tr></thead>
+            <tbody>
+              <tr><td><b>FR</b><small>10,134件</small></td><td class="num">€218.5K</td><td class="num"><span class="pill red">44.2%</span></td><td class="num">35.3%</td><td class="num">32.4%</td><td>规模低于BP，盈利率相对稳定</td><td><span class="pill amber">分析中</span></td></tr>
+              <tr><td><b>ES</b><small>9,000件</small></td><td class="num">€193.2K</td><td class="num"><span class="pill red">31.4%</span></td><td class="num"><span class="down">23.9%</span></td><td class="num"><span class="down">16.4%</span></td><td>收入缺口、物流和CN共同侵蚀利润</td><td><span class="pill red">需行动</span></td></tr>
+              <tr><td><b>PL</b><small>5,337件</small></td><td class="num">€114.9K</td><td class="num"><span class="pill amber">缺BP</span></td><td class="num">32.9%</td><td class="num">29.9%</td><td>先补齐BP，再判断销售达成</td><td><span class="pill amber">补数据</span></td></tr>
+              <tr><td><b>NL</b><small>12件</small></td><td class="num">€0.4K</td><td class="num"><span class="pill amber">缺BP</span></td><td class="num">59.8%</td><td class="num">38.6%</td><td>样本量过小，不进入组合比较</td><td><span class="pill green">已确认</span></td></tr>
+            </tbody>
+          </table></div></section>
+          <section class="panel"><header class="panel-head"><h2>行动闭环</h2><span>来自季度复盘与异常</span></header><div class="actions-list">
+            <div class="action-row"><span class="num-circle">1</span><div><b>拆解ES收入与利润缺口</b><small>María · 销售 / GTM · 8月12日</small></div><button>进入</button></div>
+            <div class="action-row"><span class="num-circle">2</span><div><b>核对ES Credit Note归属</b><small>Finance · 结算台账 · 8月10日</small></div><button>进入</button></div>
+            <div class="action-row"><span class="num-circle">3</span><div><b>补齐PL 2026 Q2 BP</b><small>经营计划 · BP达成 · 8月9日</small></div><button>进入</button></div>
+            <div class="action-row"><span class="num-circle">4</span><div><b>补录3个PO物流费用</b><small>Logistics · 物流交付 · 8月11日</small></div><button>进入</button></div>
+          </div></section>
+        </div>
+      </div></div>
+    </main>
+  </div>
+</body>
+</html>

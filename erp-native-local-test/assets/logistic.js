@@ -71,7 +71,7 @@
     const act = allSkus().filter(s => s.is_active).length, ina = allSkus().length - act
     return S.pageHeader({
       overline: (window.ROUTES && ROUTES.logistic.overline) || 'MASTER DATA · LOGISTICS',
-      title: '发货汇总',
+      title: '产品物流与价格',
       pill: { text: `${act} 在售 · ${ina} 停用`, color: 'var(--c-success)' },
       actions: [
         h('button.btn', { onclick: openExport }, '导出台账'),
@@ -110,7 +110,7 @@
     ])
     // header
     const th = (label, extra) => h('th', extra || {}, label)
-    const headCells = [h('th', { style: sticky(0, CODE_W) }, 'Code'), h('th', { style: sticky(CODE_W, NAME_W, true) }, 'Name'), th('EAN')]
+    const headCells = [h('th', { style: sticky(0, CODE_W, false, true) }, 'Code'), h('th', { style: sticky(CODE_W, NAME_W, true, true) }, 'Name'), th('EAN')]
     if (st.showCarton) headCells.push(th('Qty/Carton', { class: 'num' }), th('Carton kg', { class: 'num', title: '每箱重量 (gross kg)' }), th('Carton size', { title: '每箱尺寸 L*W*H' }), th('Carton qty/Pallet', { class: 'num', title: '每托箱数' }), th('Pallet weight', { class: 'num', title: '每托重量' }), th('Retail package size', { title: '产品彩盒尺寸' }))
     whs.forEach(w => headCells.push(h('th.num', { title: WH_FULL[w.name] || w.name }, whCode(w.name))))
     headCells.push(h('th.num', { title: 'Total on hand — all warehouses' }, 'Total'), th('Sort', { class: 'num' }), th('Edit', { class: 'num' }))
@@ -140,7 +140,7 @@
       })
     })
     const table = h('table.tbl', { style: { minWidth: (CODE_W + NAME_W + 120 + whs.length * 84 + 90 + 150 + (st.showCarton ? 560 : 0)) + 'px' } }, [h('thead', h('tr', headCells)), tbody])
-    return h('div.card', { style: { overflow: 'hidden' } }, [bar, h('div.card-body.flush', h('div', { style: { overflow: 'auto', maxHeight: '700px' } }, any ? table : h('div.empty', 'No SKUs match the filters')))])
+    return h('div.card', { style: { overflow: 'hidden' } }, [bar, h('div.card-body.flush', tableViewport(any ? table : h('div.empty', 'No SKUs match the filters')))])
   }
 
   // ── Pricing view ──
@@ -154,7 +154,7 @@
     if (st.priceMetric === 'rrp') cols = countries().map(c => ({ key: c.id, label: `${c.code}`, cur: c.currency, country: c }))
     else cols = fdCols.map(f => ({ key: f.country_id + '|' + f.fd, label: `${(cById[f.country_id] || {}).code} · ${f.fd}`, cur: f.currency || (cById[f.country_id] || {}).currency, country: cById[f.country_id], fd: f.fd }))
 
-    const head = h('tr', [h('th', { style: sticky(0, CODE_W) }, 'Code'), h('th', { style: sticky(CODE_W, NAME_W, true) }, 'Name')]
+    const head = h('tr', [h('th', { style: sticky(0, CODE_W, false, true) }, 'Code'), h('th', { style: sticky(CODE_W, NAME_W, true, true) }, 'Name')]
       .concat(cols.map(c => h('th.num', [c.label, h('div.faint', { style: { fontSize: '10px', fontWeight: 400 } }, c.cur)]))))
     const tbody = h('tbody')
     let any = false
@@ -175,7 +175,7 @@
       tbody.append(h('tr', { style: { opacity: s.is_active ? 1 : .55 } }, tds))
     })
     const table = h('table.tbl', { style: { minWidth: (CODE_W + NAME_W + cols.length * 130) + 'px' } }, [h('thead', head), tbody])
-    return h('div.card', { style: { overflow: 'hidden' } }, [bar, h('div.card-body.flush', h('div', { style: { overflow: 'auto', maxHeight: '700px' } }, any ? table : h('div.empty', 'No SKUs match the filters')))])
+    return h('div.card', { style: { overflow: 'hidden' } }, [bar, h('div.card-body.flush', tableViewport(any ? table : h('div.empty', 'No SKUs match the filters')))])
   }
 
   // ── inline editable cells ──
@@ -212,7 +212,24 @@
     disp(); return td
   }
   const dash = v => v == null || v === '' ? h('span.faint', '—') : String(v)
-  function sticky(left, w, border) { return { position: 'sticky', left: left + 'px', background: 'var(--c-surface)', zIndex: 2, minWidth: w + 'px', maxWidth: w + 'px', boxShadow: border ? '2px 0 0 var(--c-border)' : (left ? '2px 0 0 var(--c-border)' : '') } }
+  function tableViewport(content) {
+    const el = h('div', { class: 'logistic-table-scroll', style: { overflow: 'auto', position: 'relative', maxHeight: '700px', minHeight: '300px', overscrollBehavior: 'contain' } }, content)
+    const fit = () => {
+      if (!el.isConnected) return
+      const available = window.innerHeight - el.getBoundingClientRect().top - 18
+      el.style.height = Math.min(700, Math.max(300, Math.floor(available))) + 'px'
+    }
+    requestAnimationFrame(fit)
+    if (!window.__logisticTableResizeBound) {
+      window.__logisticTableResizeBound = true
+      window.addEventListener('resize', () => document.querySelectorAll('.logistic-table-scroll').forEach(node => {
+        const available = window.innerHeight - node.getBoundingClientRect().top - 18
+        node.style.height = Math.min(700, Math.max(300, Math.floor(available))) + 'px'
+      }))
+    }
+    return el
+  }
+  function sticky(left, w, border, header) { return { position: 'sticky', left: left + 'px', top: header ? '0px' : undefined, width: w + 'px', minWidth: w + 'px', maxWidth: w + 'px', boxSizing: 'border-box', overflow: 'hidden', textOverflow: 'ellipsis', background: header ? 'var(--c-surface-3)' : 'var(--c-surface)', zIndex: header ? 4 : 2, boxShadow: border ? '2px 0 0 var(--c-border)' : (left ? '2px 0 0 var(--c-border)' : '') } }
 
   // ── SKU drawer (create / edit) ──
   function openDrawer(mode, sku) {

@@ -90,6 +90,11 @@ body {
   border-left-color: var(--c-primary);
 }
 
+.platform-sidebar .nav-item.nav-child {
+  padding-left: 19px;
+  font-size: 10px;
+}
+
 .platform-sidebar .platform-existing {
   color: #52627b;
 }

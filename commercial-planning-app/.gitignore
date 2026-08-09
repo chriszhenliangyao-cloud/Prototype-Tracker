@@ -9,3 +9,4 @@ prisma/bootstrap.sql
 coverage/
 .vercel
 .env*
+public/platform-native/

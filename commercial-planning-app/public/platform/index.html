@@ -6001,7 +6001,7 @@
           <div class="platform-nav-label">经营管理</div>
           <button class="platform-nav-item" data-module="business-overview" aria-pressed="false"><span class="platform-nav-mark">总</span><span>经营总览</span></button>
           <button class="platform-nav-item" data-module="business-bp" aria-pressed="false"><span class="platform-nav-mark">BP</span><span>BP达成</span></button>
-          <button class="platform-nav-item" data-module="business-analysis" aria-pressed="false"><span class="platform-nav-mark">析</span><span>经营分析</span></button>
+          <button class="platform-nav-item" data-module="business-analysis" aria-pressed="false"><span class="platform-nav-mark">析</span><span>经营分析复盘</span></button>
           <button class="platform-nav-item" data-module="value-chain" aria-pressed="false"><span class="platform-nav-mark">VC</span><span>价值链测算</span></button>
           <button class="platform-nav-item" data-module="settlements" aria-pressed="false"><span class="platform-nav-mark">结</span><span>结算台账</span></button>
         </div>
@@ -7471,7 +7471,7 @@
       logistics: { group: "计划与交付", label: "物流交付", subtitle: "出运、在途、清关与到仓跟进" },
       "business-overview": { group: "经营管理", label: "经营总览", subtitle: "经营目标、收入、利润与关键风险" },
       "business-bp": { group: "经营管理", label: "BP达成", subtitle: "业务计划目标、滚动预测与达成差异" },
-      "business-analysis": { group: "经营管理", label: "经营分析", subtitle: "经营差异、原因、行动与复盘" },
+      "business-analysis": { group: "经营管理", label: "经营分析复盘", subtitle: "月度、季度、半年度与年度经营复盘" },
       "value-chain": { group: "经营管理", label: "价值链测算", subtitle: "价格、渠道、成本与贡献利润情景模拟" },
       settlements: { group: "经营管理", label: "结算台账", subtitle: "客户对账、回款、差异与结算归档" },
       "market-launch": { group: "市场增长", label: "新品上市", subtitle: "新品上市计划与跨职能准备度" },
@@ -7496,7 +7496,10 @@
     let valueChainSimulationView = "on-sale";
     let commercialPlanningIntentTimer = null;
     const nativePlatformModuleRoutes = {
+      forecast: "/platform-native/index.html#module=forecast",
+      logistics: "/platform-native/index.html#module=logistic",
       "business-bp": "/platform/business/bp",
+      "business-analysis": "/platform-native/index.html#module=performance",
       "promo-approvals": "/platform/collaboration/monthly-approvals",
       "other-approvals": "/platform/collaboration/other-approvals",
       system: "/platform/system/master-data"

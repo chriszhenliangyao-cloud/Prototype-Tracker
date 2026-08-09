@@ -2,7 +2,89 @@
 
 ## Current Goal
 
-Maintain and extend the bilingual operations collaboration platform. The active delivery is an independently deployed cloud UAT environment for the shared Master Data and copied commercial-planning modules, while keeping the source system and production data unchanged until authenticated UAT and explicit cutover acceptance.
+Maintain and extend the bilingual operations collaboration platform. The latest native workspaces are now released as an authenticated read-only production pilot inside the unified cloud platform. Formal cloud modules and production records remain the source of truth until their corresponding native backend contracts pass authenticated UAT and explicit cutover acceptance.
+
+## 2026-08-09 Cloud Release Candidate
+
+- The latest native local workspaces are packaged into the unified Vercel app at
+  `/platform-native/`: three-month Forecast Management and scorecard, Shipment
+  Summary, Shipment Operation, Product Logistics & Pricing, BP monitoring,
+  Business Analysis Review, Function Workspace and Prototype Management.
+- Existing formal cloud modules remain the production sources of truth. Project
+  Tracking, Sales & Inventory, Marketing Assets, approvals, Value Chain, BP,
+  Master Data, permissions and cloud sync are not replaced by snapshot data.
+- Forecast, Logistics and Business Analysis Review open the same-origin native
+  pilot. The pilot is explicitly read-only and its browser drafts are not added
+  to the Supabase sync document allowlist.
+- The 1.45 MB pilot business snapshot is loaded only after the platform login is
+  synchronized. `/platform-native/assets/data.js` is protected by a Next.js
+  proxy and a ten-minute HMAC-signed access cookie. Static layout and styles
+  remain CDN-delivered for fast module switching.
+- A production-only sensitive `AUTH_SESSION_SECRET` was added to Vercel. No SQL,
+  schema migration, seed, import or production row mutation is part of this
+  release.
+- Pre-release Supabase evidence covers 44 application tables with 4,242 total
+  rows (3,533 public workspace rows and 709 commercial-planning rows). Exact row
+  counts and order-independent content fingerprints must match after release,
+  excluding separately explained concurrent user activity.
+- Local verification passes 65 test files / 376 tests, the production Vercel
+  build, copy-scope validation, `git diff --check`, and the full Playwright
+  regression. Native module switch time is 155-256 ms in the local run, no
+  document-level horizontal overflow is reported at desktop or 390 px, and no
+  browser errors are reported.
+- Current production observability baseline has three historical error groups:
+  60 Supabase refresh-token reuse errors, six Prisma P2024 connection-pool
+  timeouts and one older missing `DATABASE_URL` deployment error. The signed
+  pilot asset guard deliberately avoids adding another Supabase call during
+  native snapshot loading.
+
+## 2026-08-09 Production Release
+
+- Production deployment `dpl_7uGBgL1oN2GWvFvs63bZzUVDQhms` is `READY` and is
+  aliased to `https://operations-planning-hub.vercel.app`.
+- The deployed release contains the complete current native test workspaces for
+  Forecast Management, Logistics Delivery, BP monitoring, Business Analysis
+  Review and Prototype Management. The Vercel build copies only the native
+  runtime `index.html` and `assets/`; design concepts and test screenshots are
+  not served by the production application.
+- No database migration, seed, import, destructive command or production write
+  was executed during the release. Exact pre/post-release verification covered
+  all 44 application tables and 4,242 rows using row counts plus
+  order-independent JSON content fingerprints. The final comparison reported
+  zero changed tables.
+- Production health and route checks pass for `/api/health`, the platform shell,
+  the native shell, BP, both Value Chain workspaces, both approval workspaces
+  and Master Data. An anonymous request to
+  `/platform-native/assets/data.js` receives a login redirect, so the business
+  snapshot cannot be fetched without an authenticated platform session.
+- Final local regression passes 65 test files / 376 tests, the production Vercel
+  build, copy-scope validation, exact source-to-public native asset comparison,
+  `git diff --check` and the complete headless browser workflow. The browser
+  regression covers Forecast scorecard and entry, all three Logistics views,
+  BP market/category/SKU drill-through, exact PO and Forecast context transfer,
+  Business Analysis Review, Function Workspace and Prototype Management at
+  desktop and mobile widths with no browser errors or document-level overflow.
+- Verified cross-module contracts: BP to Forecast carries exact market, SKU and
+  category filters; BP to valid PO carries the exact selected product and shows
+  an explicit no-match state instead of substituting another product; Business
+  Analysis Review reads confirmed source snapshots and opens Logistics and
+  Credit Note details by the requested PO/CN and SKU dimensions; Prototype
+  Management remains nested under Function Workspace.
+- The native Forecast, Logistics and Business Analysis Review workspaces remain
+  an authenticated read-only pilot. Their browser drafts use local or session
+  storage and are not part of the cloud document allowlist. Formal Project
+  Tracking, Sales & Inventory, Marketing Assets, approvals, Value Chain, BP,
+  Master Data, permissions and cloud sync continue to use their existing cloud
+  records and were not replaced.
+- Production release logs contain no current runtime `error` or `fatal` entry.
+  Historical observability still shows refresh-token reuse races, Prisma P2024
+  connection-pool timeouts and rejected workspace-save retries. These are
+  follow-up reliability items, not mutations introduced by this release.
+- Remaining verification boundary: automated authenticated production visual
+  testing cannot reuse the user's Google session from the connected browser.
+  The deployed artifacts, public/auth boundaries, production routes, logs and
+  database fingerprints are verified; a short signed-in production acceptance
+  pass remains recommended for the account-specific UI path.
 
 ## Commercial Planning Copy Status
 
@@ -384,6 +466,306 @@ The standalone reference remains the design and behavior source for the React ap
 5. Add scheduled logical database exports or upgrade Supabase backup coverage before production cutover.
 6. After authenticated UAT, reconciliation and rollback rehearsal, mark the former standalone copied deployment for decommissioning. The source tool remains read-only and unchanged until a separate formal cutover is approved.
 7. Keep Settlement excluded until a separate scope is approved.
+
+## Forecast Panorama Local Test (2026-08-07)
+
+### Current Goal
+
+Validate a native three-month rolling sales forecast workflow that lets country sales teams enter many products and customer channels in one screen, preserves the `Country -> FD -> Retailer -> SKU` supply relationship, and lets GTM review the same forecast without rebuilding presentation data.
+
+### Completed
+
+- Rebuilt the local Forecast Management module with two native views: `市场全景填报` and `GTM评审`.
+- The entry matrix groups products by FD and retailer, exposes three editable forecast months simultaneously, includes group and market totals, prior-version deltas, completion state, change reasons and promotion/project context, and supports search plus compact filters without repetitive channel switching.
+- Draft edits auto-save locally and can be explicitly saved or submitted to GTM. GTM review reuses the same working dataset for market, FD/channel, product and change/risk presentation views.
+- Added responsive forecast-specific styling. Desktop shows all essential columns without page-level horizontal scrolling; mobile confines wide-table scrolling to the matrix panel.
+- The market selector now includes `全部可见市场`, aggregating only the five markets available to the current local-test account. This scope is explicitly read-only, shows market/month/product totals and prior-version deltas, and provides a supply-coordination summary action while preserving market-level ownership of forecast entry.
+- GTM review adds a `渠道×产品` view for a selected market. Its two-level header groups Retailers under their supplying FD, each product-channel cell displays Aug/Sep/Oct plus the three-month total and prior-version variance, and product/market totals, risk cues, filters and review actions remain in the same screen.
+- GTM approval is now intentionally centralized on the Overview tab. Only Overview exposes the overall review note, return-to-sales action and overall approval action; Channel x Product, FD/Channel, Product and Change/Risk are presentation-only analysis views.
+- Channel x Product includes a `查看所有产品` coverage toggle. France expands from 20 products already present in forecast data to all 66 active Master Data products, making omitted channel/product combinations visible as blank cells instead of silently excluding them.
+- Every Retailer column header opens a compact channel-detail modal showing the supplying FD, three forecast months, total, prior-version variance, completeness status and an optional all-product list. The Boulanger sample switches between 11 forecasted products and all 66 active products.
+- Fullscreen review now targets the stable document root instead of the re-rendered Forecast workspace. Previous/next buttons therefore preserve fullscreen, and Arrow Left/Right, Arrow Up/Down plus PageUp/PageDown navigate review tabs without leaving presentation mode.
+- The matrix review now changes grain with market scope. A selected market renders `渠道×产品`, while `全部可见市场` renders `国家×产品` with FR/PL/ES/NL/SE columns, three monthly values, country totals, product totals and the regional grand total. Switching back to a market restores the channel matrix without losing the all-product review setting.
+- Matrix cells now prioritize the three monthly forecast values at `9px` with stronger weight and contrast. When monthly details are visible, the three-month total is reduced to an `8px` secondary line; hiding monthly details restores the total to `10px` as the primary value.
+- Each country header opens a country forecast-detail modal with market coverage, FD/Retailer counts, product coverage, monthly product forecasts, three-month totals and prior-version variance. The country modal can switch between products already forecast in that market and all active Master Data products.
+
+### Changed Files
+
+- `erp-native-local-test/assets/forecast.js`
+- `erp-native-local-test/assets/forecast.css`
+- `erp-native-local-test/index.html`
+
+### Verification
+
+- `node --check erp-native-local-test/assets/forecast.js` passes.
+- `git diff --check` passes.
+- Local browser regression passes with no console errors or document-level horizontal overflow. The all-market view reports five market rows and 12 product summaries; the France GTM matrix reports two FD groups, seven channels and 20 product rows. All five review tabs and matrix risk filtering were exercised, and the all-market scope correctly disables the market-specific matrix tab.
+- The revised France review has exactly one overall approval surface on Overview and none on the other four tabs. Seven channel-detail entry points render without viewport overflow; all-product coverage renders 66 rows and 426 intentionally blank channel/product cells. Arrow and PageUp/PageDown navigation were exercised in fullscreen review with no console errors.
+- All-market matrix regression reports five clickable country columns, 52 forecasted products by default and 66 products in full-coverage mode. Country totals reconcile to the 76,235 regional total; France reconciles at 37,300 in both the matrix header and country-detail modal, with 20 forecasted of 66 active products. Returning to France restores seven clickable channel columns. No console errors or document-level horizontal overflow were observed.
+
+### Next Step
+
+Obtain user acceptance on the local UI and workflow before connecting shared APIs, Supabase persistence or any cloud release. This change does not modify production data or the cloud deployment.
+
+## Logistics Delivery Local Test (2026-08-08)
+
+### Current Goal
+
+Separate product logistics reference data from shipment execution, then give regional and market users a single shipment summary for market, PO, batch and exception tracking.
+
+### Completed
+
+- Reordered the Logistics Delivery workspace as `发货汇总`, `发货操作`, then `产品物流与价格`. Legacy logistics links remain compatible and redirect to the corresponding new view.
+- Renamed the former summary page to `产品物流与价格`; its product packaging, inventory, RRP and Invoice Price content remains unchanged.
+- Added a native shipment summary with week, month, quarter and year periods; market, FD/customer, date-basis, PO/SKU and status filters; regional metrics; market progress; PO fulfilment; expandable actual and planned batches; and delay/exception history.
+- Shared one in-memory PO, shipment-batch and remaining-plan store between Shipment Summary and Shipment Operations. Recording a partial shipment immediately updates shipped/remaining quantities, the PO status, the next planned batch and exception history in the summary.
+- Kept the existing PO lifecycle pipeline in Shipment Operations, removed its duplicated weekly analytics, and expanded the operation console with warehouse, transport mode, ETA, carrier, tracking/container, invoice number, batch note, unmet-reason category, owner and next planned shipment date.
+- Partial shipment confirmation requires a reason and next shipment date. Remaining quantities are calculated across every PO line, including lines not selected in the current batch.
+
+### Changed Files
+
+- `erp-native-local-test/index.html`
+- `erp-native-local-test/assets/platform-shell.js`
+- `erp-native-local-test/assets/logistic.js`
+- `erp-native-local-test/assets/shipment.js`
+- `erp-native-local-test/assets/shipment-summary.js`
+- `erp-native-local-test/assets/shipment-summary.css`
+
+### Verification
+
+- JavaScript syntax checks and `git diff --check` pass.
+- Local browser verification confirms the three-module order, route compatibility, no document-level horizontal overflow, the expanded operation fields and live partial-shipment reconciliation from Shipment Operations back to Shipment Summary.
+
+### Next Step
+
+Obtain user acceptance on the local logistics workflow before adding shared persistence, permission enforcement or a cloud release. This local test does not modify production data or deployment state.
+
+## Product Logistics Sticky Header (2026-08-08)
+
+- The `产品物流与价格` inventory and pricing tables now use a viewport-fitted internal scroll region instead of a fixed 700px panel that extended below the visible workspace.
+- Column headers remain pinned during vertical table scrolling. Code and Name stay pinned during horizontal scrolling with explicit widths and independent header/body z-index levels, preventing overlap.
+- Local 919x863 browser verification scrolls the table 620px vertically and 359px horizontally: the header remains at the scroll-region top, Code and Name meet without overlap, and the document has no horizontal overflow.
+
+## FCST Scorecard Forecast Module Local Test (2026-08-08)
+
+- Forecast Management now has a third native view, `预测评分卡`, after Sales Entry and GTM Review. Business Analysis is no longer the intended owner of this workflow.
+- The scorecard compares the exact selected published three-month forecast with effective PO quantity at `Market -> FD -> SKU -> Month` grain. Retailer forecasts are rolled into their supplying FD; Retailer is shown as forecast composition only and is not independently scored because Retailer actuals are unavailable.
+- The UI exposes only `预测准确率`. WAPE terminology and the FD ranking module are intentionally removed. Accuracy is `max(0, 100 - absolute error / forecast * 100)`; an effective PO against a zero forecast is classified as unplanned PO demand.
+- Achieve uses current PO ordered quantity. Cancelled POs are excluded; partially fulfilled POs retain their current effective ordered quantity. Shipped and delivered quantities are fulfilment context and do not replace demand actuals.
+- Future months after the latest effective PO month are `待评估`, preventing missing future POs from being reported as false 0% accuracy. Portfolio accuracy sums absolute error at FD/SKU/month grain before dividing by total forecast, so over- and under-forecast products cannot offset one another.
+- The local view includes permission-scoped market/all-market filters, KPIs, a three-month trend, a compact FD-product matrix, exception filtering and a detail drawer with Retailer forecast composition, PO records and autosaved review notes.
+- The scorecard now contains three persistent page-level views: `综合总览`, `当前滚动明细` and `季度复盘明细`. The unified overview keeps only four non-duplicated management KPIs: current rolling accuracy, quarterly composite accuracy, prior-quarter change and exception products. H1/H2/H3 figures appear only in the horizon chart and detail tables.
+- Quarterly review automatically matches each target month to the published runs released one, two and three months earlier. It calculates H1, H2 and H3 after summing absolute error at Market/FD/SKU/month grain, then applies the approved `H1 50% + H2 30% + H3 20%` composite formula.
+- Quarter months later than the latest effective-PO month remain `待评估`. A quarter with missing historical forecast vintages reports `样本不足` rather than fabricating a prior-quarter comparison. The current Q3 local sample therefore leaves September pending and does not produce a Q2 comparison because the required H2/H3 source runs are incomplete.
+- The quarter table and Market/FD/Product drill-down share the current version, quarter, market, FD, product and exception filters. A row drawer traces all nine month/horizon cells to their exact published run, shows effective PO lines and autosaves quarter review reasons and actions.
+- Browser regression passes with 21 France rows and 133 all-market rows. Accuracy is present; WAPE and FD ranking are absent; future months remain pending; the detail drawer shows PO context without overflow; all tested platform modules switch in 162-215ms with no document-level horizontal overflow.
+- The expanded regression verifies three score views, four overview KPIs, zero duplicate horizon KPI cards, four horizon bars, four quarter summary rows, current and quarter drawers, the scoring-rule dialog, all-market grain and 390px mobile layout. Quarter tables scroll internally while desktop and mobile documents retain zero horizontal overflow; platform module switching remains approximately 158-261ms.
+- This is a local test only. Shared persistence, permission enforcement, historical close snapshots, legacy-link redirects and cloud release remain pending user acceptance.
+
+## Business Analysis Scorecard Retirement (2026-08-08)
+
+- Removed the legacy `FCST Scorecard` tab, scoring rules, forecast aggregation and score table from Business Analysis. Forecast Management is now the only owner of forecast scoring and quarterly review.
+- Business Analysis retains only `Sales Review` and `Profitability (P&L)`, with `Sales Review` as the default view. Any stale in-memory `kpi` tab value is defensively redirected to `Sales Review` instead of rendering a blank page.
+- Removed the scorecard-only `Hide empty SKUs` control from the Business Analysis selector bar.
+- Local browser regression verifies exactly two Business Analysis tabs, no legacy scorecard text, both remaining views render, and neither view creates document-level horizontal overflow.
+
+## Prototype Management Source Audit and Migration Concept (2026-08-08)
+
+- Audited the read-only migration source at `/Users/julio/Desktop/AI output/Chris 部分搬运嵌入/iniu-erp-demo(1)`. Its manifest and implementation contain only Forecast, Performance, Logistic & Stock and Shipment Workflow modules. It does not contain a Prototype Management route, page, sample ledger or sample movement data model; incidental `Sample Support` text in expense/review snapshots is not a management module.
+- The collaboration platform already has a native `prototype-management` function workspace linked to each project's `workstreams.prototype`, permission scopes, project navigation and cloud document synchronization. The current implementation provides portfolio filters, readiness, current task, risk, deadline, owner, export and project-workstream editing, but does not yet track individual physical samples, movements, custody or returns.
+- Recommended migration path is to promote the existing native workspace into the prototype system of record rather than fabricate a source-package copy. Add requirement, physical-unit, movement, custody/loan and immutable audit entities keyed to platform project and Master Data SKU IDs; Project Tracking consumes readiness/risk summaries from this ledger.
+- Created a non-production concept at `erp-native-local-test/prototype-management-migration-concept.html` and `erp-native-local-test/prototype-management-migration-concept.png`. It demonstrates project overview, sample movement, loan/return and history tabs, compact filters, one-screen ledger, exceptions and explicit cross-module ownership. The source package was not modified.
+
+## Prototype Management Native Local Test (2026-08-08)
+
+- Added a native `职能工作台` at `#module=functions` with six department-owned entry rows. `样机管理` is not a separate left-navigation module: it opens only from the Prototype Management row and uses the nested deep link `#module=functions&workspace=prototype`. Desktop and mobile module selectors continue to show only `职能工作台`.
+- Implemented four workspace views: `项目总览`, `样机流转`, `借用与归还` and `历史记录`. The overview combines compact project/model, stage, type, status, owner and exception filters; five portfolio KPIs; a project prototype ledger; and a complete exception queue without document-level horizontal scrolling.
+- Added a Master Data/project-bound prototype requirement workflow. Users select an existing project/model, prototype type, quantity, owner, due date and purpose; free-form product identities are not created. The project ledger and immutable local history update together.
+- Added physical movement operations for shipment, receipt, loan and return. Operations update received/in-transit/loaned counts, readiness, current node, location/custodian and movement history. Project details expose requirements, physical-unit status and recent movement records in one drawer.
+- Added CSV ledger export, direct Project Tracking navigation and an explicit ownership contract: Project Tracking provides project identity and milestones; Prototype Management owns requirements, physical assets and custody; Quality, Engineering and Marketing consume the resulting status.
+- Local-test edits autosave to browser `sessionStorage` under `erp-native-prototype-management.v1`. They are isolated from Supabase, production data and cloud deployment, and the audited migration source remains unchanged.
+
+### Changed Files
+
+- `erp-native-local-test/index.html`
+- `erp-native-local-test/assets/platform-shell.js`
+- `erp-native-local-test/assets/platform-integration.css`
+- `erp-native-local-test/assets/functional-workspace.js`
+- `erp-native-local-test/assets/functional-workspace.css`
+- `erp-native-local-test/assets/prototype-management.js`
+- `erp-native-local-test/assets/prototype-management.css`
+- `erp-native-local-test/verify-ui.cjs`
+
+### Verification
+
+- JavaScript syntax checks and `git diff --check` pass.
+- Full local browser regression passes with no console errors. Function Workspace opens in approximately 172ms with six entries; exactly one Prototype Management entry is present and there is no separate Prototype Management navigation item. The nested workspace retains four views and five KPIs while preserving Forecast, Logistics and Performance regressions.
+- Requirement creation, project drawer opening, receipt recording, readiness/location recalculation, movement history, loan/return actions and immutable history rendering were exercised successfully.
+- Entering Prototype Management from Function Workspace, refreshing its nested URL and returning to Function Workspace were exercised successfully. The Function Workspace navigation remains active throughout the nested workflow.
+- Desktop and 390px mobile screenshots confirm zero document-level horizontal overflow. The compact mobile layout keeps the full filter set visible and confines the dense ledger to its own scroll region.
+- Screenshots: `erp-native-local-test/native-prototype-management.png` and `erp-native-local-test/native-prototype-management-mobile.png`.
+
+## Original Business Analysis Audit and Optimization Concept (2026-08-08)
+
+- Audited the read-only source `performance.html` and `assets/performance.js` in `/Users/julio/Desktop/AI output/Chris 部分搬运嵌入/iniu-erp-demo(1)`. The source remains unchanged.
+- The original module combines `FCST Scorecard`, `Sales Review` and `Profitability (P&L)`. Forecast scoring now belongs to Forecast Management; full BP detail belongs to BP Achievement; PO freight detail belongs to Logistics Delivery; and Credit Note/settlement detail belongs to Settlement Ledger.
+- Identified calculation and governance risks: forecast runs are averaged instead of preserving forecast vintage; PO actuals are not explicitly filtered for cancelled status; category P&L does not populate logistics or Credit Note costs; FX is hard-coded; Sales Review shows only six channels, does not load its available review records and has no durable save/history workflow; and all-market behavior is inconsistent.
+- Repositioned Business Analysis as the cross-module diagnosis and review layer with four views: `综合复盘`, `市场与渠道`, `产品与盈利`, and `行动与复盘`. It consumes governed summaries from source modules, explains revenue and profit movement, surfaces data-quality exceptions and creates traceable actions without duplicating operational ledgers.
+- The concept uses the original Q2 2026 snapshot: revenue EUR 527.0K, BP achievement 47.5%, GP 30.6%, NP 26.2%, and a revenue-to-NP bridge including BOM, logistics and Credit Notes. It also calls out missing PL BP and three POs without freight coverage.
+- Created the non-production artifacts `erp-native-local-test/business-analysis-optimization-concept.html` and `erp-native-local-test/business-analysis-optimization-concept.png`. They are review concepts only and are not wired into the platform route or cloud deployment.
+
+## Business Review Center Concept (2026-08-09)
+
+- Proposed a new first-level page entry, `经营复盘`, under the existing `经营管理` navigation group. It is distinct from `经营分析`: analysis supports continuous diagnosis, while review supports fixed-period meetings, frozen data versions, decisions and follow-up.
+- The same review structure supports monthly, quarterly, half-year and annual periods. Each review selects a period, visible-market scope and comparison baseline, then freezes the exact BP, forecast, PO, logistics, settlement, project and Master Data versions used by the meeting.
+- The review workspace is organized into `复盘总览`, `收入与利润`, `预测与交付`, `项目与市场`, `结论与行动`, and `历史复盘`. The overview presents non-duplicated management KPIs, source readiness, trend and margin movement, meeting agenda, cross-module conclusions and action closure in one screen.
+- Recommended workflow is `会前数据检查与预读 -> 数据冻结 -> 会议模式 -> 结论确认 -> 行动同步我的待办 -> 历史归档`. Corrections after freezing create an adjustment version and never overwrite an accepted historical review.
+- Created the non-production concept files `erp-native-local-test/business-review-center-concept.html` and `erp-native-local-test/business-review-center-concept.png`. A 1600x1000 browser render confirms zero page-level horizontal or vertical overflow. The concept is not connected to platform routes, shared persistence or cloud deployment.
+- Expanded the same concept into six switchable review views: `复盘总览`, `收入与利润`, `预测与交付`, `项目与市场`, `结论与行动`, and `历史复盘`. Query-string views and the visible tabs use one shared period, scope, comparison and frozen-version context.
+- Generated six 1600x1000 review screenshots: `business-review-01-overview.png`, `business-review-02-profit.png`, `business-review-03-forecast-delivery.png`, `business-review-04-project-market.png`, `business-review-05-conclusion-action.png`, and `business-review-06-history.png`. Browser checks confirm the correct active tab, zero console errors and no document-level horizontal or vertical overflow for every view.
+
+## Business Analysis and Business Review Native Local Test (2026-08-09)
+
+- Replaced the old local Business Analysis renderer with the approved four-view structure: `综合复盘`, `市场与渠道`, `产品与盈利`, and `行动与复盘`. The page now owns continuous variance diagnosis, revenue-to-net-profit explanation, market/channel drill-down, product profitability and traceable action creation; Forecast Scorecard remains exclusively in Forecast Management.
+- Added a shared business metrics layer over the local snapshot. Effective PO calculations explicitly exclude cancelled POs. Revenue, BP, BOM, freight, Credit Note, GP, NP, fulfilment and published forecast metrics now use one common period and market scope across Business Analysis and Business Review.
+- Renamed the proposed review module from `经营复盘` to `业务复盘`. Added it as a native navigation entry immediately after `结算台账`, including the mobile module selector, URL route `#module=businessReview`, Chinese/English shell names and module context.
+- Implemented six native Business Review views: `复盘总览`, `收入与利润`, `预测与交付`, `项目与市场`, `结论与行动`, and `历史复盘`. One shared filter context supports monthly, quarterly, half-year and annual reviews, market scope and prior-period/BP comparison.
+- Added the four-step review workflow: pre-meeting source check, frozen review version, meeting conclusion, and action/archive closure. Frozen-version notices, action progress and local history state persist in browser `sessionStorage`; accepted versions are presented as non-overwritable, with corrections routed to an adjustment-version flow.
+- Project and market readiness in the local snapshot are explicitly marked as collaboration sample data because the migrated ERP package does not include authoritative project, prototype or marketing asset tables. Production integration must replace these examples with governed Project Tracking and functional-workspace summaries.
+- This remains a local test only. It does not modify the read-only migration source, Supabase production data, cloud routes or Vercel deployments.
+
+### Changed Files
+
+- `erp-native-local-test/index.html`
+- `erp-native-local-test/assets/platform-shell.js`
+- `erp-native-local-test/assets/business-metrics.js`
+- `erp-native-local-test/assets/business-workspaces.css`
+- `erp-native-local-test/assets/business-analysis.js`
+- `erp-native-local-test/assets/business-review.js`
+- `erp-native-local-test/verify-ui.cjs`
+
+### Verification
+
+- JavaScript syntax checks and `git diff --check` pass.
+- Full Playwright regression passes with zero console errors, no iframe dependencies and no document-level horizontal overflow on desktop or the existing mobile regression pages.
+- Business Analysis exposes exactly four views and no legacy `FCST Scorecard`; Business Review exposes exactly six views, four workflow stages, month/quarter/half/year period controls, a frozen-version state and a history archive.
+- `业务复盘` is confirmed immediately after `结算台账`. Native module switches complete in approximately 158-176ms while Forecast, Logistics, Function Workspace and Prototype Management regressions remain green.
+- Screenshots: `erp-native-local-test/native-business-analysis.png` and `erp-native-local-test/native-business-review.png`.
+
+## Business Review Expense and Delivery Refinement (2026-08-09)
+
+- Business Review now consumes a shared confirmed-result contract for Business Analysis, BP Achievement, Forecast Management, Logistics Delivery and Settlement Ledger. Every source exposes its status, version, confirmation time, period and market scope before the review uses it.
+- Added a compact `费用分析` section. Logistics fee, Credit Note and total fee are shown by visible market, with each ratio placed beside the amount in parentheses instead of occupying a separate column.
+- Logistics fee values open a detail dialog with `按PO` and `按产品SKU` views. PO rows preserve shipment, amount, currency, status and exception context; SKU rows allocate a PO's logistics fee by line revenue share and state that allocation rule in the dialog.
+- Credit Note values open a detail dialog with `按Credit Note号` and `按产品SKU` views. The number view groups all affected SKU lines under the originating Credit Note; the SKU view aggregates deduction impact by product while retaining the source note count.
+- Removed the duplicated headline KPI strip from `收入与利润`. BP achievement, BOM share, logistics share, gross-profit rate, Credit Note share and net-profit rate now sit directly in the profit bridge.
+- Fixed market scoping so a selected country is the only country shown in Business Analysis and Business Review market tables. All-market users still receive the governed cross-market aggregate.
+- Rebuilt `预测与交付` as a review chain from BP plan through rolling forecast, effective PO and shipped quantity. It reuses confirmed Forecast Management and Logistics Delivery results and keeps drill-through ownership in the source modules.
+- This refinement is local-test only and has not been deployed to Vercel or written to production data.
+
+### Expense Refinement Verification
+
+- Full Playwright regression passes with zero console errors, no iframe dependencies and no document/modal horizontal overflow.
+- FR market scope returns only FR rows. Logistics details expose 6 PO rows and 9 SKU rows; Credit Note details expose 3 note-number rows and 5 SKU rows in the bundled local snapshot.
+- Forecast-and-delivery review exposes all four stages and the confirmed source versions. JavaScript syntax checks and `git diff --check` pass.
+- Screenshots: `erp-native-local-test/native-business-review-expense.png`, `erp-native-local-test/native-business-review-logistics-details.png`, `erp-native-local-test/native-business-review-credit-note-details.png`, and `erp-native-local-test/native-business-review-forecast-delivery.png`.
+
+## BP Achievement Native Local Module (2026-08-09)
+
+- Replaced the `BP达成` existing-platform placeholder with the native local route `#module=bp`. The desktop navigation, mobile module selector, Chinese/English shell context and Business Review source drill-through now resolve to the same native module.
+- Moved the BP ownership previously embedded in the source Performance page into four focused views: `综合达成`, `市场与品类`, `产品明细`, and `版本记录`.
+- `综合达成` supports full-year and Q1-Q4 selection, all-visible-market or single-market scope, and SI amount/quantity metrics. It shows the confirmed BP target, effective-PO actual, gap, achievement, four-quarter progress, twelve-month detail and market exception order.
+- `市场与品类` applies one governed market filter to both tables. `产品明细` keeps products that have a BP target but no actual PO, supports model/name search, shows quantity and value achievement together, and opens a twelve-month product drawer.
+- Extended the shared metrics contract with BP target quantity, actual value/quantity, value/quantity gaps, both achievement rates, and confirmed market/category/SKU detail. Cancelled POs remain excluded from actual achievement.
+- BP target totals and product-detail totals are verified to reconcile for both value and quantity. A confirmed BP version feeds Business Analysis and Business Review; a new confirmation creates a new version without overwriting frozen review history.
+- This remains a local-test implementation only. It does not modify the read-only source package, Supabase production data or Vercel deployment.
+
+### BP Verification
+
+- Full Playwright regression passes with zero console errors and no page-level horizontal overflow across desktop and mobile. Native module switching completes in approximately 159-249ms.
+- The BP page exposes four views, four KPI cells, four quarter cards and twelve monthly rows. FR scope returns only FR, the local snapshot exposes five FR categories and thirty FR product rows, and BP-only products remain visible.
+- Product drawers expose twelve monthly rows. Mobile product detail uses internal table scrolling without expanding the document width.
+- Screenshots: `erp-native-local-test/native-bp-achievement.png` and `erp-native-local-test/native-bp-achievement-mobile.png`.
+
+## Business Analysis Review Consolidation (2026-08-09)
+
+- Consolidated the overlapping `经营分析` and `业务复盘` entries into one native `经营分析复盘` module at `#module=performance`. The separate `业务复盘` desktop navigation, mobile option and runtime route were removed.
+- `经营分析复盘` now uses the former Business Review implementation in full: `复盘总览`, `收入与利润`, `预测与交付`, `项目与市场`, `结论与行动` and `历史复盘`, including the four-step review workflow, frozen versions, expense drill-downs, source-module contracts and history archive.
+- Preserved `sessionStorage` key `erp-native-business-review-state`. Existing local frozen state, actions and history therefore remain readable after the module rename instead of being copied or reset.
+- Added backward-compatible route canonicalization. Existing bookmarks using `#module=businessReview` automatically replace themselves with `#module=performance`, including same-page hash changes where the active renderer does not otherwise change.
+- Renamed the shared confirmed-result contract source from `经营分析` to `经营分析复盘`. BP, Forecast, Logistics and Settlement remain the governed source modules; the merged page continues to consume their confirmed snapshots rather than duplicating their operational ledgers.
+- The previous `business-analysis.js` file remains untouched but is no longer loaded by the local test shell. This avoids destructive cleanup in the dirty worktree while guaranteeing that the former four-view renderer cannot override the merged module.
+- This consolidation is local-test only. It does not update Supabase, Vercel or production routes.
+
+### Consolidation Verification
+
+- JavaScript syntax checks and `git diff --check` pass.
+- Full Playwright regression passes with zero console errors. The merged module exposes exactly one navigation entry, six review views, four workflow steps and no document-level horizontal overflow.
+- Legacy `#module=businessReview` links redirect to `#module=performance` and render `经营分析复盘`. Forecast, Logistics, BP, Function Workspace and Prototype Management regressions remain green.
+- Desktop and 390px mobile renders pass. Screenshots: `erp-native-local-test/native-business-analysis-review.png` and `erp-native-local-test/native-business-analysis-review-mobile.png`.
+
+## Business Analysis Review Compact UX Implementation (2026-08-09)
+
+- Applied the approved compact layout to the active local `经营分析复盘` module. The four-stage workflow strip is no longer rendered. The former page head, methodology band, filter block, source pills and separate tab block are consolidated into a two-row control shell that is 102px high at the 1440px test viewport.
+- The control shell keeps period type, review period, market scope and comparison in the first row. Source readiness is summarized as `来源 4/4`; clicking it opens the four governed source versions. Meeting mode, history and frozen-version controls remain directly accessible.
+- Merged the former standalone expense section into `市场收入、利润与费用`. Each market row now carries revenue, BP achievement, GP rate, logistics fee and ratio, Credit Note and ratio, total cost and ratio, NP rate and review status. Logistics and Credit Note amounts still open their governed PO/Credit Note and SKU detail dialogs.
+- Simplified `结论与行动` to a compact conclusion summary and action table. The default page shows only decision/action identity, impact or source, owner, deadline and status. Conclusion reasons/decisions and action reasons/evidence open in an editable right-side drawer; updates are persisted under the existing `erp-native-business-review-state` session key.
+- Preserved the six review tabs, frozen versions, source contracts, legacy `#module=businessReview` redirect and history archive. No source snapshot, production database or cloud deployment was changed.
+
+### Compact UX Verification
+
+- JavaScript syntax checks and `git diff --check` pass.
+- Full Playwright regression passes with zero console errors and no iframe or document-level horizontal overflow. The compact review has zero workflow nodes, one control shell, no legacy page/method/filter blocks, four conclusion summaries and five action rows.
+- Conclusion and action drawers were edited and saved during automated testing. Logistics details expose 6 PO and 9 SKU rows; Credit Note details expose 3 note-number and 5 SKU rows. Forecast, Logistics, BP, Function Workspace and Prototype Management regressions remain green.
+- Desktop and 390px mobile screenshots: `erp-native-local-test/native-business-analysis-review.png`, `erp-native-local-test/native-business-analysis-review-expense.png`, `erp-native-local-test/native-business-analysis-review-actions.png`, `erp-native-local-test/native-business-analysis-review-action-drawer.png`, and `erp-native-local-test/native-business-analysis-review-mobile.png`.
+
+## Business Review Overview, Category Mix and BP Density Refinement (2026-08-09)
+
+- Reorganized `复盘总览` around its two primary review jobs. `${selected review period}利润桥` is now the first full-width section and `市场复盘摘要` is the second. The former six-card headline strip is removed from this view.
+- Moved `关键异常` and `行动摘要` into a single compact secondary bar below the main review data. Each item shows only its count/progress and leading issue; clicking opens the complete list in a modal with a direct route to `预测与交付` or `结论与行动`.
+- Added an `ALL`-scope total row to `市场收入、利润与费用`. The row aggregates revenue, BP achievement, GP, logistics fee, Credit Note, total cost, NP and pending-cost status across all visible markets. Total logistics and Credit Note values retain their existing drill-down dialogs.
+- Rebuilt `品类贡献` as a compact left table plus linked right contribution chart. Users can switch between revenue, gross-profit and net-profit contribution; clicking either a table row or legend focuses the same category. Negative profit values keep their signed amount while chart share uses absolute impact magnitude.
+- Replaced the BP Achievement page head, methodology band, filter panel, version card and separate tabs with one two-row `bp-control` shell. Year, period, market, metric, methodology, export and confirmed version remain accessible while the desktop shell height is reduced to 102px.
+- This refinement remains local-test only. No production database, cloud route or Vercel deployment was changed.
+
+### Overview and BP Verification
+
+- Full Playwright regression passes with zero console errors and no document-level horizontal overflow at 1440px or 390px.
+- The overview exposes exactly two primary panels in order: `2026 Q2利润桥`, then `市场复盘摘要`; four exception items and five action items open successfully in secondary modals.
+- All-market financial review returns four market rows plus one total row. Category contribution exposes five rows, three metric modes, a linked chart and synchronized row/legend focus.
+- BP Achievement renders one 102px compact control shell and no legacy page head, method bar or filter bar. Forecast, Logistics, Prototype Management and all prior BP/Business Review drill-down tests remain green.
+- Updated screenshots: `erp-native-local-test/native-business-analysis-review.png`, `erp-native-local-test/native-business-analysis-review-expense.png`, `erp-native-local-test/native-business-analysis-review-profit-mobile.png`, `erp-native-local-test/native-bp-achievement.png`, and `erp-native-local-test/native-bp-achievement-mobile.png`.
+
+## BP Market and Category Multidimensional Monitoring (2026-08-09)
+
+- Rebuilt `BP达成 > 市场与品类` as three non-duplicating review views: `达成矩阵`, `趋势与预测`, and `结构与缺口`.
+- `达成矩阵` now provides an all-market market-by-category cross section. Selecting one market switches the same surface to category-by-quarter or category-by-month monitoring. Every cell exposes the BP target, effective PO, gap and achievement, with a linked SKU detail panel and governed routes to PO and Forecast Management.
+- `趋势与预测` exclusively owns the monthly BP/effective-PO/confirmed-forecast chart. It adds market pacing, the next three available forecast months and forecast-change alerts without counting forecasts as achieved revenue.
+- `结构与缺口` compares BP share with actual contribution and ranks gaps by market, category or SKU. The prior gap-attribution block is not rendered. Risk and structural exception summaries remain on-demand modals instead of permanent dashboard panels.
+- Historical periods no longer relabel closed months as a future plan. Quarter charts use their actual month count, while mobile matrix and trend content scroll only inside their own containers.
+- This implementation remains local-test only. It does not change the production database or cloud deployment.
+
+### BP Multidimensional Verification
+
+- Playwright now checks the all-market matrix, single-market matrix, selected-cell SKU drill-through, both monitoring dialogs, twelve-month trend view, all three gap ranking dimensions and 390px internal scrolling.
+- Screenshots: `erp-native-local-test/native-bp-achievement-market.png`, `erp-native-local-test/native-bp-achievement-trend.png`, `erp-native-local-test/native-bp-achievement-structure.png`, and `erp-native-local-test/native-bp-achievement-market-mobile.png`.
+
+## BP Combination Chart and Exact Drill-through Refinement (2026-08-09)
+
+- Replaced the provisional monthly trend rendering with one true SVG combination chart. Twelve monthly groups now share a common amount axis and show blue BP-target bars, green effective-PO bars, a continuous orange dashed confirmed-forecast line, and a continuous dark cumulative-achievement line with twelve nodes and percentage labels.
+- Added a current-month background marker, left amount axis, right percentage axis, horizontal guides, tooltips and a compact legend. On 390px screens the chart keeps its readable desktop geometry and scrolls inside the chart container without expanding the page width.
+- Added explicit BP cell product selection. `查看产品明细`, `查看有效PO`, and `进入预测管理` now carry the selected market, category, SKU, product and month range instead of using only the parent matrix cell.
+- Forecast Management consumes that context and opens the market-wide entry view with the exact market, category and SKU filters already applied. The BP product drawer also opens the exact selected SKU and market with twelve monthly rows.
+- Shipment Summary consumes the same context, opens `PO履约`, applies the exact market/SKU/period filters and automatically expands matching PO batches. It never silently substitutes another product. When the logistics snapshot lacks the selected SKU mapping, or the SKU has no PO in the selected period, the page states that reason in the positioning band while preserving the exact filter.
+- The bundled local snapshot currently has no ShipmentStore SKU mapping for `P61L-P2`; the verified result is therefore an explicit mapping warning rather than an unrelated PO. Production Master Data synchronization must align BP product codes and logistics SKU codes before that product can expose corresponding PO batches.
+- This refinement is local-test only. No production database, Supabase project, Vercel route or cloud deployment was changed.
+
+### Combination Chart and Drill-through Verification
+
+- Full Playwright regression passes with zero console errors, no iframe dependencies and no document-level horizontal overflow on desktop or mobile.
+- The chart exposes 12 target bars, 12 actual bars, one forecast line, one cumulative-rate line, 12 rate nodes and both axes. Mobile keeps internal chart scrolling.
+- Exact FR drill-through was verified for `P61L-P2`: product detail opens 12 monthly rows; Forecast Management opens `FR / Power bank / P61L-P2`; Shipment Summary preserves `FR / P61L-P2` and shows the explicit missing-map state without fallback.
+- Screenshots: `erp-native-local-test/native-bp-achievement-trend.png`, `erp-native-local-test/native-bp-achievement-po-drilldown.png`, and `erp-native-local-test/native-bp-achievement-forecast-drilldown.png`.
 
 ## Resume Instructions
 

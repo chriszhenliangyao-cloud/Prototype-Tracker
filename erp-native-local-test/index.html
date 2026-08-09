@@ -7,6 +7,11 @@
   <title>ERP 模块原生整合测试 · 运营协同平台</title>
   <link rel="stylesheet" href="assets/module-base.css">
   <link rel="stylesheet" href="assets/platform-integration.css">
+  <link rel="stylesheet" href="assets/forecast.css?v=20260809-bp-context-4">
+  <link rel="stylesheet" href="assets/shipment-summary.css?v=20260809-bp-context-5">
+  <link rel="stylesheet" href="assets/functional-workspace.css?v=20260808-native-1">
+  <link rel="stylesheet" href="assets/prototype-management.css?v=20260808-native-1">
+  <link rel="stylesheet" href="assets/business-workspaces.css?v=20260809-bp-chart-4">
 </head>
 <body>
   <div class="app native-test-shell">
@@ -28,7 +33,7 @@
         <button class="nav-item platform-existing" type="button" data-existing-module="projects"><span class="lbl" data-i18n="projects">项目跟进</span><span class="nav-badge red">34</span></button>
         <button class="nav-item platform-existing" type="button" data-existing-module="sales"><span class="lbl" data-i18n="sales">产销管理</span></button>
         <button class="nav-item" type="button" data-module="forecast"><span class="lbl" data-i18n="forecast">预测管理</span><span class="nav-tag" data-i18n="native">原生</span></button>
-        <button class="nav-item" type="button" data-module="logistic"><span class="lbl" data-i18n="logistic">物流交付</span><span class="nav-tag" data-i18n="native">原生</span></button>
+        <button class="nav-item" type="button" data-module="shipmentSummary"><span class="lbl" data-i18n="logistic">物流交付</span><span class="nav-tag" data-i18n="native">原生</span></button>
 
         <div class="nav-section" data-i18n="growth">市场增长</div>
         <button class="nav-item platform-existing" type="button" data-existing-module="launch"><span class="lbl" data-i18n="launch">新品上市</span></button>
@@ -43,13 +48,13 @@
 
         <div class="nav-section" data-i18n="businessManagement">经营管理</div>
         <button class="nav-item platform-existing" type="button" data-existing-module="overview"><span class="lbl" data-i18n="overview">经营总览</span></button>
-        <button class="nav-item platform-existing" type="button" data-existing-module="bp"><span class="lbl" data-i18n="bp">BP达成</span></button>
-        <button class="nav-item" type="button" data-module="performance"><span class="lbl" data-i18n="performance">经营分析</span><span class="nav-tag" data-i18n="native">原生</span></button>
+        <button class="nav-item" type="button" data-module="bp"><span class="lbl" data-i18n="bp">BP达成</span><span class="nav-tag" data-i18n="native">原生</span></button>
+        <button class="nav-item" type="button" data-module="performance"><span class="lbl" data-i18n="performance">经营分析复盘</span><span class="nav-tag" data-i18n="native">原生</span></button>
         <button class="nav-item platform-existing" type="button" data-existing-module="value-chain"><span class="lbl" data-i18n="valueChain">价值链测算</span></button>
         <button class="nav-item platform-existing" type="button" data-existing-module="settlement"><span class="lbl" data-i18n="settlement">结算台账</span></button>
 
         <div class="nav-section" data-i18n="management">专业与管理</div>
-        <button class="nav-item platform-existing" type="button" data-existing-module="functional"><span class="lbl" data-i18n="functional">职能工作台</span></button>
+        <button class="nav-item" type="button" data-module="functions"><span class="lbl" data-i18n="functional">职能工作台</span></button>
         <button class="nav-item platform-existing" type="button" data-existing-module="system"><span class="lbl" data-i18n="system">系统管理</span></button>
       </nav>
 
@@ -69,8 +74,10 @@
           <span class="sr-only">选择模块</span>
           <select id="mobileModuleSelect" aria-label="选择测试模块">
             <option value="forecast">预测管理</option>
-            <option value="logistic">物流交付</option>
-            <option value="performance">经营分析</option>
+            <option value="shipmentSummary">物流交付</option>
+            <option value="bp">BP达成</option>
+            <option value="performance">经营分析复盘</option>
+            <option value="functions">职能工作台</option>
           </select>
         </label>
         <div class="spacer"></div>
@@ -83,14 +90,15 @@
               <option value="en-GB">English</option>
             </select>
           </label>
-          <button class="top-control account-control" type="button" id="accountButton" title="本地测试账号">payton.ppc · 平台所有者</button>
+          <button class="top-control account-control" type="button" id="accountButton" title="测试账号">payton.ppc · 平台所有者</button>
+          <div id="cloudStatusMount" aria-label="云端账号与同步状态"></div>
         </div>
       </header>
 
       <div class="environment-strip" role="status">
         <div>
-          <strong data-i18n="testMode">原生整合测试</strong>
-          <span id="testModeDescription">业务数据为只读快照；编辑操作仅保留在当前浏览器会话。</span>
+          <strong data-i18n="testMode">业务分析试运行</strong>
+          <span id="testModeDescription">业务数据为只读快照；不会写入或覆盖云端正式记录。</span>
         </div>
         <span class="render-status" id="renderStatus">已就绪</span>
       </div>
@@ -100,8 +108,9 @@
           <nav class="logistics-subnav" id="logisticsSubnav" aria-label="物流交付子模块" hidden>
             <span class="logistics-subnav-title" data-i18n="logisticsWorkspace">物流交付</span>
             <div class="logistics-subnav-tabs" role="tablist">
-              <button type="button" role="tab" data-logistics-view="logistic" data-i18n="shipmentSummary">发货汇总</button>
+              <button type="button" role="tab" data-logistics-view="shipmentSummary" data-i18n="shipmentSummary">发货汇总</button>
               <button type="button" role="tab" data-logistics-view="shipment" data-i18n="shipmentOperation">发货操作</button>
+              <button type="button" role="tab" data-logistics-view="logistic" data-i18n="productLogistics">产品物流与价格</button>
             </div>
           </nav>
           <div id="view"></div>
@@ -113,17 +122,67 @@
   <script>
     window.ROUTES = {
       forecast: { overline: "计划与交付 · FORECAST MANAGEMENT" },
+      shipmentSummary: { overline: "计划与交付 · SHIPMENT OVERVIEW" },
       logistic: { overline: "计划与交付 · LOGISTICS DELIVERY" },
       shipment: { overline: "计划与交付 · SHIPMENT FULFILMENT" },
-      performance: { overline: "经营管理 · BUSINESS ANALYSIS" }
+      bp: { overline: "经营管理 · BP ACHIEVEMENT" },
+      performance: { overline: "经营管理 · BUSINESS ANALYSIS REVIEW" },
+      functions: { overline: "专业与管理 · PROFESSIONAL WORKSPACES" },
+      prototypeManagement: { overline: "专业与管理 · PROTOTYPE OPERATIONS" }
     };
   </script>
-  <script src="assets/data.js"></script>
-  <script src="assets/shared.js"></script>
-  <script src="assets/forecast.js"></script>
-  <script src="assets/logistic.js"></script>
-  <script src="assets/shipment.js"></script>
-  <script src="assets/performance.js"></script>
-  <script src="assets/platform-shell.js"></script>
+  <script>
+    window.platformAuthReady = (() => {
+      const hosted = window.location.protocol === "https:";
+      if (!hosted) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "/cloud-sync.js";
+        script.onload = () => Promise.resolve(window.cloudSyncReady).then(resolve, reject);
+        script.onerror = () => reject(new Error("云端登录组件加载失败"));
+        document.head.appendChild(script);
+      });
+    })();
+
+    const nativeScripts = [
+      "assets/data.js",
+      "assets/shared.js?v=20260809-navigation-context-4",
+      "assets/business-metrics.js?v=20260809-native-1",
+      "assets/forecast.js?v=20260809-bp-context-4",
+      "assets/logistic.js?v=20260808-sticky-header-2",
+      "assets/shipment.js",
+      "assets/shipment-summary.js?v=20260809-bp-context-5",
+      "assets/bp-achievement.js?v=20260809-bp-chart-4",
+      "assets/business-review.js?v=20260809-review-bp-2",
+      "assets/functional-workspace.js?v=20260808-native-1",
+      "assets/prototype-management.js?v=20260808-native-1",
+      "assets/platform-shell.js"
+    ];
+
+    function loadNativeScript(source) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = source;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`模块资源加载失败：${source}`));
+        document.body.appendChild(script);
+      });
+    }
+
+    window.platformBootstrapReady = window.platformAuthReady
+      .then(() => nativeScripts.reduce(
+        (sequence, source) => sequence.then(() => loadNativeScript(source)),
+        Promise.resolve()
+      ))
+      .catch((error) => {
+        const status = document.getElementById("renderStatus");
+        const view = document.getElementById("view");
+        if (status) status.textContent = "加载失败";
+        if (view) {
+          view.innerHTML = `<section class="card"><h2>无法加载业务快照</h2><p>${String(error && error.message || error)}</p><button class="btn" type="button" onclick="location.reload()">重新加载</button></section>`;
+        }
+        throw error;
+      });
+  </script>
 </body>
 </html>

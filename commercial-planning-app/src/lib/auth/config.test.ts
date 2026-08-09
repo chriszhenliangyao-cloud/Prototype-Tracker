@@ -96,6 +96,7 @@ describe("auth config", () => {
         AUTH_REQUIRED: "1",
         AUTH_PROVIDER: "supabase",
         APP_URL: "https://commercial.example.com/",
+        AUTH_SESSION_SECRET: "0123456789abcdef0123456789abcdef",
         SUPABASE_URL: "https://example.supabase.co/",
         SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test"
       })
@@ -106,5 +107,17 @@ describe("auth config", () => {
       supabaseUrl: "https://example.supabase.co",
       supabasePublishableKey: "sb_publishable_test"
     });
+  });
+
+  it("requires a signing secret for protected Supabase snapshot assets", () => {
+    expect(() =>
+      getAuthConfig({
+        AUTH_REQUIRED: "1",
+        AUTH_PROVIDER: "supabase",
+        APP_URL: "https://commercial.example.com/",
+        SUPABASE_URL: "https://example.supabase.co/",
+        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test"
+      })
+    ).toThrow("Missing auth environment variables: AUTH_SESSION_SECRET");
   });
 });
