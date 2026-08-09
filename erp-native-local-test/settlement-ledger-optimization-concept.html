@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>结算台账优化概念</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --panel-soft: #f8faff;
+      --ink: #172033;
+      --muted: #68758e;
+      --line: #d7e0ee;
+      --line-strong: #c6d2e4;
+      --blue: #2563eb;
+      --blue-soft: #edf3ff;
+      --green: #0f8b62;
+      --green-soft: #eef9f5;
+      --amber: #c56a00;
+      --amber-soft: #fff7e9;
+      --red: #dc2638;
+      --red-soft: #fff1f2;
+      --sidebar: 194px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; background: var(--bg); color: var(--ink); }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+    button, select, input { font: inherit; letter-spacing: 0; }
+    button { cursor: pointer; }
+
+    .app { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100vh; }
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar);
+      background: #f8faff;
+      border-right: 1px solid var(--line);
+      padding: 14px 10px;
+    }
+    .brand { padding: 0 8px 12px; border-bottom: 1px solid var(--line); }
+    .brand strong { display: block; font-size: 15px; line-height: 20px; }
+    .brand span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .nav { padding-top: 10px; }
+    .nav-group { margin: 8px 8px 4px; color: #8a96aa; font-size: 10px; font-weight: 700; }
+    .nav-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 0;
+      border-left: 3px solid transparent;
+      border-radius: 0 5px 5px 0;
+      background: transparent;
+      color: #41506a;
+      text-align: left;
+      font-weight: 650;
+    }
+    .nav-item.active { color: var(--blue); background: var(--blue-soft); border-left-color: var(--blue); }
+    .nav-item .count { color: var(--red); font-size: 10px; }
+    .sidebar-foot { position: absolute; left: 16px; bottom: 14px; color: var(--muted); font-size: 10px; }
+    .sidebar-foot i { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--green); }
+
+    .main { grid-column: 2; min-width: 0; }
+    .topbar {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    .crumb { display: flex; align-items: baseline; gap: 8px; }
+    .crumb strong { font-size: 14px; }
+    .crumb span { color: var(--muted); font-size: 11px; }
+    .account { display: flex; align-items: center; gap: 8px; }
+    .account span { color: var(--muted); font-size: 11px; }
+    .top-select, .top-button {
+      height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: #40506a;
+    }
+
+    .content { padding: 14px 16px 18px; }
+    .page-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+    .title-wrap { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+    h1 { margin: 0; font-size: 21px; line-height: 28px; }
+    .title-wrap p { margin: 0; color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 8px; flex: 0 0 auto; }
+    .btn {
+      height: 34px;
+      padding: 0 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: #2e3b52;
+      font-weight: 700;
+    }
+    .btn.primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .btn.danger { border-color: #ef9aa4; background: #fff; color: var(--red); }
+
+    .filterbar {
+      display: grid;
+      grid-template-columns: 150px 146px 128px 174px 138px minmax(220px, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+      padding: 10px 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .control label { display: block; margin: 0 0 5px; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .control select, .control input {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: #2e3b52;
+      padding: 0 9px;
+      outline: none;
+    }
+    .control input:focus, .control select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px #dce8ff; }
+    .exception-btn { min-width: 88px; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      margin-top: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .metric { min-width: 0; padding: 11px 13px; border-right: 1px solid var(--line); }
+    .metric:last-child { border-right: 0; }
+    .metric label { display: block; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .metric strong { display: block; margin-top: 4px; font-size: 20px; line-height: 24px; white-space: nowrap; }
+    .metric small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .metric .positive { color: var(--green); }
+    .metric .negative { color: var(--red); }
+    .metric .warning { color: var(--amber); }
+
+    .cycle {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      margin-top: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .cycle-step { position: relative; display: flex; align-items: center; gap: 9px; min-height: 58px; padding: 8px 11px; border-right: 1px solid var(--line); }
+    .cycle-step:last-child { border-right: 0; }
+    .cycle-step.active { background: var(--blue-soft); box-shadow: inset 0 -3px 0 var(--blue); }
+    .cycle-step.alert { background: var(--amber-soft); }
+    .step-no { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #e8edf5; color: #64718a; font-weight: 800; flex: 0 0 auto; }
+    .cycle-step.done .step-no { background: #dff4eb; color: var(--green); }
+    .cycle-step.active .step-no { background: var(--blue); color: #fff; }
+    .cycle-step.alert .step-no { background: #ffdfad; color: var(--amber); }
+    .cycle-step strong { display: block; font-size: 12px; }
+    .cycle-step small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+
+    .section {
+      margin-top: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .section-head { display: flex; align-items: center; justify-content: space-between; min-height: 47px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+    .tabs { display: flex; align-items: stretch; height: 46px; }
+    .tab { position: relative; min-width: 106px; padding: 0 14px; border: 0; background: transparent; color: #5d6a82; font-weight: 750; }
+    .tab.active { color: var(--blue); }
+    .tab.active::after { content: ""; position: absolute; left: 13px; right: 13px; bottom: 0; height: 3px; background: var(--blue); }
+    .tab b { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 4px; border-radius: 9px; background: #edf1f7; color: #66748a; font-size: 10px; }
+    .tab.active b { background: #dce8ff; color: var(--blue); }
+    .table-note { color: var(--muted); font-size: 10px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .panel-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+      background: #fbfcff;
+    }
+    .panel-metric { min-height: 62px; padding: 10px 12px; border-right: 1px solid var(--line); }
+    .panel-metric:last-child { border-right: 0; }
+    .panel-metric label { display: block; color: var(--muted); font-size: 9px; font-weight: 750; }
+    .panel-metric strong { display: block; margin-top: 3px; font-size: 17px; line-height: 21px; }
+    .panel-metric small { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; }
+    .sub-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 43px;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .sub-toolbar strong { font-size: 11px; }
+    .sub-toolbar span { color: var(--muted); font-size: 9px; }
+    .sub-actions { display: flex; align-items: center; gap: 7px; }
+    .sub-actions .btn { height: 30px; padding: 0 10px; font-size: 10px; }
+    .compact-table td { height: 58px; }
+    .confidence { display: flex; align-items: center; gap: 6px; }
+    .confidence-track { width: 54px; height: 5px; overflow: hidden; border-radius: 3px; background: #e5eaf2; }
+    .confidence-track i { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+    .confidence strong { font-size: 10px; }
+    .audit-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(330px, .55fr); }
+    .audit-side { border-left: 1px solid var(--line); background: #fbfcff; }
+    .audit-side-head { display: flex; align-items: center; justify-content: space-between; min-height: 43px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+    .audit-side-head strong { font-size: 11px; }
+    .audit-side-head span { color: var(--muted); font-size: 9px; }
+    .audit-events { padding: 4px 12px 10px; }
+    .audit-event { position: relative; min-height: 61px; padding: 10px 0 9px 19px; border-bottom: 1px solid var(--line); }
+    .audit-event:last-child { border-bottom: 0; }
+    .audit-event::before { content: ""; position: absolute; left: 2px; top: 15px; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .audit-event::after { content: ""; position: absolute; left: 5px; top: 25px; bottom: -7px; width: 2px; background: #dfe6f1; }
+    .audit-event:last-child::after { display: none; }
+    .audit-event strong { display: block; font-size: 10px; }
+    .audit-event p { margin: 3px 0 0; color: #46536a; font-size: 9px; line-height: 14px; }
+    .audit-event small { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(25, 35, 52, .32);
+    }
+    .modal-backdrop.open { display: grid; }
+    .modal {
+      width: min(940px, calc(100vw - 48px));
+      max-height: min(820px, calc(100vh - 48px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(24, 36, 57, .24);
+    }
+    .modal.narrow { width: min(680px, calc(100vw - 48px)); }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 15px 17px 13px; border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 0; font-size: 18px; line-height: 24px; }
+    .modal-head p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
+    .modal-body { overflow: auto; padding: 14px 17px 16px; }
+    .modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 62px; padding: 10px 17px; border-top: 1px solid var(--line); background: #fbfcff; }
+    .modal-footer-note { color: var(--muted); font-size: 9px; line-height: 14px; }
+    .modal-actions { display: flex; gap: 7px; }
+    .modal-actions .btn { height: 34px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px 13px; }
+    .form-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-field label { display: block; margin-bottom: 5px; color: #536078; font-size: 10px; font-weight: 750; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%;
+      min-height: 36px;
+      padding: 8px 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #fff;
+      color: #253149;
+      outline: none;
+      resize: vertical;
+    }
+    .form-field textarea { min-height: 74px; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 2px #dce8ff; }
+    .form-field small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .dialog-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .dialog-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    .dialog-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+    .dialog-section-head h3 { margin: 0; font-size: 12px; }
+    .dialog-section-head span { color: var(--muted); font-size: 9px; }
+    .doc-tabs { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 12px; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .doc-tab { min-height: 42px; padding: 6px 4px; border: 0; border-right: 1px solid var(--line); background: #fff; color: #56647c; font-size: 10px; font-weight: 750; }
+    .doc-tab:last-child { border-right: 0; }
+    .doc-tab.active { background: var(--blue-soft); color: var(--blue); box-shadow: inset 0 -3px 0 var(--blue); }
+    .relation-strip { display: grid; grid-template-columns: 1.2fr 1fr 1fr; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; background: #f8faff; }
+    .relation-strip > div { min-height: 54px; padding: 8px 10px; border-right: 1px solid var(--line); }
+    .relation-strip > div:last-child { border-right: 0; }
+    .relation-strip label { display: block; color: var(--muted); font-size: 9px; font-weight: 750; }
+    .relation-strip strong { display: block; margin-top: 4px; font-size: 11px; }
+    .upload-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 12px; }
+    .upload-zone { display: grid; place-items: center; min-height: 142px; padding: 18px; border: 1px dashed #9eb5db; border-radius: 5px; background: #f7faff; text-align: center; }
+    .upload-zone strong { display: block; color: #31405a; font-size: 12px; }
+    .upload-zone span { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; line-height: 14px; }
+    .upload-zone .btn { margin-top: 10px; height: 30px; font-size: 10px; }
+    .upload-files { margin-top: 8px; }
+    .upload-file { display: flex; align-items: center; justify-content: space-between; min-height: 34px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-size: 9px; }
+    .upload-file + .upload-file { margin-top: 5px; }
+    .file-list { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .file-row { display: grid; grid-template-columns: minmax(0, 1fr) 105px 90px 92px; align-items: center; min-height: 49px; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+    .file-row:last-child { border-bottom: 0; }
+    .file-row strong { display: block; font-size: 10px; }
+    .file-row small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+    .file-row > span { color: #49566d; font-size: 9px; }
+    .file-row .file-action { display: flex; justify-content: flex-end; gap: 5px; }
+    .icon-action { min-height: 28px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: #fff; color: #3d4b64; font-size: 9px; font-weight: 750; }
+    .choice-list { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .choice-row { display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; align-items: center; min-height: 49px; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+    .choice-row:last-child { border-bottom: 0; }
+    .choice-row input { width: 15px; height: 15px; }
+    .choice-row strong { display: block; font-size: 10px; }
+    .choice-row small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
+    .choice-row > span { text-align: right; font-size: 10px; font-weight: 750; }
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .compare-card { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .compare-card h3 { margin: 0; padding: 9px 10px; border-bottom: 1px solid var(--line); background: #f7f9fd; font-size: 11px; }
+    .compare-line { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 9px; }
+    .compare-line:last-child { border-bottom: 0; }
+    .compare-line span { color: var(--muted); }
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 60; min-width: 270px; max-width: 420px; padding: 11px 13px; border: 1px solid #9cdcc5; border-left: 4px solid var(--green); border-radius: 5px; background: #fff; box-shadow: 0 12px 30px rgba(24, 36, 57, .18); color: #285b4b; font-size: 10px; line-height: 15px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .cycle-step { cursor: pointer; }
+
+    .table-wrap { overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th {
+      height: 42px;
+      padding: 7px 9px;
+      background: #f5f7fb;
+      border-bottom: 1px solid var(--line);
+      color: #59667e;
+      font-size: 10px;
+      text-align: left;
+      line-height: 14px;
+    }
+    td {
+      height: 67px;
+      padding: 8px 9px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      color: #2a354b;
+      line-height: 17px;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #f8faff; }
+    td strong { display: block; font-size: 12px; }
+    td small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; line-height: 14px; }
+    td a { color: var(--blue); font-weight: 700; text-decoration: none; }
+    .amount { text-align: right; font-variant-numeric: tabular-nums; }
+    .amount strong, .amount small { text-align: right; }
+    .negative { color: var(--red) !important; }
+    .positive { color: var(--green) !important; }
+    .warning { color: var(--amber) !important; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--line-strong);
+      background: #f8fafc;
+      color: #55627a;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .status.blue { border-color: #a9c4ff; background: var(--blue-soft); color: var(--blue); }
+    .status.green { border-color: #9cdcc5; background: var(--green-soft); color: var(--green); }
+    .status.amber { border-color: #f0c681; background: var(--amber-soft); color: var(--amber); }
+    .status.red { border-color: #f3a2aa; background: var(--red-soft); color: var(--red); }
+    .action-link { border: 0; background: transparent; color: var(--blue); font-weight: 800; padding: 4px 0; }
+    tr.selected-row { background: #eef4ff; box-shadow: inset 3px 0 0 var(--blue); }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      background: rgba(25, 35, 52, .18);
+    }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 520px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border-left: 1px solid var(--line-strong);
+      box-shadow: -12px 0 28px rgba(27, 42, 67, .13);
+    }
+    .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; min-height: 82px; padding: 16px 18px 13px; border-bottom: 1px solid var(--line); }
+    .drawer-head h2 { margin: 0; font-size: 18px; line-height: 24px; }
+    .drawer-head p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .close-btn { width: 30px; height: 30px; border: 1px solid var(--line-strong); border-radius: 5px; background: #fff; color: #64718a; font-weight: 800; }
+    .drawer-context { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid var(--line); background: #f8faff; }
+    .context-link { min-height: 58px; padding: 9px 10px; border-right: 1px solid var(--line); }
+    .context-link:last-child { border-right: 0; }
+    .context-link label { display: block; color: var(--muted); font-size: 9px; font-weight: 700; }
+    .context-link strong { display: block; margin-top: 4px; color: var(--blue); font-size: 13px; }
+    .drawer-tabs { display: flex; height: 43px; border-bottom: 1px solid var(--line); }
+    .drawer-tab { position: relative; flex: 1; border: 0; background: #fff; color: #66738b; font-weight: 750; }
+    .drawer-tab.active { color: var(--blue); }
+    .drawer-tab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; background: var(--blue); }
+    .drawer-body { flex: 1; overflow: auto; padding: 14px 16px 90px; }
+    .drawer-summary { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .drawer-summary > div { padding: 10px; border-right: 1px solid var(--line); }
+    .drawer-summary > div:last-child { border-right: 0; }
+    .drawer-summary label { display: block; color: var(--muted); font-size: 9px; font-weight: 700; }
+    .drawer-summary strong { display: block; margin-top: 4px; font-size: 16px; }
+    .drawer-section { margin-top: 14px; }
+    .drawer-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+    .drawer-section-head h3 { margin: 0; font-size: 13px; }
+    .drawer-section-head span { color: var(--muted); font-size: 9px; }
+    .notice-band { padding: 9px 10px; border: 1px solid #f0c681; border-left: 3px solid var(--amber); border-radius: 4px; background: var(--amber-soft); color: #79501d; line-height: 18px; }
+    .notice-band.red { border-color: #f1a2aa; border-left-color: var(--red); background: var(--red-soft); color: #8c2f38; }
+    .notice-band.green { border-color: #9cdcc5; border-left-color: var(--green); background: var(--green-soft); color: #176c51; }
+    .task-list { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .task-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; min-height: 47px; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+    .task-row:last-child { border-bottom: 0; }
+    .task-check { display: grid; place-items: center; width: 17px; height: 17px; border: 1px solid var(--line-strong); border-radius: 3px; color: #fff; font-size: 10px; }
+    .task-check.done { border-color: var(--green); background: var(--green); }
+    .task-row strong { display: block; font-size: 11px; }
+    .task-row small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+    .task-state { font-size: 9px; font-weight: 800; color: var(--muted); }
+    .task-state.red { color: var(--red); }
+    .task-state.amber { color: var(--amber); }
+    .money-lines { border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+    .money-line { display: grid; grid-template-columns: minmax(0, 1fr) 100px 82px; align-items: center; min-height: 42px; padding: 7px 9px; border-bottom: 1px solid var(--line); }
+    .money-line:last-child { border-bottom: 0; }
+    .money-line label { color: #425069; font-size: 10px; }
+    .money-line strong { text-align: right; font-size: 11px; }
+    .money-line span { text-align: right; color: var(--muted); font-size: 9px; }
+    .receipt-row { display: grid; grid-template-columns: minmax(0, 1fr) 82px 82px; align-items: center; min-height: 51px; padding: 8px 9px; border: 1px solid var(--line); border-bottom: 0; }
+    .receipt-row:first-child { border-radius: 5px 5px 0 0; }
+    .receipt-row:last-child { border-bottom: 1px solid var(--line); border-radius: 0 0 5px 5px; }
+    .receipt-row strong { display: block; font-size: 11px; }
+    .receipt-row small { display: block; color: var(--muted); font-size: 9px; }
+    .receipt-row .receipt-amount { text-align: right; font-size: 11px; font-weight: 800; }
+    .timeline { border-left: 2px solid #dfe6f1; margin-left: 6px; padding-left: 14px; }
+    .timeline-item { position: relative; padding: 0 0 13px; }
+    .timeline-item::before { content: ""; position: absolute; left: -19px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+    .timeline-item strong { display: block; font-size: 10px; }
+    .timeline-item small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 14px; }
+    .archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .archive-item { min-height: 58px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 4px; background: #fafbfe; }
+    .archive-item strong { display: block; font-size: 10px; }
+    .archive-item small { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; }
+    .drawer-footer { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; min-height: 66px; padding: 10px 16px; border-top: 1px solid var(--line); background: #fff; }
+    .drawer-footer-note { color: var(--muted); font-size: 9px; line-height: 14px; }
+    .drawer-actions { display: flex; gap: 7px; }
+    .drawer-actions .btn { height: 34px; }
+
+    .ledger-footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      min-height: 43px;
+      padding: 0 12px;
+      border-top: 1px solid var(--line);
+      background: #fafbfe;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .legend { display: flex; align-items: center; gap: 15px; }
+    .legend span::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #9aa6b8; }
+    .legend .ok::before { background: var(--green); }
+    .legend .wait::before { background: var(--amber); }
+    .legend .risk::before { background: var(--red); }
+
+    @media (max-width: 1180px) {
+      :root { --sidebar: 168px; }
+      .filterbar { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+      .summary { grid-template-columns: repeat(3, 1fr); }
+      .metric:nth-child(3) { border-right: 0; }
+      .metric:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
+      .cycle { overflow-x: auto; }
+      .cycle-step { min-width: 170px; }
+      .table-wrap { overflow-x: auto; }
+      table { min-width: 1180px; }
+      .panel-summary { grid-template-columns: repeat(2, 1fr); }
+      .panel-metric:nth-child(2) { border-right: 0; }
+      .panel-metric:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .audit-layout { grid-template-columns: 1fr; }
+      .audit-side { border-top: 1px solid var(--line); border-left: 0; }
+      .doc-tabs { grid-template-columns: repeat(3, 1fr); }
+      .upload-layout, .compare-grid { grid-template-columns: 1fr; }
+      .form-grid.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    body.embedded {
+      min-height: 100vh;
+    }
+    body.embedded .app {
+      display: block;
+      min-height: 100vh;
+    }
+    body.embedded .sidebar,
+    body.embedded .topbar {
+      display: none;
+    }
+    body.embedded .main {
+      min-width: 0;
+    }
+    body.embedded .content {
+      padding: 2px;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    if (new URLSearchParams(window.location.search).get("embedded") === "1") {
+      document.body.classList.add("embedded");
+    }
+  </script>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><strong>运营协同平台</strong><span>欧洲业务运营</span></div>
+      <nav class="nav" aria-label="平台模块导航">
+        <button class="nav-item">我的工作台</button>
+        <div class="nav-group">计划与交付</div>
+        <button class="nav-item">项目跟进 <span class="count">34</span></button>
+        <button class="nav-item">产销管理</button>
+        <button class="nav-item">预测管理</button>
+        <button class="nav-item">物流交付</button>
+        <div class="nav-group">市场增长</div>
+        <button class="nav-item">新品上市</button>
+        <button class="nav-item">营销活动</button>
+        <button class="nav-item">营销物料</button>
+        <div class="nav-group">协同中心</div>
+        <button class="nav-item">月度促销审批</button>
+        <button class="nav-item">其他审批</button>
+        <button class="nav-item">我的待办 <span class="count">6</span></button>
+        <button class="nav-item">异常中心 <span class="count">12</span></button>
+        <div class="nav-group">经营管理</div>
+        <button class="nav-item">经营总览</button>
+        <button class="nav-item">BP达成</button>
+        <button class="nav-item">经营分析复盘</button>
+        <button class="nav-item">价值链测算</button>
+        <button class="nav-item active">结算台账</button>
+        <div class="nav-group">专业与管理</div>
+        <button class="nav-item">职能工作台</button>
+        <button class="nav-item">系统管理</button>
+      </nav>
+      <div class="sidebar-foot"><i></i>统一云端工作区</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumb"><strong>经营管理 / 结算台账</strong><span>客户对账、扣款、回款与归档</span></div>
+        <div class="account"><span>Julio Pu · 平台所有者</span><select class="top-select"><option>中文</option></select><button class="top-button" onclick="openPermissionDialog()">权限管理</button></div>
+      </header>
+
+      <div class="content">
+        <div class="page-head">
+          <div class="title-wrap"><h1>2026年7月客户结算</h1><p>最后同步：8月9日 10:42 · 结算版本 SET-2026-07-v2</p></div>
+          <div class="actions"><button class="btn" onclick="openExportDialog('ledger')">导出台账</button><button class="btn" onclick="openDocumentCenter('bank')">导入银行流水</button><button class="btn primary" onclick="openNewSettlementDialog()">新建结算单</button></div>
+        </div>
+
+        <section class="filterbar" aria-label="结算筛选">
+          <div class="control"><label>结算周期</label><select><option>2026年7月</option></select></div>
+          <div class="control"><label>财务主体</label><select><option>全部主体</option></select></div>
+          <div class="control"><label>市场</label><select><option>全部市场</option></select></div>
+          <div class="control"><label>客户</label><select><option>全部客户</option></select></div>
+          <div class="control"><label>结算状态</label><select><option>全部状态</option></select></div>
+          <div class="control"><label>结算单 / PO / Credit Note</label><input value="" placeholder="输入或选择记录"></div>
+          <button class="btn danger exception-btn" onclick="openExceptionDialog()">异常 6</button>
+        </section>
+
+        <section class="summary" aria-label="结算摘要">
+          <div class="metric"><label>账单应结</label><strong>€1.691M</strong><small>6个客户 · 50个有效PO</small></div>
+          <div class="metric"><label>客户Claim</label><strong class="negative">€97.0K</strong><small>已确认CN €85.9K · 待确认 €11.1K</small></div>
+          <div class="metric"><label>财务确认净应收</label><strong>€1.605M</strong><small>仅扣减已确认并可应用的CN</small></div>
+          <div class="metric"><label>已收金额</label><strong class="positive">€1.343M</strong><small>到账率 84.2%</small></div>
+          <div class="metric"><label>待核销</label><strong class="warning">€70.5K</strong><small>2笔银行流水</small></div>
+          <div class="metric"><label>逾期未结</label><strong class="negative">€18.1K</strong><small>Unieuro · 逾期5天</small></div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="tabs" role="tablist">
+              <button class="tab active" data-tab="overview" onclick="switchLedgerTab('overview')">结算总览</button>
+              <button class="tab" data-tab="differences" onclick="switchLedgerTab('differences')">差异与CN<b>6</b></button>
+              <button class="tab" data-tab="cn" onclick="switchLedgerTab('cn')">CN管理<b>10</b></button>
+              <button class="tab" data-tab="receipts" onclick="switchLedgerTab('receipts')">回款核销<b>2</b></button>
+              <button class="tab" data-tab="audit" onclick="switchLedgerTab('audit')">版本与审计<b>7</b></button>
+            </div>
+            <span class="table-note" id="table-note">金额统一折算为EUR · 点击来源数量进入对应业务明细</span>
+          </div>
+          <div class="tab-panel active" data-panel="overview">
+            <div class="table-wrap">
+              <table>
+                <colgroup><col style="width:15%"><col style="width:13%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:13%"><col style="width:10%"><col style="width:10%"><col style="width:9%"></colgroup>
+                <thead><tr><th>结算单 / 客户</th><th>业务来源</th><th class="amount">账单应结</th><th class="amount">Claim / 已确认CN</th><th class="amount">财务净应收</th><th class="amount">已收 / 未结</th><th>到期 / 账龄</th><th>当前状态</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr data-row-state="archive"><td><strong>STL-2026-0801</strong><small>MediaMarkt DE · 德国</small></td><td><strong><a href="#">12个PO</a> · <a href="#">2个促销</a></strong><small>物流签收 100%</small></td><td class="amount"><strong>€428.6K</strong><small>内部核对一致</small></td><td class="amount"><strong class="negative">€18.4K</strong><small>3张Credit Note</small></td><td class="amount"><strong>€410.2K</strong><small>差异率 4.3%</small></td><td class="amount"><strong class="positive">€410.2K</strong><small>未结 €0</small></td><td><strong>8月15日</strong><small>未到期</small></td><td><span class="status blue">待归档</span><small>资料 8/8</small></td><td><button class="action-link" onclick="openDrawer('archive')">归档检查</button></td></tr>
+                  <tr data-row-state="difference"><td><strong>STL-2026-0802</strong><small>Amazon EU Services · 欧洲</small></td><td><strong><a href="#">16个PO</a> · <a href="#">3个促销</a></strong><small>Claim材料 2/3</small></td><td class="amount"><strong>€612.8K</strong><small>跨4个市场</small></td><td class="amount"><strong class="negative">€42.3K</strong><small>已确认CN €31.2K</small></td><td class="amount"><strong>€581.6K</strong><small>Claim差异不提前扣减</small></td><td class="amount"><strong class="warning">€500.0K</strong><small class="warning">未结 €81.6K</small></td><td><strong>8月20日</strong><small>未到期</small></td><td><span class="status red">Claim待确认</span><small>差异 €11.1K</small></td><td><button class="action-link" onclick="openDrawer('difference')">确认Claim</button></td></tr>
+                  <tr data-row-state="allocation"><td><strong>STL-2026-0805</strong><small>Amazon UK · 英国</small></td><td><strong><a href="#">8个PO</a> · <a href="#">1个促销</a></strong><small>2笔银行流水</small></td><td class="amount"><strong>€320.0K</strong><small>内部核对一致</small></td><td class="amount"><strong class="negative">€8.2K</strong><small>1张Credit Note</small></td><td class="amount"><strong>€311.8K</strong><small>客户已确认</small></td><td class="amount"><strong class="warning">€241.3K</strong><small class="warning">未结 €70.5K</small></td><td><strong>8月28日</strong><small>未到期</small></td><td><span class="status amber">待核销</span><small>流水匹配 96%</small></td><td><button class="action-link" onclick="openDrawer('allocation')">回款核销</button></td></tr>
+                  <tr data-row-state="closed"><td><strong>STL-2026-0803</strong><small>Fnac Darty · 法国</small></td><td><strong><a href="#">6个PO</a> · <a href="#">1个促销</a></strong><small>客户确认已归档</small></td><td class="amount"><strong>€286.4K</strong><small>资料完整</small></td><td class="amount"><strong class="negative">€8.6K</strong><small>价格保护</small></td><td class="amount"><strong>€277.8K</strong><small>差异率 3.0%</small></td><td class="amount"><strong class="positive">€277.8K</strong><small>未结 €0</small></td><td><strong>8月12日</strong><small>已到期</small></td><td><span class="status green">结算完成</span><small>SET-v2</small></td><td><button class="action-link" onclick="openDrawer('closed')">查看归档</button></td></tr>
+                  <tr data-row-state="overdue"><td><strong>STL-2026-0708</strong><small>Unieuro · 意大利</small></td><td><strong><a href="#">4个PO</a> · <a href="#">1个促销</a></strong><small>1项质量扣款</small></td><td class="amount"><strong>€194.6K</strong><small>6月账期</small></td><td class="amount"><strong class="negative">€21.5K</strong><small>责任归属待确认</small></td><td class="amount"><strong>€173.1K</strong><small>差异率 11.0%</small></td><td class="amount"><strong>€155.0K</strong><small class="negative">未结 €18.1K</small></td><td><strong class="negative">7月31日</strong><small class="negative">逾期5天</small></td><td><span class="status red">已逾期</span><small>负责人 Luca</small></td><td><button class="action-link" onclick="openDrawer('overdue')">催收处理</button></td></tr>
+                  <tr data-row-state="customer"><td><strong>STL-2026-0804</strong><small>MediaMarkt ES · 西班牙</small></td><td><strong><a href="#">4个PO</a> · <a href="#">2个促销</a></strong><small>促销证据 5/6</small></td><td class="amount"><strong>€168.9K</strong><small>客户账单已发送</small></td><td class="amount"><strong class="negative">€6.2K</strong><small>1项证据缺失</small></td><td class="amount"><strong>€162.7K</strong><small>待客户确认</small></td><td class="amount"><strong>€0</strong><small class="warning">未结 €162.7K</small></td><td><strong>8月25日</strong><small>未到期</small></td><td><span class="status amber">待客户确认</span><small>已等待3天</small></td><td><button class="action-link" onclick="openDrawer('customer')">客户确认</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ledger-footer"><div class="legend"><span class="ok">CN已确认/结算完成</span><span class="wait">Claim待确认/回款待核销</span><span class="risk">Claim超审批/逾期</span><span>未开始</span></div><div>当前筛选：6个客户 · 50个有效PO · 6个Claim · 10张Credit Note · 9个促销审批</div></div>
+          </div>
+
+          <div class="tab-panel" data-panel="differences">
+            <div class="panel-summary">
+              <div class="panel-metric"><label>开放客户Claim</label><strong class="negative">6项</strong><small>2项阻塞CN开具</small></div>
+              <div class="panel-metric"><label>Claim总额</label><strong>€42.3K</strong><small>事前批准 €31.2K</small></div>
+              <div class="panel-metric"><label>待确认差异</label><strong class="negative">€11.1K</strong><small>未确认部分仍计入应收</small></div>
+              <div class="panel-metric"><label>待生成Credit Note</label><strong class="warning">2张</strong><small>预计 €10.4K</small></div>
+            </div>
+            <div class="sub-toolbar"><div><strong>差异处理队列</strong> <span>按影响金额与截止日期排序</span></div><div class="sub-actions"><button class="btn" onclick="openExportDialog('difference')">导出差异清单</button><button class="btn primary" onclick="openDifferenceDialog()">登记差异</button></div></div>
+            <div class="table-wrap compact-table">
+              <table>
+                <colgroup><col style="width:15%"><col style="width:13%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:13%"><col style="width:10%"><col style="width:9%"><col style="width:7%"></colgroup>
+                <thead><tr><th>Claim / 客户</th><th>Claim来源</th><th class="amount">Claim金额</th><th class="amount">事前审批 / 可确认</th><th class="amount">待确认差异</th><th>执行证据与关联单据</th><th>负责人 / DDL</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr data-row-state="difference"><td><strong>CLM-AMZ-2026-0811</strong><small>Amazon EU Services</small></td><td><strong>促销执行与费用Claim</strong><small>DE、FR市场</small></td><td class="amount"><strong>€42.3K</strong><small>客户Claim原件</small></td><td class="amount"><strong>€31.2K</strong><small class="positive">3个事前审批</small></td><td class="amount"><strong class="negative">+€11.1K</strong><small>需确认责任与证据</small></td><td><strong><a href="#">2/3项证据</a></strong><small>SHP-EU-260824</small></td><td><strong>Sara</strong><small class="negative">8月10日</small></td><td><span class="status red">Claim待确认</span><small>阻塞CN</small></td><td><button class="action-link" onclick="openDrawer('difference')">确认</button></td></tr>
+                  <tr><td><strong>DIF-2026-0812</strong><small>Amazon EU Services</small></td><td><strong>物流索赔</strong><small>短装与破损</small></td><td class="amount"><strong>€2.5K</strong><small>2个Shipment</small></td><td class="amount"><strong>€0</strong><small>待责任判定</small></td><td class="amount"><strong class="negative">+€2.5K</strong><small>待质量确认</small></td><td><strong><a href="#">1/3项证据</a></strong><small>签收照片缺失</small></td><td><strong>Owen</strong><small>8月12日</small></td><td><span class="status amber">待补证</span><small>物流处理中</small></td><td><button class="action-link" onclick="openDrawer('difference')">补充</button></td></tr>
+                  <tr><td><strong>DIF-2026-0809</strong><small>MediaMarkt DE</small></td><td><strong>促销返利</strong><small>7月周末促销</small></td><td class="amount"><strong>€9.8K</strong><small>客户已扣款</small></td><td class="amount"><strong>€9.8K</strong><small class="positive">审批一致</small></td><td class="amount"><strong>€0</strong><small>金额无差异</small></td><td><strong><a href="#">APR-2607-18</a></strong><small>待开Credit Note</small></td><td><strong>Claire</strong><small>8月11日</small></td><td><span class="status blue">待开CN</span><small>资料完整</small></td><td><button class="action-link" onclick="openCNDialog()">生成CN</button></td></tr>
+                  <tr><td><strong>DIF-2026-0807</strong><small>Unieuro</small></td><td><strong>质量扣款</strong><small>退货批次 QA-0721</small></td><td class="amount"><strong>€3.5K</strong><small>客户争议</small></td><td class="amount"><strong>€0</strong><small>CAPA处理中</small></td><td class="amount"><strong class="negative">+€3.5K</strong><small>责任未定</small></td><td><strong><a href="#">QA-2026-0721</a></strong><small>质量报告 3/4</small></td><td><strong>Nina</strong><small>8月14日</small></td><td><span class="status amber">调查中</span><small>异常中心同步</small></td><td><button class="action-link" onclick="openDrawer('overdue')">跟进</button></td></tr>
+                  <tr><td><strong>DIF-2026-0805</strong><small>Fnac Darty</small></td><td><strong>价格保护</strong><small>RRP调整</small></td><td class="amount"><strong>€8.6K</strong><small>已确认</small></td><td class="amount"><strong>€8.6K</strong><small class="positive">审批一致</small></td><td class="amount"><strong>€0</strong><small>已关闭</small></td><td><strong><a href="#">CN-FR-260805</a></strong><small>Credit Note已归档</small></td><td><strong>Finance</strong><small>8月8日</small></td><td><span class="status green">已关闭</span><small>SET-v2</small></td><td><button class="action-link" onclick="openDrawer('closed')">查看</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ledger-footer"><div class="legend"><span class="risk">Claim待确认/阻塞CN</span><span class="wait">待补证/待开CN</span><span class="ok">CN已确认</span></div><div>确认Claim后生成CN；客户应用CN抵扣货款后，才进入结算与回款核销</div></div>
+          </div>
+
+          <div class="tab-panel" data-panel="cn">
+            <div class="panel-summary">
+              <div class="panel-metric"><label>CN总额</label><strong>€85.9K</strong><small>10张已过账CN</small></div>
+              <div class="panel-metric"><label>未使用余额</label><strong class="warning">€37.6K</strong><small>5张尚有可抵扣余额</small></div>
+              <div class="panel-metric"><label>部分使用</label><strong>2张</strong><small>剩余 €15.4K</small></div>
+              <div class="panel-metric"><label>长期未使用</label><strong class="negative">1张</strong><small>90天以上 · €12.4K</small></div>
+            </div>
+            <div class="sub-toolbar"><div><strong>CN余额与使用队列</strong> <span>上传后持续跟踪至客户完成抵扣和货款核销</span></div><div class="sub-actions"><button class="btn" onclick="openExportDialog('cn')">导出CN台账</button><button class="btn" onclick="openCNBulkImportDialog()">批量导入</button><button class="btn primary" onclick="openDocumentCenter('cn')">上传CN</button></div></div>
+            <div class="table-wrap compact-table">
+              <table>
+                <colgroup><col style="width:14%"><col style="width:14%"><col style="width:9%"><col style="width:9%"><col style="width:13%"><col style="width:13%"><col style="width:12%"><col style="width:9%"><col style="width:7%"></colgroup>
+                <thead><tr><th>CN / 客户</th><th>来源审批 / Claim</th><th>开具日期 / 账龄</th><th class="amount">CN原始金额</th><th class="amount">已使用 / 未使用</th><th>客户抵扣安排</th><th>关联订单 / 结算</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>CN-DE-260811</strong><small>MediaMarkt DE · EUR</small></td><td><strong><a href="#">APR-2607-18</a></strong><small><a href="#">CLM-MMDE-0809</a> · 促销返利</small></td><td><strong>8月11日</strong><small>29天</small></td><td class="amount"><strong>€9.8K</strong><small>已过账</small></td><td class="amount"><strong>€0 / €9.8K</strong><small>使用率 0%</small></td><td><strong>9月订单抵扣</strong><small>等待客户确认</small></td><td><strong><a href="#">PO-DE-260901</a></strong><small>尚未生效</small></td><td><span class="status amber">未使用</span><small>已发客户</small></td><td><button class="action-link" onclick="openCNAllocationDialog('unapplied')">安排抵扣</button></td></tr>
+                  <tr><td><strong>CN-AMZ-260805</strong><small>Amazon EU Services · EUR</small></td><td><strong><a href="#">APR-2607-AMZ</a></strong><small><a href="#">CLM-AMZ-0802</a> · 渠道费用</small></td><td><strong>8月5日</strong><small>35天</small></td><td class="amount"><strong>€31.2K</strong><small>已过账</small></td><td class="amount"><strong>€18.0K / €13.2K</strong><small>使用率 58%</small></td><td><strong>分两次抵扣</strong><small>首次已核销</small></td><td><strong><a href="#">STL-2026-0802</a></strong><small>9月待抵€13.2K</small></td><td><span class="status blue">部分使用</span><small>剩余可用</small></td><td><button class="action-link" onclick="openCNAllocationDialog('partial')">继续抵扣</button></td></tr>
+                  <tr><td><strong>CN-FR-260805</strong><small>Fnac Darty · EUR</small></td><td><strong><a href="#">APR-2607-FR</a></strong><small><a href="#">CLM-FR-0801</a> · 价格保护</small></td><td><strong>8月5日</strong><small>35天</small></td><td class="amount"><strong>€8.6K</strong><small>已过账</small></td><td class="amount"><strong class="positive">€8.6K / €0</strong><small>使用率 100%</small></td><td><strong>8月货款已抵扣</strong><small>应用明细已回传</small></td><td><strong><a href="#">STL-2026-0803</a></strong><small>REC-2026-0805-008</small></td><td><span class="status green">已使用</span><small>核销完成</small></td><td><button class="action-link" onclick="openCNRecordDialog('applied')">查看核销</button></td></tr>
+                  <tr><td><strong>CN-IT-260511</strong><small>Unieuro · EUR</small></td><td><strong><a href="#">APR-2605-IT</a></strong><small><a href="#">CLM-IT-0508</a> · 质量返利</small></td><td><strong class="negative">5月11日</strong><small class="negative">121天</small></td><td class="amount"><strong>€12.4K</strong><small>已过账</small></td><td class="amount"><strong class="negative">€0 / €12.4K</strong><small>使用率 0%</small></td><td><strong>尚无抵扣计划</strong><small>需与客户重新确认</small></td><td><strong>未关联</strong><small>等待新订单</small></td><td><span class="status red">长期未用</span><small>已进异常中心</small></td><td><button class="action-link" onclick="openCNAllocationDialog('aging')">催办安排</button></td></tr>
+                  <tr><td><strong>CN-UK-260728</strong><small>Amazon UK · EUR</small></td><td><strong><a href="#">APR-2607-UK</a></strong><small><a href="#">CLM-UK-0725</a> · 促销返利</small></td><td><strong>7月28日</strong><small>43天</small></td><td class="amount"><strong>€8.2K</strong><small>已过账</small></td><td class="amount"><strong>€6.0K / €2.2K</strong><small>使用率 73%</small></td><td><strong>9月付款继续抵扣</strong><small>客户已确认</small></td><td><strong><a href="#">STL-2026-0805</a></strong><small>待核销€2.2K</small></td><td><span class="status blue">抵扣已计划</span><small>等待付款</small></td><td><button class="action-link" onclick="openCNAllocationDialog('planned')">查看计划</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ledger-footer"><div class="legend"><span class="risk">90天+未使用</span><span class="wait">未使用/部分使用</span><span class="ok">已使用并核销</span></div><div>当前显示5/10张CN · CN余额不因账期结束而消失，直至客户使用、冲销或管理员关闭</div></div>
+          </div>
+
+          <div class="tab-panel" data-panel="receipts">
+            <div class="panel-summary">
+              <div class="panel-metric"><label>本期银行流水</label><strong>4笔</strong><small>已导入 €1.414M</small></div>
+              <div class="panel-metric"><label>自动匹配</label><strong class="positive">3笔</strong><small>平均置信度 94%</small></div>
+              <div class="panel-metric"><label>待核销金额</label><strong class="warning">€70.5K</strong><small>1笔建议待确认</small></div>
+              <div class="panel-metric"><label>未识别流水</label><strong class="negative">1笔</strong><small>€12.4K需人工认领</small></div>
+            </div>
+            <div class="sub-toolbar"><div><strong>银行流水匹配队列</strong> <span>付款方、币种、金额和账龄联合匹配</span></div><div class="sub-actions"><button class="btn" onclick="openMatchingRulesDialog()">匹配规则</button><button class="btn primary" onclick="openDocumentCenter('bank')">导入银行流水</button></div></div>
+            <div class="table-wrap compact-table">
+              <table>
+                <colgroup><col style="width:15%"><col style="width:15%"><col style="width:11%"><col style="width:8%"><col style="width:14%"><col style="width:12%"><col style="width:11%"><col style="width:8%"><col style="width:6%"></colgroup>
+                <thead><tr><th>流水号 / 到账日期</th><th>付款方</th><th class="amount">到账金额</th><th>币种</th><th>建议结算单</th><th>匹配依据</th><th class="amount">已分配 / 未分配</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr data-row-state="allocation"><td><strong>REC-2026-0809-004</strong><small>8月9日 · Deutsche Bank</small></td><td><strong>AMAZON PAYMENTS UK</strong><small>付款方名称近似</small></td><td class="amount"><strong>€70.5K</strong><small>Value date 8月9日</small></td><td><strong>EUR</strong><small>同结算币种</small></td><td><strong><a href="#">STL-2026-0805</a></strong><small>Amazon UK · 未结€70.5K</small></td><td><div class="confidence"><div class="confidence-track"><i style="width:96%"></i></div><strong>96%</strong></div><small>客户+金额+币种</small></td><td class="amount"><strong>€0 / €70.5K</strong><small>建议全额分配</small></td><td><span class="status blue">建议匹配</span><small>待财务确认</small></td><td><button class="action-link" onclick="openDrawer('allocation')">核销</button></td></tr>
+                  <tr><td><strong>REC-2026-0806-013</strong><small>8月6日 · Deutsche Bank</small></td><td><strong>AMAZON EU SARL</strong><small>Amazon EU Services</small></td><td class="amount"><strong>€500.0K</strong><small>批量付款</small></td><td><strong>EUR</strong><small>同结算币种</small></td><td><strong><a href="#">STL-2026-0802</a></strong><small>已拆分1个结算单</small></td><td><div class="confidence"><div class="confidence-track"><i style="width:100%"></i></div><strong>100%</strong></div><small>付款附言含单号</small></td><td class="amount"><strong class="positive">€500K / €0</strong><small>全额分配</small></td><td><span class="status green">已核销</span><small>8月6日</small></td><td><button class="action-link" onclick="openDrawer('closed')">查看</button></td></tr>
+                  <tr><td><strong>REC-2026-0805-008</strong><small>8月5日 · BNP Paribas</small></td><td><strong>FNAC DARTY SA</strong><small>Fnac Darty</small></td><td class="amount"><strong>€277.8K</strong><small>单笔付款</small></td><td><strong>EUR</strong><small>同结算币种</small></td><td><strong><a href="#">STL-2026-0803</a></strong><small>结算已关闭</small></td><td><div class="confidence"><div class="confidence-track"><i style="width:100%"></i></div><strong>100%</strong></div><small>客户+金额一致</small></td><td class="amount"><strong class="positive">€277.8K / €0</strong><small>全额分配</small></td><td><span class="status green">已核销</span><small>归档完成</small></td><td><button class="action-link" onclick="openDrawer('closed')">归档</button></td></tr>
+                  <tr><td><strong>REC-2026-0809-007</strong><small>8月9日 · ING Bank</small></td><td><strong>EU RETAIL PAYMENT</strong><small>未命中客户别名</small></td><td class="amount"><strong class="negative">€12.4K</strong><small>附言不完整</small></td><td><strong>EUR</strong><small>币种有效</small></td><td><strong>未识别</strong><small>3个可能结算单</small></td><td><div class="confidence"><div class="confidence-track"><i style="width:42%"></i></div><strong>42%</strong></div><small>仅金额部分匹配</small></td><td class="amount"><strong>€0 / €12.4K</strong><small>等待认领</small></td><td><span class="status red">需人工匹配</span><small>进入异常中心</small></td><td><button class="action-link" onclick="openClaimReceiptDialog()">认领</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ledger-footer"><div class="legend"><span class="ok">已核销</span><span class="wait">建议匹配</span><span class="risk">未识别</span></div><div>确认核销后自动更新结算单未结金额、到账率与客户账龄</div></div>
+          </div>
+
+          <div class="tab-panel" data-panel="audit">
+            <div class="panel-summary">
+              <div class="panel-metric"><label>当前工作版本</label><strong>SET-2026-07-v2</strong><small>8月9日 10:42保存</small></div>
+              <div class="panel-metric"><label>不可变快照</label><strong>7个</strong><small>归档、调整与月结版本</small></div>
+              <div class="panel-metric"><label>数据基准</label><strong>MD-v12</strong><small>ECB-2026-07-CLOSE</small></div>
+              <div class="panel-metric"><label>本期审计事件</label><strong>28条</strong><small>3条关键确认动作</small></div>
+            </div>
+            <div class="audit-layout">
+              <div>
+                <div class="sub-toolbar"><div><strong>结算版本</strong> <span>已发布版本不可覆盖</span></div><div class="sub-actions"><button class="btn" onclick="openVersionCompareDialog()">版本对比</button><button class="btn primary" onclick="openSnapshotDialog()">创建快照</button></div></div>
+                <div class="table-wrap compact-table">
+                  <table>
+                    <colgroup><col style="width:17%"><col style="width:12%"><col style="width:14%"><col style="width:17%"><col style="width:20%"><col style="width:12%"><col style="width:8%"></colgroup>
+                    <thead><tr><th>版本号</th><th>类型</th><th>创建人</th><th>数据快照</th><th>变更摘要</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>
+                      <tr><td><strong>SET-2026-07-v2</strong><small>8月9日 10:42</small></td><td><strong>工作版本</strong><small>自动保存</small></td><td><strong>Julio Pu</strong><small>平台所有者</small></td><td><strong>MD-v12 · FX-CLOSE</strong><small>PO 50 · 促销9</small></td><td><strong>新增Amazon UK回款建议</strong><small>差异金额不变</small></td><td><span class="status blue">当前版本</span><small>可继续编辑</small></td><td><button class="action-link" onclick="openDrawer('archive')">检查</button></td></tr>
+                      <tr><td><strong>SET-2026-07-v1</strong><small>8月7日 18:15</small></td><td><strong>联合复核</strong><small>正式快照</small></td><td><strong>Finance Manager</strong><small>财务</small></td><td><strong>MD-v12 · FX-CLOSE</strong><small>PO 50 · 促销9</small></td><td><strong>确认5个客户账单</strong><small>锁定€1.691M应结</small></td><td><span class="status green">已发布</span><small>不可覆盖</small></td><td><button class="action-link" onclick="openDrawer('closed')">查看</button></td></tr>
+                      <tr><td><strong>SET-2026-07-DRAFT4</strong><small>8月5日 16:30</small></td><td><strong>内部核对</strong><small>过程快照</small></td><td><strong>Finance Ops</strong><small>财务运营</small></td><td><strong>MD-v11 · FX-DAILY</strong><small>PO 48 · 促销8</small></td><td><strong>修正2个PO签收数量</strong><small>净应收 +€4.2K</small></td><td><span class="status">历史草稿</span><small>只读</small></td><td><button class="action-link" onclick="openVersionCompareDialog()">对比</button></td></tr>
+                      <tr><td><strong>SET-2026-06-CLOSE</strong><small>7月12日 15:20</small></td><td><strong>月结归档</strong><small>正式关闭</small></td><td><strong>Finance Manager</strong><small>财务</small></td><td><strong>MD-v10 · ECB-JUN</strong><small>PO 41 · 促销7</small></td><td><strong>2026年6月结算关闭</strong><small>归档包8个文件</small></td><td><span class="status green">已归档</span><small>不可变</small></td><td><button class="action-link" onclick="openDrawer('closed')">归档</button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <aside class="audit-side">
+                <div class="audit-side-head"><strong>最近审计事件</strong><span>所有时间 Europe/Madrid</span></div>
+                <div class="audit-events">
+                  <div class="audit-event"><strong>回款匹配建议已生成</strong><p>REC-2026-0809-004 匹配 STL-2026-0805，置信度96%。</p><small>8月9日 10:42 · 系统规则 engine-v3</small></div>
+                  <div class="audit-event"><strong>差异审批已提交</strong><p>Amazon EU未审批渠道扣款€8.6K提交财务结算经理。</p><small>8月9日 09:18 · Sara · 销售</small></div>
+                  <div class="audit-event"><strong>客户确认回执上传</strong><p>Fnac Darty确认净应收€277.8K，文件哈希已记录。</p><small>8月8日 17:06 · Claire · KA</small></div>
+                  <div class="audit-event"><strong>Master Data基准更新</strong><p>从MD-v11切换为MD-v12；已发布结算版本保持原快照。</p><small>8月5日 14:01 · Julio Pu · 平台所有者</small></div>
+                </div>
+              </aside>
+            </div>
+            <div class="ledger-footer"><div>审计原则：发布版本只读 · 所有金额调整必须创建新版本 · 关键动作记录账号、时间与来源快照</div><div>保留策略：永久</div></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer(event)">
+    <aside class="drawer" id="drawer" aria-label="结算处理抽屉" onclick="event.stopPropagation()"></aside>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" onclick="closeModal(event)">
+    <section class="modal" id="modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()"></section>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const documentTypes = {
+      po: {
+        label: "PO",
+        title: "采购订单 / PO",
+        accept: ".xlsx,.xls,.csv,.pdf",
+        formats: "Excel、CSV或客户PO PDF",
+        relation: ["STL-2026-0802", "Amazon EU Services", "2026年7月"],
+        fields: [
+          ["PO编号", "PO-EU-260718-01", "text"], ["客户", "Amazon EU Services", "select"],
+          ["订单币种", "EUR", "select"], ["订单金额", "€42,800.00", "text"],
+          ["订单日期", "2026-07-18", "date"], ["结算资格", "已签收，可结算", "select"]
+        ],
+        files: [
+          ["PO-EU-260718-01.pdf", "7月18日", "PO-EU-260718-01", "已关联"],
+          ["PO-lines-2026-07.xlsx", "8月2日", "16个有效PO", "已校验"]
+        ]
+      },
+      invoice: {
+        label: "发票",
+        title: "发票与客户账单",
+        accept: ".pdf,.xlsx,.xls,.csv,.xml",
+        formats: "PDF、Excel、CSV或电子发票XML",
+        relation: ["STL-2026-0802", "Amazon EU Services", "2026年7月"],
+        fields: [
+          ["发票编号", "INV-EU-2026-0718", "text"], ["发票日期", "2026-07-31", "date"],
+          ["客户", "Amazon EU Services", "select"], ["发票币种", "EUR", "select"],
+          ["含税金额", "€612,800.00", "text"], ["VAT规则", "跨境B2B / Reverse charge", "select"]
+        ],
+        files: [
+          ["INV-EU-2026-0718.pdf", "7月31日", "STL-2026-0802", "客户已收"],
+          ["Invoice-lines-0718.xlsx", "7月31日", "16个PO", "已校验"]
+        ]
+      },
+      promo: {
+        label: "促销审批",
+        title: "促销审批与核销依据",
+        accept: ".pdf,.xlsx,.xls,.csv,.eml,.msg",
+        formats: "审批导出、Excel或批准邮件",
+        relation: ["STL-2026-0802", "Amazon EU Services", "3个促销方案"],
+        fields: [
+          ["审批编号", "APR-2607-18", "text"], ["活动名称", "July Weekend Deal", "text"],
+          ["批准金额", "€24,000.00", "text"], ["核销周期", "2026年7月", "select"],
+          ["责任人", "Claire", "select"], ["审批状态", "已批准", "select"]
+        ],
+        files: [
+          ["APR-2607-18-approval.pdf", "7月2日", "促销APR-2607-18", "已批准"],
+          ["POS-proof-week27.xlsx", "8月4日", "客户Claim CLM-0811", "证据有效"]
+        ]
+      },
+      claim: {
+        label: "客户Claim",
+        title: "客户Claim与扣款闭环",
+        accept: ".pdf,.xlsx,.xls,.csv,.eml,.msg,.zip",
+        formats: "Claim PDF、Debit Note、明细表、邮件或证据包",
+        relation: ["CLM-AMZ-2026-0811", "Amazon EU Services", "STL-2026-0802"],
+        fields: [
+          ["Claim编号", "CLM-AMZ-2026-0811", "text"], ["收到日期", "2026-08-09", "date"],
+          ["Claim金额", "€42,300.00", "text"], ["Claim类型", "渠道扣款 + 物流索赔", "select"],
+          ["关联差异单", "DIF-2026-0811", "select"], ["闭环状态", "审批与补证中", "select"]
+        ],
+        files: [
+          ["CLM-AMZ-2026-0811.pdf", "8月9日", "客户Claim原件", "已接收"],
+          ["Debit-note-DN88421.pdf", "8月9日", "Claim扣款€42.3K", "已核对"],
+          ["Claim-evidence-pack.zip", "8月10日", "超审批差异€11.1K · 证据2/3", "待补充"],
+          ["Claim-response-draft.eml", "8月10日", "审批后发送", "待处理"]
+        ]
+      },
+      cn: {
+        label: "Credit Note",
+        title: "Credit Note / CN",
+        accept: ".pdf,.xlsx,.xls,.csv,.xml",
+        formats: "CN PDF、开票明细或会计系统导出",
+        relation: ["CN-EU-260811", "Claim CLM-AMZ-2026-0811", "STL-2026-0802"],
+        fields: [
+          ["CN编号", "CN-EU-260811", "text"], ["开具日期", "2026-08-11", "date"],
+          ["CN金额", "€9,800.00", "text"], ["冲减原因", "已批准促销返利", "select"],
+          ["关联Claim/差异", "CLM-AMZ-2026-0811", "select"], ["会计状态", "已过账", "select"],
+          ["已使用金额", "€0.00", "text"], ["未使用余额", "€9,800.00", "text"],
+          ["客户应用状态", "未使用", "select"], ["抵扣计划", "2026年9月新订单", "select"]
+        ],
+        files: [
+          ["CN-EU-260805.pdf", "8月5日", "DIF-2026-0805", "已过账"],
+          ["CN-EU-260811-draft.pdf", "8月11日", "CLM-AMZ-0811", "草稿"],
+          ["CN-application-AMZ-0815.xlsx", "8月15日", "客户抵扣明细 · STL-2026-0802", "已应用"]
+        ]
+      },
+      bank: {
+        label: "银行流水",
+        title: "银行流水与到账文件",
+        accept: ".csv,.xlsx,.xls,.mt940,.sta,.xml,.pdf",
+        formats: "CSV、Excel、MT940、CAMT.053 XML或银行PDF",
+        relation: ["REC-2026-0809-004", "Deutsche Bank EUR", "2026年7月结算"],
+        fields: [
+          ["银行账户", "Deutsche Bank · EUR", "select"], ["Value date", "2026-08-09", "date"],
+          ["流水币种", "EUR", "select"], ["导入格式", "CAMT.053 XML", "select"],
+          ["付款方别名", "AMAZON PAYMENTS UK", "text"], ["匹配周期", "2026年7月", "select"]
+        ],
+        files: [
+          ["DB-EUR-20260809-camt053.xml", "8月9日", "4笔流水", "已导入"],
+          ["REC-2026-0809-004.pdf", "8月9日", "STL-2026-0805", "待核销"]
+        ]
+      },
+      evidence: {
+        label: "其他证据",
+        title: "签收、质量与客户确认文件",
+        accept: ".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.csv,.eml,.msg,.zip",
+        formats: "PDF、图片、Excel、邮件或证据压缩包",
+        relation: ["DIF-2026-0811", "SHP-EU-260824", "Claim CLM-AMZ-0811"],
+        fields: [
+          ["证据类型", "物流签收证明", "select"], ["来源模块", "物流交付", "select"],
+          ["关联对象", "SHP-EU-260824", "text"], ["责任人", "Owen", "select"],
+          ["文件日期", "2026-08-08", "date"], ["验证状态", "待复核", "select"]
+        ],
+        files: [
+          ["SHP-EU-260824-POD.pdf", "8月8日", "物流签收", "待复核"],
+          ["Customer-confirmation-FR.eml", "8月10日", "STL-2026-0803", "已归档"]
+        ]
+      }
+    };
+
+    const cnRecords = {
+      unapplied: {id: "CN-DE-260811", customer: "MediaMarkt DE", original: "€9.8K", used: "€0", balance: "€9.8K", age: "29天", status: "未使用", plan: "2026年9月新订单", source: "APR-2607-18 · CLM-MMDE-2026-0809", target: "PO-DE-260901"},
+      partial: {id: "CN-AMZ-260805", customer: "Amazon EU Services", original: "€31.2K", used: "€18.0K", balance: "€13.2K", age: "35天", status: "部分使用", plan: "2026年9月付款", source: "APR-2607-AMZ · CLM-AMZ-0802", target: "STL-2026-0802"},
+      applied: {id: "CN-FR-260805", customer: "Fnac Darty", original: "€8.6K", used: "€8.6K", balance: "€0", age: "35天", status: "已使用", plan: "2026年8月货款", source: "APR-2607-FR · CLM-FR-0801", target: "STL-2026-0803"},
+      aging: {id: "CN-IT-260511", customer: "Unieuro", original: "€12.4K", used: "€0", balance: "€12.4K", age: "121天", status: "长期未使用", plan: "尚无抵扣计划", source: "APR-2605-IT · CLM-IT-0508", target: "未关联"},
+      planned: {id: "CN-UK-260728", customer: "Amazon UK", original: "€8.2K", used: "€6.0K", balance: "€2.2K", age: "43天", status: "抵扣已计划", plan: "2026年9月付款", source: "APR-2607-UK · CLM-UK-0725", target: "STL-2026-0805"}
+    };
+
+    let selectedUploadFiles = [];
+    let currentDocumentType = "po";
+    let currentDrawerState = null;
+    let toastTimer;
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
+    }
+
+    function setDialogQuery(dialog, doc) {
+      const url = new URL(window.location.href);
+      if (dialog) url.searchParams.set("dialog", dialog); else url.searchParams.delete("dialog");
+      if (doc) url.searchParams.set("doc", doc); else url.searchParams.delete("doc");
+      history.replaceState(null, "", url);
+    }
+
+    function openModal({title, subtitle, body, primary = "确认", primaryAction = "completeModalAction()", secondary = "取消", auxiliary = "", auxiliaryAction = "", narrow = false, query = ""}) {
+      const modal = document.getElementById("modal");
+      modal.className = `modal${narrow ? " narrow" : ""}`;
+      modal.innerHTML = `
+        <div class="modal-head"><div><h2>${title}</h2><p>${subtitle || ""}</p></div><button class="close-btn" onclick="closeModal()">×</button></div>
+        <div class="modal-body">${body}</div>
+        <div class="modal-footer"><div class="modal-footer-note">自动保存已开启 · 上传、下载和确认动作写入审计记录</div><div class="modal-actions">${auxiliary ? `<button class="btn" onclick="${auxiliaryAction}">${auxiliary}</button>` : ""}<button class="btn" onclick="closeModal()">${secondary}</button><button class="btn primary" onclick="${primaryAction}">${primary}</button></div></div>`;
+      document.getElementById("modal-backdrop").classList.add("open");
+      if (query) setDialogQuery(query);
+    }
+
+    function closeModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById("modal-backdrop").classList.remove("open");
+      setDialogQuery(null);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    function completeModalAction(message = "操作已保存，并写入结算审计记录。") {
+      closeModal();
+      showToast(message);
+    }
+
+    function fieldMarkup(field) {
+      const [label, value, type] = field;
+      if (type === "select") return `<div class="form-field"><label>${label}</label><select><option>${value}</option><option>请选择其他记录</option></select></div>`;
+      return `<div class="form-field"><label>${label}</label><input type="${type}" value="${value}"></div>`;
+    }
+
+    function fileRows(type) {
+      return documentTypes[type].files.map((file) => `<div class="file-row"><div><strong>${file[0]}</strong><small>已关联 ${file[2]}</small></div><span>${file[1]}</span><span><span class="status ${file[3].includes('待') || file[3].includes('草稿') ? 'amber' : 'green'}">${file[3]}</span></span><div class="file-action"><button class="icon-action" onclick="downloadDocument('${file[0]}','${type}')">下载</button></div></div>`).join("");
+    }
+
+    function openDocumentCenter(type = "po") {
+      const nextType = documentTypes[type] ? type : "po";
+      const config = documentTypes[nextType];
+      currentDocumentType = nextType;
+      selectedUploadFiles = [];
+      const tabs = Object.entries(documentTypes).map(([key, item]) => `<button class="doc-tab ${key === nextType ? 'active' : ''}" onclick="openDocumentCenter('${key}')">${item.label}</button>`).join("");
+      const body = `
+        <div class="doc-tabs">${tabs}</div>
+        <div class="relation-strip"><div><label>当前票据类型</label><strong>${config.title}</strong></div><div><label>主要关联对象</label><strong>${config.relation[0]}</strong></div><div><label>结算上下文</label><strong>${config.relation[1]} · ${config.relation[2]}</strong></div></div>
+        <div class="upload-layout">
+          <div>
+            <div class="upload-zone"><div><strong>拖放${config.label}文件到这里</strong><span>${config.formats}<br>单文件不超过20MB，系统将校验重复、金额与关联编号。</span><input id="document-file-input" type="file" accept="${config.accept}" multiple hidden onchange="handleSelectedFiles(this)"><button class="btn" onclick="document.getElementById('document-file-input').click()">选择文件</button></div></div>
+            <div class="upload-files" id="upload-files"><div class="upload-file"><span>尚未选择本地文件</span><span>等待上传</span></div></div>
+          </div>
+          <div class="form-grid">${config.fields.map(fieldMarkup).join("")}<div class="form-field full"><label>归档备注</label><textarea placeholder="补充文件用途、差异说明或客户沟通背景"></textarea><small>上传后自动关联当前结算版本，历史文件不会被覆盖。</small></div></div>
+        </div>
+        <div class="dialog-section"><div class="dialog-section-head"><h3>已关联文件</h3><span>${config.files.length}个文件 · 全部保留版本与哈希</span></div><div class="file-list">${fileRows(nextType)}</div></div>
+        ${nextType === 'claim' ? `<div class="dialog-section"><div class="dialog-section-head"><h3>Claim文件闭环</h3><span>事前审批 → 客户执行 → Claim → 我方确认 → CN → 客户抵扣 → 核销</span></div><div class="choice-list"><div class="choice-row"><span class="task-check done">✓</span><div><strong>事前促销/费用审批</strong><small>APR-2607系列 · 已批准€31.2K</small></div><span class="positive">已批准</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>客户Claim与Debit Note</strong><small>CLM-AMZ-2026-0811 · Claim总额€42.3K</small></div><span class="positive">已接收</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>关联PO、发票与执行证据</strong><small>16个PO · INV-EU-0718 · 超审批差异€11.1K</small></div><span class="positive">已关联</span></div><div class="choice-row"><span class="task-check"></span><div><strong>我方Claim确认</strong><small>按事前审批、实际执行和证据确认可认可金额</small></div><span class="warning">处理中</span></div><div class="choice-row"><span class="task-check"></span><div><strong>CN或驳回回复</strong><small>对认可金额开具CN；未认可部分形成客户回复</small></div><span>未完成</span></div><div class="choice-row"><span class="task-check"></span><div><strong>客户使用CN抵扣货款</strong><small>回传CN应用明细，与付款短款和银行流水一起核销</small></div><span>未完成</span></div></div></div>` : ""}
+        ${nextType === 'cn' ? `<div class="dialog-section"><div class="dialog-section-head"><h3>CN生命周期</h3><span>源头确认 → 过账 → 发送客户 → 抵扣计划 → 已使用 → 核销</span></div><div class="choice-list"><div class="choice-row"><span class="task-check done">✓</span><div><strong>关联审批与Claim</strong><small>APR-2607-18 · CLM-AMZ-2026-0811</small></div><button class="icon-action" onclick="openDocumentCenter('claim')">查看</button></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>CN已过账并发送客户</strong><small>CN-EU-260811.pdf · 客户回执已留存</small></div><span class="positive">可抵扣</span></div><div class="choice-row"><span class="task-check"></span><div><strong>关联未来订单/结算单</strong><small>指定客户计划使用的PO、付款批次和预计日期</small></div><button class="icon-action" onclick="closeModal();switchLedgerTab('cn');openCNAllocationDialog('unapplied')">安排</button></div><div class="choice-row"><span class="task-check"></span><div><strong>客户CN应用明细</strong><small>收到客户抵扣清单后才更新已使用金额和余额</small></div><span>待回传</span></div><div class="choice-row"><span class="task-check"></span><div><strong>货款核销与归档</strong><small>现金到账 + 已使用CN = 本次货款核销</small></div><button class="icon-action" onclick="openDocumentCenter('bank')">流水</button></div></div></div>` : ""}`;
+      openModal({title: "票据与文件中心", subtitle: `${config.title} · 上传、下载、关联与版本追溯`, body, primary: "校验并上传", primaryAction: `confirmDocumentUpload('${nextType}')`, auxiliary: "下载模板", auxiliaryAction: `downloadTemplate('${nextType}')`});
+      setDialogQuery("documents", nextType);
+    }
+
+    function handleSelectedFiles(input) {
+      selectedUploadFiles = Array.from(input.files || []);
+      const target = document.getElementById("upload-files");
+      if (!selectedUploadFiles.length) return;
+      target.innerHTML = selectedUploadFiles.map((file) => `<div class="upload-file"><span>${escapeHtml(file.name)}</span><span>${Math.max(1, Math.round(file.size / 1024))} KB · 待校验</span></div>`).join("");
+    }
+
+    function confirmDocumentUpload(type) {
+      if (!selectedUploadFiles.length) {
+        showToast(`请先选择${documentTypes[type].label}文件。`);
+        return;
+      }
+      completeModalAction(`${selectedUploadFiles.length}个${documentTypes[type].label}文件已校验并加入当前结算版本。`);
+    }
+
+    function downloadBlob(filename, content, mime = "text/csv;charset=utf-8") {
+      const blob = new Blob([content], {type: mime});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 300);
+      showToast(`${filename} 已开始下载。`);
+    }
+
+    function downloadTemplate(type) {
+      const config = documentTypes[type];
+      const headers = config.fields.map((field) => field[0]).join(",");
+      const values = config.fields.map((field) => String(field[1]).replaceAll(",", " ")).join(",");
+      downloadBlob(`${type}-upload-template.csv`, `${headers}\n${values}\n`);
+    }
+
+    function downloadDocument(filename, type) {
+      const config = documentTypes[type] || documentTypes.evidence;
+      downloadBlob(`${filename}.download-manifest.txt`, `文件：${filename}\n类型：${config.title}\n结算版本：SET-2026-07-v2\n下载人：Julio Pu\n下载时间：${new Date().toLocaleString('zh-CN')}\n`, "text/plain;charset=utf-8");
+    }
+
+    function openExportDialog(scope = "ledger") {
+      const isDifference = scope === "difference";
+      const isCN = scope === "cn";
+      const body = `<div class="form-grid three">
+        <div class="form-field"><label>导出范围</label><select><option>${isDifference ? "当前筛选差异" : isCN ? "全部开放CN余额" : "当前结算周期"}</option><option>当前客户</option><option>全部历史记录</option></select></div>
+        <div class="form-field"><label>文件格式</label><select><option>Excel (.xlsx)</option><option>CSV</option><option>PDF汇总</option></select></div>
+        <div class="form-field"><label>金额口径</label><select><option>原币 + EUR折算</option><option>仅EUR</option><option>仅原币</option></select></div>
+        <div class="form-field"><label>数据版本</label><select><option>SET-2026-07-v2 当前版本</option><option>SET-2026-07-v1 已发布</option></select></div>
+        <div class="form-field"><label>附件处理</label><select><option>生成附件索引</option><option>包含全部附件ZIP</option><option>不包含附件</option></select></div>
+        <div class="form-field"><label>敏感字段</label><select><option>按当前权限导出</option><option>隐藏银行账号</option></select></div>
+      </div><div class="dialog-section"><div class="dialog-section-head"><h3>导出内容</h3><span>${isCN ? '预计10张CN，含5张开放余额' : '预计6行主记录，50个PO关联'}</span></div><div class="choice-list">
+        <label class="choice-row"><input type="checkbox" checked><div><strong>${isCN ? 'CN金额、余额与账龄' : '结算与金额明细'}</strong><small>${isCN ? '原始金额、已使用、未使用余额、账龄和使用状态' : '发票、已确认CN、净应收、回款与未结'}</small></div><span>必选</span></label>
+        <label class="choice-row"><input type="checkbox" checked><div><strong>审批、Claim和CN追溯</strong><small>${isCN ? '源审批、Claim、CN原件、未来PO/结算单和客户应用明细' : '事前审批、客户Claim、确认结论与CN应用状态'}</small></div><span>${isCN ? '10张' : '9组'}</span></label>
+        <label class="choice-row"><input type="checkbox" checked><div><strong>版本与审计信息</strong><small>数据基准、操作人、时间及文件哈希</small></div><span>28条</span></label>
+      </div></div>`;
+      openModal({title: isDifference ? "导出差异清单" : isCN ? "导出CN台账" : "导出结算台账", subtitle: "导出文件记录数据版本和下载人，可用于离线复核", body, primary: "生成并下载", primaryAction: `downloadExport('${scope}')`, query: "export"});
+    }
+
+    function downloadExport(scope) {
+      const rows = scope === "difference"
+        ? "difference_id,customer,claim_amount,approved_amount,pending_difference,status\nDIF-2026-0811,Amazon EU Services,42300,31200,11100,Pending approval\n"
+        : scope === "cn"
+          ? "cn_id,customer,original_amount,used_amount,open_balance,age_days,status,source,target\nCN-DE-260811,MediaMarkt DE,9800,0,9800,29,Unused,APR-2607-18,PO-DE-260901\nCN-AMZ-260805,Amazon EU Services,31200,18000,13200,35,Partially used,CLM-AMZ-0802,STL-2026-0802\n"
+          : "settlement_id,customer,gross_invoice,confirmed_cn,net_receivable,cash_received,open_amount\nSTL-2026-0802,Amazon EU Services,612800,31200,581600,500000,81600\n";
+      const filename = scope === "difference" ? "settlement-differences-2026-07.csv" : scope === "cn" ? "credit-note-register-2026-08.csv" : "settlement-ledger-2026-07.csv";
+      downloadBlob(filename, rows);
+      closeModal();
+    }
+
+    function openNewSettlementDialog() {
+      const body = `<div class="relation-strip"><div><label>步骤1</label><strong>确定结算范围</strong></div><div><label>步骤2</label><strong>选择可结算PO与发票</strong></div><div><label>步骤3</label><strong>生成工作版本</strong></div></div>
+        <div class="form-grid three">
+          <div class="form-field"><label>结算周期</label><select><option>2026年7月</option><option>2026年8月</option></select></div>
+          <div class="form-field"><label>财务主体</label><select><option>INIU Europe GmbH</option><option>INIU UK Ltd.</option></select></div>
+          <div class="form-field"><label>客户</label><select><option>Amazon EU Services</option><option>MediaMarkt DE</option><option>Fnac Darty</option></select></div>
+          <div class="form-field"><label>市场</label><select><option>欧洲多市场</option><option>德国</option><option>法国</option></select></div>
+          <div class="form-field"><label>结算币种</label><select><option>EUR</option><option>GBP</option></select></div>
+          <div class="form-field"><label>账期规则</label><select><option>月结30天</option><option>月结45天</option><option>月结60天</option></select></div>
+        </div>
+        <div class="dialog-section"><div class="dialog-section-head"><h3>满足结算条件的业务单据</h3><span>依据物流签收、发票状态和重复结算检查</span></div><div class="choice-list">
+          <label class="choice-row"><input type="checkbox" checked><div><strong>PO-EU-260701-260716</strong><small>16个PO · 物流签收100% · 发票INV-EU-2026-0718</small></div><span>€612.8K</span></label>
+          <label class="choice-row"><input type="checkbox" checked><div><strong>促销审批 APR-2607系列</strong><small>3个事前审批 · 客户Claim待核对 · 未确认Claim不冲减应收</small></div><span>€31.2K批准</span></label>
+          <label class="choice-row"><input type="checkbox"><div><strong>PO-EU-260719-17</strong><small>存在2件短装，暂不满足结算条件</small></div><span class="negative">阻塞</span></label>
+        </div></div>
+        <div class="dialog-section"><div class="notice-band">预计生成账单应结€612.8K；已确认CN €31.2K；财务净应收€581.6K。待审批Claim €11.1K单独进入差异队列，不提前减少净应收。</div></div>`;
+      openModal({title: "新建客户结算单", subtitle: "从PO、发票、促销审批和已确认CN生成可追溯的结算工作版本", body, primary: "生成结算草稿", primaryAction: "completeModalAction('结算草稿STL-2026-0806已生成，待内部核对。')", auxiliary: "管理源文件", auxiliaryAction: "openDocumentCenter('po')", query: "new-settlement"});
+    }
+
+    function openExceptionDialog() {
+      const body = `<div class="panel-summary"><div class="panel-metric"><label>阻塞关闭</label><strong class="negative">2项</strong><small>Claim审批与逾期</small></div><div class="panel-metric"><label>文件缺失</label><strong class="warning">2项</strong><small>签收及客户回执</small></div><div class="panel-metric"><label>未识别流水</label><strong class="negative">1笔</strong><small>€12.4K</small></div><div class="panel-metric"><label>待开CN</label><strong class="warning">1张</strong><small>€9.8K</small></div></div>
+        <div class="dialog-section"><div class="choice-list">
+          <div class="choice-row"><span class="task-check"></span><div><strong>Amazon EU客户Claim高于审批€11.1K</strong><small>CLM-AMZ-2026-0811 · 需要差异审批</small></div><button class="icon-action" onclick="closeModal();switchLedgerTab('differences');openDrawer('difference')">处理</button></div>
+          <div class="choice-row"><span class="task-check"></span><div><strong>Unieuro未结€18.1K逾期5天</strong><small>STL-2026-0708 · 承诺日期已失效</small></div><button class="icon-action" onclick="closeModal();openDrawer('overdue')">催收</button></div>
+          <div class="choice-row"><span class="task-check"></span><div><strong>客户回款€12.4K未识别</strong><small>REC-2026-0809-007 · 付款方别名未命中</small></div><button class="icon-action" onclick="openClaimReceiptDialog()">认领</button></div>
+          <div class="choice-row"><span class="task-check"></span><div><strong>物流Claim证据缺失</strong><small>SHP-EU-260824 · 缺少签收照片</small></div><button class="icon-action" onclick="openDocumentCenter('evidence')">上传</button></div>
+        </div></div>`;
+      openModal({title: "结算异常", subtitle: "只展示影响金额确认、核销或归档的事项", body, primary: "打开异常中心", primaryAction: "openNavigationDialog('异常中心')", secondary: "关闭", narrow: false, query: "exceptions"});
+    }
+
+    function openDifferenceDialog() {
+      const body = `<div class="form-grid three">
+        <div class="form-field"><label>客户</label><select><option>Amazon EU Services</option><option>MediaMarkt DE</option></select></div>
+        <div class="form-field"><label>关联结算单</label><select><option>STL-2026-0802</option></select></div>
+        <div class="form-field"><label>客户Claim</label><select><option>CLM-AMZ-2026-0811</option><option>新建Claim记录</option></select></div>
+        <div class="form-field"><label>差异类型</label><select><option>Claim高于事前审批</option><option>执行证据不足</option><option>价格/数量争议</option></select></div>
+        <div class="form-field"><label>Claim金额</label><input value="€42,300.00"></div>
+        <div class="form-field"><label>事前批准金额</label><input value="€31,200.00"></div>
+        <div class="form-field"><label>待确认差异</label><input value="€11,100.00" readonly></div>
+        <div class="form-field"><label>负责人</label><select><option>Sara · 销售</option><option>Owen · 供应链</option></select></div>
+        <div class="form-field"><label>处理DDL</label><input type="date" value="2026-08-12"></div>
+        <div class="form-field full"><label>差异说明</label><textarea>客户执行促销后提交Claim，其中€31.2K有事前审批，额外€11.1K需核实渠道扣款和物流索赔依据。</textarea></div>
+      </div><div class="dialog-section"><div class="dialog-section-head"><h3>必须关联的文件</h3><span>Claim原件、审批、执行证据和客户沟通</span></div><div class="sub-actions"><button class="btn" onclick="openDocumentCenter('claim')">查看客户Claim</button><button class="btn" onclick="openDocumentCenter('promo')">查看事前审批</button><button class="btn" onclick="openDocumentCenter('evidence')">上传执行证据</button></div></div>`;
+      openModal({title: "登记结算差异", subtitle: "差异只进入待确认队列，不直接冲减净应收", body, primary: "保存并提交处理", primaryAction: "completeModalAction('差异DIF-2026-0813已登记并同步到责任人待办。')", query: "difference"});
+    }
+
+    function openCNDialog() {
+      const body = `<div class="relation-strip"><div><label>事前审批</label><strong>APR-2607-18 · €9.8K</strong></div><div><label>客户Claim</label><strong>CLM-MMDE-2026-0809</strong></div><div><label>确认结论</label><strong>金额与证据一致</strong></div></div>
+        <div class="form-grid three">
+          <div class="form-field"><label>CN编号</label><input value="CN-EU-260811"></div><div class="form-field"><label>客户</label><select><option>MediaMarkt DE</option></select></div><div class="form-field"><label>CN金额</label><input value="€9,800.00"></div>
+          <div class="form-field"><label>开具日期</label><input type="date" value="2026-08-11"></div><div class="form-field"><label>关联发票</label><select><option>INV-DE-2026-0731</option></select></div><div class="form-field"><label>会计状态</label><select><option>生成草稿</option><option>正式过账</option></select></div>
+          <div class="form-field full"><label>CN用途</label><textarea>确认客户促销Claim后出具，客户可在下一次货款中抵扣；抵扣后银行流水核销需同时关联该CN。</textarea></div>
+        </div><div class="dialog-section"><div class="notice-band green">CN过账后状态为“可抵扣”；收到客户CN抵扣明细或付款短款说明后标记“已应用”，并与银行现金共同完成本次货款核销。</div></div>`;
+      openModal({title: "生成Credit Note", subtitle: "基于已批准Claim生成正式抵扣凭证", body, primary: "生成CN草稿", primaryAction: "completeModalAction('CN-EU-260811草稿已生成，等待财务过账。')", auxiliary: "查看Claim文件", auxiliaryAction: "openDocumentCenter('claim')", query: "cn"});
+    }
+
+    function openCNBulkImportDialog() {
+      const body = `<div class="relation-strip"><div><label>导入对象</label><strong>CN主记录 + PDF原件</strong></div><div><label>重复识别</label><strong>客户 + CN编号 + 金额</strong></div><div><label>历史保护</label><strong>新版本追加，不覆盖原文件</strong></div></div>
+        <div class="form-grid">
+          <div class="form-field full"><label>CN台账文件</label><input id="cn-bulk-file" type="file" accept=".xlsx,.xls,.csv,.zip" multiple hidden onchange="handleCNBulkFiles(this)"><div class="upload-file"><button class="icon-action" onclick="document.getElementById('cn-bulk-file').click()">选择文件</button><span id="cn-bulk-file-name">尚未选择文件</span></div><small>可上传Excel/CSV台账，或包含CN PDF的ZIP。</small></div>
+          <div class="form-field"><label>客户匹配方式</label><select><option>客户Master Data名称 + 别名</option><option>仅精确客户名称</option></select></div>
+          <div class="form-field"><label>金额币种</label><select><option>使用文件原币</option><option>全部转为EUR</option></select></div>
+          <div class="form-field"><label>来源关联</label><select><option>自动匹配审批、Claim和发票</option><option>导入后人工匹配</option></select></div>
+          <div class="form-field"><label>初始使用状态</label><select><option>未使用</option><option>按台账的已使用金额</option></select></div>
+        </div><div class="dialog-section"><div class="notice-band">导入预检会列出新增、更新、重复和无法关联的CN；只有确认发布后才进入CN台账。</div></div>`;
+      openModal({title: "批量导入Credit Note", subtitle: "支持历史CN一次性建账和日常批量上传", body, primary: "校验并生成预检", primaryAction: "confirmCNBulkImport()", auxiliary: "下载导入模板", auxiliaryAction: "downloadTemplate('cn')", query: "cn-bulk"});
+    }
+
+    function handleCNBulkFiles(input) {
+      const target = document.getElementById("cn-bulk-file-name");
+      const files = Array.from(input.files || []);
+      if (!target) return;
+      target.textContent = files.length ? `${files.length}个文件：${files.map((file) => file.name).join("、")}` : "尚未选择文件";
+    }
+
+    function confirmCNBulkImport() {
+      const input = document.getElementById("cn-bulk-file");
+      if (!input || !input.files.length) return showToast("请先选择CN台账或ZIP文件。");
+      completeModalAction(`${input.files.length}个文件已完成预检：8张CN可新增，2张需补充客户关联。`);
+    }
+
+    function openCNAllocationDialog(key = "unapplied") {
+      const record = cnRecords[key] || cnRecords.unapplied;
+      const isAging = key === "aging";
+      const body = `<div class="relation-strip"><div><label>Credit Note</label><strong>${record.id} · ${record.customer}</strong></div><div><label>可用余额</label><strong>${record.balance}</strong></div><div><label>当前状态</label><strong class="${isAging ? 'negative' : ''}">${record.status} · ${record.age}</strong></div></div>
+        <div class="dialog-section"><div class="dialog-section-head"><h3>选择抵扣对象</h3><span>只展示同客户、同币种的开放订单和结算单</span></div><div class="choice-list">
+          <label class="choice-row"><input type="radio" name="cn-target" ${isAging ? '' : 'checked'}><div><strong>${record.target === '未关联' ? 'PO-' + record.customer.replaceAll(' ', '-').toUpperCase() + '-NEXT' : record.target}</strong><small>${record.plan} · 开放应付足以使用当前CN余额</small></div><span>推荐</span></label>
+          <label class="choice-row"><input type="radio" name="cn-target"><div><strong>下一开放结算周期</strong><small>客户下次付款时根据抵扣明细自动匹配</small></div><span>待定</span></label>
+          <label class="choice-row"><input type="radio" name="cn-target"><div><strong>保留为客户未使用余额</strong><small>不关闭CN，继续计算账龄并在90/120天触发提醒</small></div><span>延后</span></label>
+        </div></div>
+        <div class="dialog-section"><div class="form-grid three"><div class="form-field"><label>本次计划抵扣</label><input value="${record.balance}"></div><div class="form-field"><label>预计抵扣日期</label><input type="date" value="2026-09-15"></div><div class="form-field"><label>责任人</label><select><option>${isAging ? 'Luca · KA' : 'Claire · Finance'}</option></select></div><div class="form-field"><label>客户确认</label><select><option>${isAging ? '待重新确认' : '已发送，待客户确认'}</option><option>已确认抵扣计划</option></select></div><div class="form-field"><label>应用证明</label><select><option>客户抵扣明细回传后生效</option><option>付款附言识别</option></select></div><div class="form-field"><label>余额处理</label><select><option>保留剩余额继续使用</option><option>本次全额使用</option></select></div></div></div>
+        <div class="dialog-section"><div class="dialog-section-head"><h3>直接关联</h3><span>所有关联保留版本和操作人</span></div><div class="sub-actions"><button class="btn" onclick="openDocumentCenter('promo')">源审批</button><button class="btn" onclick="openDocumentCenter('claim')">客户Claim</button><button class="btn" onclick="openDocumentCenter('invoice')">发票/结算</button><button class="btn" onclick="openDocumentCenter('po')">未来PO</button><button class="btn" onclick="openDocumentCenter('cn')">CN原件</button></div></div>
+        ${isAging ? `<div class="dialog-section"><div class="notice-band red">该CN已超过90天未使用。保存计划后将同步异常中心和KA责任人待办，但不会自动冲销CN余额。</div></div>` : ''}`;
+      openModal({title: isAging ? "长期未使用CN处理" : "安排CN抵扣", subtitle: `${record.id} · 建立抵扣计划，不直接标记已使用`, body, primary: isAging ? "保存并生成催办" : "保存抵扣计划", primaryAction: `confirmCNAllocation('${key}')`, auxiliary: "查看CN明细", auxiliaryAction: `openCNRecordDialog('${key}')`, query: "cn-allocation"});
+    }
+
+    function confirmCNAllocation(key) {
+      const record = cnRecords[key] || cnRecords.unapplied;
+      completeModalAction(`${record.id}的抵扣计划已保存；收到客户应用明细前，未使用余额保持不变。`);
+    }
+
+    function openCNRecordDialog(key = "applied") {
+      const record = cnRecords[key] || cnRecords.applied;
+      const isApplied = record.balance === "€0";
+      const body = `<div class="relation-strip"><div><label>Credit Note</label><strong>${record.id}</strong></div><div><label>原始 / 已使用 / 余额</label><strong>${record.original} / ${record.used} / ${record.balance}</strong></div><div><label>客户与状态</label><strong>${record.customer} · ${record.status}</strong></div></div>
+        <div class="dialog-section"><div class="dialog-section-head"><h3>CN追溯关系</h3><span>从费用审批到货款核销</span></div><div class="choice-list"><div class="choice-row"><span class="task-check done">✓</span><div><strong>事前审批与客户Claim</strong><small>${record.source}</small></div><button class="icon-action" onclick="openDocumentCenter('claim')">查看</button></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>CN原件与过账记录</strong><small>${record.id}.pdf · 文件哈希已留存</small></div><button class="icon-action" onclick="openDocumentCenter('cn')">下载</button></div><div class="choice-row"><span class="task-check ${isApplied ? 'done' : ''}">${isApplied ? '✓' : ''}</span><div><strong>客户CN应用明细</strong><small>${isApplied ? 'CN-application-' + record.id + '.xlsx · 已校验' : '尚未完成全部抵扣'}</small></div><button class="icon-action" onclick="openDocumentCenter('cn')">文件</button></div><div class="choice-row"><span class="task-check ${isApplied ? 'done' : ''}">${isApplied ? '✓' : ''}</span><div><strong>货款与银行流水核销</strong><small>${record.target} · ${isApplied ? '现金与CN已共同核销' : '等待客户下次付款'}</small></div><button class="icon-action" onclick="openDocumentCenter('bank')">流水</button></div></div></div>
+        <div class="dialog-section"><div class="dialog-section-head"><h3>变更记录</h3><span>不可覆盖</span></div><div class="timeline"><div class="timeline-item"><strong>8月15日 · Finance</strong><small>更新客户CN应用金额与货款核销关系。</small></div><div class="timeline-item"><strong>8月11日 · Finance Manager</strong><small>CN正式过账并发送客户。</small></div><div class="timeline-item"><strong>8月10日 · Claire</strong><small>Claim金额和执行证据确认完成。</small></div></div></div>`;
+      openModal({title: "Credit Note明细", subtitle: `${record.id} · 余额和使用记录持续保留至闭环`, body, primary: isApplied ? "完成" : "安排剩余抵扣", primaryAction: isApplied ? "closeModal()" : `openCNAllocationDialog('${key}')`, auxiliary: "下载CN档案包", auxiliaryAction: `downloadDocument('${record.id}.pdf','cn')`, query: "cn-detail"});
+    }
+
+    function openMatchingRulesDialog() {
+      const body = `<div class="form-grid">
+        <div class="form-field"><label>强匹配字段</label><select><option>币种 + 精确金额</option><option>结算单号附言</option></select><small>强匹配字段不一致时不会自动核销。</small></div>
+        <div class="form-field"><label>客户识别</label><select><option>客户主数据 + 银行别名</option><option>仅精确名称</option></select></div>
+        <div class="form-field"><label>到账日期容差</label><select><option>到期日前后15天</option><option>到期日前后30天</option></select></div>
+        <div class="form-field"><label>自动确认阈值</label><select><option>100%且包含结算单号</option><option>置信度≥98%</option></select></div>
+        <div class="form-field"><label>CN抵扣识别</label><select><option>付款短款必须关联已应用CN</option><option>允许人工补充CN</option></select></div>
+        <div class="form-field"><label>低置信度处理</label><select><option>进入异常中心并分配财务</option><option>仅保留未识别队列</option></select></div>
+      </div>`;
+      openModal({title: "银行流水匹配规则", subtitle: "控制自动建议、自动核销及CN抵扣识别边界", body, primary: "保存规则", primaryAction: "completeModalAction('银行流水匹配规则已保存为RULE-REC-v4。')", query: "matching-rules"});
+    }
+
+    function openClaimReceiptDialog() {
+      const body = `<div class="relation-strip"><div><label>银行流水</label><strong>REC-2026-0809-007</strong></div><div><label>到账金额</label><strong>€12.4K · EUR</strong></div><div><label>当前识别</label><strong class="negative">42% · 需人工认领</strong></div></div>
+        <div class="choice-list">
+          <label class="choice-row"><input type="radio" name="receipt-match"><div><strong>STL-2026-0804 · MediaMarkt ES</strong><small>未结€162.7K · 付款方名称相似度61%</small></div><span>61%</span></label>
+          <label class="choice-row"><input type="radio" name="receipt-match"><div><strong>STL-2026-0708 · Unieuro</strong><small>未结€18.1K · 金额接近但付款方不符</small></div><span>42%</span></label>
+          <label class="choice-row"><input type="radio" name="receipt-match"><div><strong>暂存为未识别流水</strong><small>补充付款方证明后再进行分配</small></div><span>推荐</span></label>
+        </div><div class="dialog-section"><div class="form-field"><label>认领说明</label><textarea placeholder="填写付款方确认、客户邮件或拆分依据"></textarea></div></div>`;
+      openModal({title: "认领银行流水", subtitle: "人工认领必须保留匹配依据，不能只按相近金额核销", body, primary: "保存认领结果", primaryAction: "completeModalAction('流水认领结果已保存并进入财务复核。')", auxiliary: "上传付款证明", auxiliaryAction: "openDocumentCenter('bank')", query: "claim-receipt"});
+    }
+
+    function openVersionCompareDialog() {
+      const body = `<div class="form-grid"><div class="form-field"><label>版本A</label><select><option>SET-2026-07-v2 当前版本</option></select></div><div class="form-field"><label>版本B</label><select><option>SET-2026-07-v1 已发布</option><option>SET-2026-07-DRAFT4</option></select></div></div>
+        <div class="dialog-section"><div class="compare-grid"><div class="compare-card"><h3>SET-2026-07-v1</h3><div class="compare-line"><span>有效PO</span><strong>50个</strong></div><div class="compare-line"><span>已确认CN</span><strong>€85.9K</strong></div><div class="compare-line"><span>净应收</span><strong>€1.605M</strong></div><div class="compare-line"><span>银行流水</span><strong>3笔</strong></div></div><div class="compare-card"><h3>SET-2026-07-v2</h3><div class="compare-line"><span>有效PO</span><strong>50个</strong></div><div class="compare-line"><span>已确认CN</span><strong>€85.9K</strong></div><div class="compare-line"><span>净应收</span><strong>€1.605M</strong></div><div class="compare-line"><span>银行流水</span><strong class="positive">4笔 +1</strong></div></div></div></div>
+        <div class="dialog-section"><div class="notice-band">本次变化只新增Amazon UK回款建议和客户Claim文件，不改变已确认CN及净应收金额。</div></div>`;
+      openModal({title: "结算版本对比", subtitle: "逐项比较金额、单据关系、Master Data及审计记录", body, primary: "导出对比报告", primaryAction: "downloadVersionComparison()", query: "version-compare"});
+    }
+
+    function downloadVersionComparison() {
+      downloadBlob("settlement-version-comparison-v1-v2.csv", "field,SET-2026-07-v1,SET-2026-07-v2,change\nPO count,50,50,0\nConfirmed CN,85900,85900,0\nBank receipts,3,4,+1\n");
+      closeModal();
+    }
+
+    function openSnapshotDialog(adjustment = false) {
+      const body = `<div class="form-grid"><div class="form-field"><label>快照类型</label><select><option>${adjustment ? "调整版本" : "联合复核快照"}</option><option>月结归档</option><option>过程检查点</option></select></div><div class="form-field"><label>版本号</label><input value="SET-2026-07-${adjustment ? 'ADJ1' : 'v3'}"></div><div class="form-field full"><label>版本说明</label><textarea>${adjustment ? "修正已归档结算内容，保留原版本并记录调整原因。" : "完成客户确认、Claim/CN核对和回款检查后生成正式快照。"}</textarea></div></div>
+        <div class="dialog-section"><div class="choice-list"><div class="choice-row"><span class="task-check done">✓</span><div><strong>PO、发票与物流快照</strong><small>50个PO · 5张客户账单</small></div><span>完整</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>审批、Claim、CN与客户回复</strong><small>9个审批 · 6个Claim · 10张CN</small></div><span>完整</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>银行流水与核销分配</strong><small>4笔流水 · 分配记录保留</small></div><span>完整</span></div></div></div>`;
+      openModal({title: adjustment ? "创建结算调整版本" : "创建结算快照", subtitle: "新版本不会覆盖任何已发布或归档记录", body, primary: adjustment ? "创建调整版本" : "创建不可变快照", primaryAction: `completeModalAction('${adjustment ? "调整版本SET-2026-07-ADJ1已创建。" : "不可变快照SET-2026-07-v3已创建。"}')`, query: "snapshot"});
+    }
+
+    function openPermissionDialog() {
+      const body = `<div class="choice-list"><div class="choice-row"><span class="task-check done">✓</span><div><strong>Julio Pu · 平台所有者</strong><small>全部结算、文件、版本与权限管理</small></div><span>所有权限</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>Finance Manager · 财务管理员</strong><small>审批差异、开具CN、核销与归档</small></div><span>可编辑</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>KA / Sales</strong><small>上传审批与Claim、查看客户结算、补充说明</small></div><span>按客户范围</span></div><div class="choice-row"><span class="task-check done">✓</span><div><strong>Supply Chain / Quality</strong><small>上传物流和质量证据，不能开具CN或核销</small></div><span>证据编辑</span></div></div>`;
+      openModal({title: "结算台账权限", subtitle: "正式权限由平台权限管理统一配置，本页展示结算模块作用范围", body, primary: "打开权限管理", primaryAction: "completeModalAction('权限管理入口已记录；本地原型不修改真实账号。')", narrow: true, query: "permissions"});
+    }
+
+    function openNavigationDialog(moduleName) {
+      const body = `<div class="notice-band">当前文件是结算台账本地交互原型。正式平台中将打开“${moduleName}”模块，并保留当前结算单、Claim或文件作为返回上下文。</div>`;
+      openModal({title: moduleName, subtitle: "平台模块跳转预览", body, primary: "知道了", primaryAction: "completeModalAction('已记录跨模块跳转上下文。')", narrow: true, query: "navigation"});
+    }
+
+    function openActionConfirm(title, detail, primary = "确认操作") {
+      const body = `<div class="notice-band">${detail}</div><div class="dialog-section"><div class="form-field"><label>操作说明</label><textarea placeholder="填写本次决定、依据或后续安排"></textarea><small>确认后记录账号、时间、结算版本和关联文件。</small></div></div>`;
+      openModal({title, subtitle: "该操作将影响结算流程状态", body, primary, primaryAction: `completeModalAction('${title}已完成并写入审计记录。')`, narrow: true, query: "action"});
+    }
+
+    function handleDrawerAction(state, label) {
+      if (label.includes("上传")) return openDocumentCenter(label.includes("回执") ? "evidence" : "claim");
+      if (label.includes("下载")) return downloadBlob("settlement-archive-manifest.csv", "document,status,version\nPO and invoices,complete,SET-2026-07-v2\nClaims and CN,complete,SET-2026-07-v2\nBank receipts,complete,SET-2026-07-v2\n");
+      if (label.includes("审计")) { closeDrawer(); return switchLedgerTab("audit"); }
+      if (label.includes("调整版本")) return openSnapshotDialog(true);
+      if (label.includes("生成CN")) return openCNDialog();
+      if (label.includes("差异")) return label.includes("记录") ? openDifferenceDialog() : openActionConfirm(label, "审批结果将决定Claim可确认金额以及是否生成CN。", label);
+      if (label.includes("核销") || label.includes("分配")) return openActionConfirm(label, "核销必须同时校验银行流水、已应用CN和结算单未结金额。", label);
+      if (label.includes("归档")) return openSnapshotDialog(false);
+      if (label.includes("提醒") || label.includes("催收")) return openActionConfirm(label, "系统将生成客户沟通记录，并同步责任人的跟进待办。", label);
+      if (label.includes("承诺日期")) return openActionConfirm(label, "新的付款承诺日期将进入账龄监控和异常升级规则。", label);
+      return openActionConfirm(label, "操作完成后更新当前结算状态，并保留前后值。", label);
+    }
+
+
+    const drawerData = {
+      customer: {
+        row: "customer", title: "客户确认", id: "STL-2026-0804", customer: "MediaMarkt ES · 西班牙", status: "待客户确认", tone: "amber",
+        counts: ["4个", "2个", "1个", "1张", "0笔"], summary: ["€168.9K", "€6.2K", "€162.7K"], labels: ["账单应结", "已应用CN", "净应收"], active: "票据关系",
+        notice: "客户账单已发送3天。促销物料证据仍缺1项，客户确认回执尚未上传。",
+        body: `<div class="drawer-section"><div class="drawer-section-head"><h3>确认资料</h3><span>5/7 已完成</span></div><div class="task-list">
+          <div class="task-row"><span class="task-check done">✓</span><div><strong>结算账单与PO明细</strong><small>4个有效PO · 金额核对一致</small></div><span class="task-state">已完成</span></div>
+          <div class="task-row"><span class="task-check done">✓</span><div><strong>促销审批与核销金额</strong><small>2个已批准促销方案</small></div><span class="task-state">已完成</span></div>
+          <div class="task-row"><span class="task-check"></span><div><strong>缺失促销证据</strong><small>MMES-2026-07-02 · POS销售证明</small></div><span class="task-state amber">待补充</span></div>
+          <div class="task-row"><span class="task-check"></span><div><strong>客户确认回执</strong><small>等待客户签字或邮件确认</small></div><span class="task-state amber">待客户</span></div>
+        </div></div><div class="drawer-section"><div class="drawer-section-head"><h3>跟进记录</h3><span>最近更新 8月7日</span></div><div class="timeline"><div class="timeline-item"><strong>8月7日 · Sara</strong><small>已发送结算单及PO明细给客户财务。</small></div><div class="timeline-item"><strong>8月6日 · Finance</strong><small>内部核对完成，确认净应收€162.7K。</small></div></div></div>`,
+        actions: ["记录客户差异", "上传确认回执"], primary: "发送提醒"
+      },
+      difference: {
+        row: "difference", title: "客户Claim确认", id: "CLM-AMZ-2026-0811", customer: "Amazon EU Services · 欧洲", status: "Claim待确认", tone: "red",
+        counts: ["16个", "3个", "1个", "0张", "2笔"], summary: ["€42.3K", "€31.2K", "+€11.1K"], labels: ["客户Claim", "事前批准/可确认", "待确认差异"], active: "Claim与CN",
+        notice: "客户执行后提交Claim €42.3K，其中€31.2K有事前审批。额外€11.1K在确认前仍计入应收，不生成CN。",
+        body: `<div class="drawer-section"><div class="drawer-section-head"><h3>Claim组成</h3><span>按事前审批与执行证据核对</span></div><div class="money-lines">
+          <div class="money-line"><label>已批准促销返利</label><strong>€24.0K</strong><span class="positive">审批一致</span></div>
+          <div class="money-line"><label>价格保护</label><strong>€7.2K</strong><span class="positive">审批一致</span></div>
+          <div class="money-line"><label>无事前审批的渠道费用</label><strong class="negative">€8.6K</strong><span class="negative">暂不确认</span></div>
+          <div class="money-line"><label>物流索赔Claim</label><strong class="negative">€2.5K</strong><span class="negative">证据待核</span></div>
+        </div></div><div class="drawer-section"><div class="drawer-section-head"><h3>Claim确认要求</h3><span>财务结算经理</span></div><div class="task-list"><div class="task-row"><span class="task-check done">✓</span><div><strong>事前审批与执行范围</strong><small>3个促销审批 · 涉及DE、FR市场</small></div><span class="task-state">已核对</span></div><div class="task-row"><span class="task-check"></span><div><strong>额外费用与物流索赔依据</strong><small>需关联SHP-EU-260824签收差异</small></div><span class="task-state red">待补充</span></div><div class="task-row"><span class="task-check"></span><div><strong>Claim确认结论</strong><small>确认后按金额生成CN；未确认部分回复客户</small></div><span class="task-state amber">待确认</span></div></div></div>`,
+        actions: ["退回补证", "部分确认"], primary: "确认并生成CN"
+      },
+      allocation: {
+        row: "allocation", title: "回款核销", id: "STL-2026-0805", customer: "Amazon UK · 英国", status: "待核销", tone: "amber",
+        counts: ["8个", "1个", "1个", "1张", "2笔"], summary: ["€311.8K", "€241.3K", "€70.5K"], labels: ["净应收", "已核销", "本次待核销"], active: "回款核销",
+        notice: "系统已找到一笔同币种、同客户的银行流水，建议匹配STL-2026-0805。确认后未结金额将变为€0。",
+        body: `<div class="drawer-section"><div class="drawer-section-head"><h3>银行流水匹配</h3><span>匹配置信度</span></div>
+          <div class="receipt-row"><div><strong>REC-2026-0806-018</strong><small>8月6日 · AMAZON PAYMENTS UK · EUR</small></div><div class="receipt-amount">€241.3K</div><span class="status green">已核销</span></div>
+          <div class="receipt-row"><div><strong>REC-2026-0809-004</strong><small>8月9日 · AMAZON PAYMENTS UK</small></div><div class="receipt-amount warning">€70.5K</div><span class="status blue">96%匹配</span></div>
+        </div><div class="drawer-section"><div class="drawer-section-head"><h3>核销分配</h3><span>剩余可分配 €70.5K</span></div><div class="money-lines"><div class="money-line"><label>STL-2026-0805 · 未结金额</label><strong>€70.5K</strong><span class="positive">全额分配</span></div><div class="money-line"><label>核销后未结</label><strong>€0</strong><span>待确认</span></div></div></div>`,
+        actions: ["拆分分配", "保存草稿"], primary: "确认核销"
+      },
+      overdue: {
+        row: "overdue", title: "逾期催收", id: "STL-2026-0708", customer: "Unieuro · 意大利", status: "已逾期5天", tone: "red",
+        counts: ["4个", "1个", "1个", "2张", "1笔"], summary: ["€173.1K", "€155.0K", "€18.1K"], labels: ["净应收", "已收金额", "逾期未结"], active: "回款核销",
+        notice: "客户承诺日期已失效，€18.1K仍未到账。该事项已进入异常中心并计入经营复盘开放行动。",
+        body: `<div class="drawer-section"><div class="drawer-section-head"><h3>催收状态</h3><span>负责人 Luca</span></div><div class="money-lines"><div class="money-line"><label>原到期日</label><strong class="negative">7月31日</strong><span>逾期5天</span></div><div class="money-line"><label>最新承诺日期</label><strong>8月8日</strong><span class="negative">已失效</span></div><div class="money-line"><label>客户争议金额</label><strong>€3.5K</strong><span class="amber">处理中</span></div></div></div>
+          <div class="drawer-section"><div class="drawer-section-head"><h3>跟进时间线</h3><span>自动同步我的待办</span></div><div class="timeline"><div class="timeline-item"><strong>8月5日 · Luca</strong><small>客户回复部分扣款仍需总部确认，预计8月8日付款。</small></div><div class="timeline-item"><strong>8月2日 · Finance</strong><small>发出第二次催收并抄送区域负责人。</small></div><div class="timeline-item"><strong>7月31日 · 系统</strong><small>到期未付，自动转入逾期状态。</small></div></div></div>`,
+        actions: ["升级异常", "记录承诺日期"], primary: "发送催收"
+      },
+      archive: {
+        row: "archive", title: "归档检查", id: "STL-2026-0801", customer: "MediaMarkt DE · 德国", status: "待归档", tone: "blue",
+        counts: ["12个", "2个", "2个", "3张", "1笔"], summary: ["€410.2K", "€410.2K", "€0"], labels: ["净应收", "已核销", "未结金额"], active: "票据关系",
+        notice: "金额、客户确认、差异审批和回款核销均已完成。归档后将生成不可覆盖的SET-2026-07-v3快照。",
+        body: `<div class="drawer-section"><div class="drawer-section-head"><h3>归档清单</h3><span>8/8 完成</span></div><div class="task-list"><div class="task-row"><span class="task-check done">✓</span><div><strong>客户确认回执</strong><small>8月8日上传</small></div><span class="task-state">完整</span></div><div class="task-row"><span class="task-check done">✓</span><div><strong>PO与签收快照</strong><small>12个有效PO · 无数量差异</small></div><span class="task-state">完整</span></div><div class="task-row"><span class="task-check done">✓</span><div><strong>促销及Credit Note依据</strong><small>2个审批 · 3张CN</small></div><span class="task-state">完整</span></div><div class="task-row"><span class="task-check done">✓</span><div><strong>回款与核销记录</strong><small>€410.2K全额核销</small></div><span class="task-state">完整</span></div></div></div>`,
+        actions: ["下载归档包", "返回台账"], primary: "确认归档"
+      },
+      closed: {
+        row: "closed", title: "结算归档", id: "STL-2026-0803", customer: "Fnac Darty · 法国", status: "结算完成", tone: "green",
+        counts: ["6个", "1个", "1个", "2张", "1笔"], summary: ["€286.4K", "€8.6K", "€277.8K"], labels: ["账单应结", "已应用CN", "已结净收入"], active: "变更记录",
+        notice: "该结算单已于8月12日关闭。历史数据只读；任何修正必须创建调整版本，不得覆盖SET-2026-07-v2。",
+        body: `<div class="drawer-section"><div class="drawer-section-head"><h3>不可变版本</h3><span>SET-2026-07-v2</span></div><div class="archive-grid"><div class="archive-item"><strong>客户确认</strong><small>Fnac Finance · 8月10日</small></div><div class="archive-item"><strong>关闭人</strong><small>Finance Manager · 8月12日</small></div><div class="archive-item"><strong>Master Data</strong><small>MD-2026-08-05-v12</small></div><div class="archive-item"><strong>汇率快照</strong><small>ECB-2026-07-CLOSE</small></div><div class="archive-item"><strong>PO与物流</strong><small>6个PO · LOG-v2</small></div><div class="archive-item"><strong>促销审批</strong><small>1个方案 · 已核销</small></div></div></div><div class="drawer-section"><div class="drawer-section-head"><h3>归档文件</h3><span>6个文件</span></div><div class="task-list"><div class="task-row"><span class="task-check done">✓</span><div><strong>结算单与明细.xlsx</strong><small>含PO、SKU、扣款和回款分配</small></div><span class="task-state">下载</span></div><div class="task-row"><span class="task-check done">✓</span><div><strong>客户确认与Credit Note.zip</strong><small>客户回执和2张CN原件</small></div><span class="task-state">下载</span></div></div></div>`,
+        actions: ["下载归档包", "查看审计记录"], primary: "创建调整版本"
+      }
+    };
+
+    function sourceContext(values) {
+      const labels = ["有效PO", "促销审批", "客户Claim", "Credit Note", "银行流水"];
+      return values.map((value, index) => `<div class="context-link"><label>${labels[index]}</label><strong>${value}</strong></div>`).join("");
+    }
+
+    function switchLedgerTab(tabName) {
+      const validTabs = ["overview", "differences", "cn", "receipts", "audit"];
+      const nextTab = validTabs.includes(tabName) ? tabName : "overview";
+      document.querySelectorAll("[data-tab]").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === nextTab));
+      document.querySelectorAll("[data-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === nextTab));
+      const notes = {
+        overview: "金额统一折算为EUR · 点击来源数量进入对应业务明细",
+        differences: "事前审批 → 客户执行 → Claim确认 → 生成CN；未确认Claim不冲减应收",
+        cn: "CN过账后持续跟踪余额和账龄；客户应用后才进入本次货款核销",
+        receipts: "银行流水与客户已应用CN共同核销货款，未应用CN不能作为短款依据",
+        audit: "已发布版本不可覆盖 · 每次调整保留数据基准和操作人"
+      };
+      document.getElementById("table-note").textContent = notes[nextTab];
+      const url = new URL(window.location.href);
+      if (nextTab === "overview") url.searchParams.delete("tab");
+      else url.searchParams.set("tab", nextTab);
+      history.replaceState(null, "", url);
+    }
+
+    function drawerAuxiliaryBody(tab, data) {
+      if (tab === "票据关系") return `<div class="drawer-section"><div class="drawer-section-head"><h3>结算票据链</h3><span>点击进入文件中心</span></div><div class="task-list">
+        <div class="task-row"><span class="task-check done">✓</span><div><strong>PO与发票</strong><small>${data.counts[0]}有效PO · 账单金额已锁定</small></div><button class="icon-action" onclick="openDocumentCenter('po')">查看</button></div>
+        <div class="task-row"><span class="task-check done">✓</span><div><strong>事前促销/费用审批</strong><small>${data.counts[1]}审批 · 定义可Claim范围与金额</small></div><button class="icon-action" onclick="openDocumentCenter('promo')">查看</button></div>
+        <div class="task-row"><span class="task-check ${data.counts[2] === '0个' ? '' : 'done'}">${data.counts[2] === '0个' ? '' : '✓'}</span><div><strong>客户Claim</strong><small>${data.counts[2]}Claim · 关联执行证据和审批</small></div><button class="icon-action" onclick="openDocumentCenter('claim')">文件</button></div>
+        <div class="task-row"><span class="task-check ${data.counts[3] === '0张' ? '' : 'done'}">${data.counts[3] === '0张' ? '' : '✓'}</span><div><strong>Credit Note</strong><small>${data.counts[3]}CN · 客户应用后抵扣货款</small></div><button class="icon-action" onclick="openDocumentCenter('cn')">文件</button></div>
+        <div class="task-row"><span class="task-check ${data.counts[4] === '0笔' ? '' : 'done'}">${data.counts[4] === '0笔' ? '' : '✓'}</span><div><strong>银行流水</strong><small>${data.counts[4]}到账记录 · 与现金及已应用CN共同核销</small></div><button class="icon-action" onclick="openDocumentCenter('bank')">查看</button></div>
+      </div></div>`;
+      if (tab === "Claim与CN") return `<div class="drawer-section"><div class="drawer-section-head"><h3>Claim闭环</h3><span>审批 → 执行 → Claim → 确认 → CN → 抵扣</span></div><div class="task-list">
+        <div class="task-row"><span class="task-check done">✓</span><div><strong>事前审批</strong><small>促销与费用范围、金额、周期已锁定</small></div><button class="icon-action" onclick="openDocumentCenter('promo')">审批</button></div>
+        <div class="task-row"><span class="task-check done">✓</span><div><strong>客户执行并提交Claim</strong><small>Claim原件、Debit Note与执行证据已关联</small></div><button class="icon-action" onclick="openDocumentCenter('claim')">Claim</button></div>
+        <div class="task-row"><span class="task-check"></span><div><strong>我方确认Claim</strong><small>仅事前批准且证据有效金额可生成CN</small></div><span class="task-state amber">处理中</span></div>
+        <div class="task-row"><span class="task-check"></span><div><strong>CN开具与客户应用</strong><small>客户用CN抵扣货款后回传应用明细</small></div><button class="icon-action" onclick="openDocumentCenter('cn')">CN</button></div>
+      </div></div>`;
+      if (tab === "回款核销") return `<div class="drawer-section"><div class="drawer-section-head"><h3>货款核销组成</h3><span>现金到账 + 已应用CN = 本次核销</span></div><div class="money-lines"><div class="money-line"><label>银行现金到账</label><strong>${data.summary[1] || '€0'}</strong><span>流水匹配</span></div><div class="money-line"><label>客户已应用CN</label><strong>${data.counts[3]}</strong><span>应用明细待核</span></div><div class="money-line"><label>剩余未结</label><strong>${data.summary[2] || '€0'}</strong><span>持续跟进</span></div></div></div><div class="drawer-section"><div class="sub-actions"><button class="btn" onclick="openDocumentCenter('bank')">银行流水</button><button class="btn" onclick="openDocumentCenter('cn')">CN应用明细</button></div></div>`;
+      return `<div class="drawer-section"><div class="drawer-section-head"><h3>最近变更</h3><span>所有动作不可覆盖</span></div><div class="timeline"><div class="timeline-item"><strong>8月9日 10:42 · 系统</strong><small>更新票据关系与银行流水匹配建议。</small></div><div class="timeline-item"><strong>8月9日 09:18 · Sara</strong><small>上传客户Claim并提交确认。</small></div><div class="timeline-item"><strong>8月8日 17:06 · Finance</strong><small>确认事前审批金额与执行范围。</small></div></div></div>`;
+    }
+
+    function openDrawer(state, activeTab) {
+      const data = drawerData[state] || drawerData.customer;
+      currentDrawerState = state;
+      document.querySelectorAll("[data-row-state]").forEach((row) => row.classList.toggle("selected-row", row.dataset.rowState === data.row));
+      const tabs = ["票据关系", "Claim与CN", "回款核销", "变更记录"];
+      const selectedTab = activeTab && tabs.includes(activeTab) ? activeTab : data.active;
+      const bodyContent = selectedTab === data.active ? data.body : drawerAuxiliaryBody(selectedTab, data);
+      document.getElementById("drawer").innerHTML = `
+        <div class="drawer-head"><div><h2>${data.title} <span class="status ${data.tone}">${data.status}</span></h2><p>${data.id} · ${data.customer}</p></div><button class="close-btn" onclick="closeDrawer()">×</button></div>
+        <div class="drawer-context">${sourceContext(data.counts)}</div>
+        <div class="drawer-tabs">${tabs.map((tab) => `<button class="drawer-tab ${tab === selectedTab ? "active" : ""}" onclick="openDrawer('${state}','${tab}')">${tab}</button>`).join("")}</div>
+        <div class="drawer-body"><div class="drawer-summary">${data.summary.map((value, index) => `<div><label>${data.labels[index]}</label><strong class="${String(value).startsWith('+') ? 'negative' : ''}">${value}</strong></div>`).join("")}</div><div class="drawer-section"><div class="notice-band ${data.tone === 'red' ? 'red' : data.tone === 'green' || state === 'archive' ? 'green' : ''}">${data.notice}</div></div>${bodyContent}</div>
+        <div class="drawer-footer"><div class="drawer-footer-note">自动保存已开启<br>所有确认动作写入审计记录</div><div class="drawer-actions"><button class="btn" onclick="handleDrawerAction('${state}','${data.actions[0]}')">${data.actions[0]}</button><button class="btn" onclick="handleDrawerAction('${state}','${data.actions[1]}')">${data.actions[1]}</button><button class="btn primary" onclick="handleDrawerAction('${state}','${data.primary}')">${data.primary}</button></div></div>`;
+      document.getElementById("drawer-backdrop").classList.add("open");
+      const url = new URL(window.location.href);
+      url.searchParams.set("state", state);
+      history.replaceState(null, "", url);
+    }
+
+    function closeDrawer(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById("drawer-backdrop").classList.remove("open");
+      currentDrawerState = null;
+      document.querySelectorAll("[data-row-state]").forEach((row) => row.classList.remove("selected-row"));
+      const url = new URL(window.location.href);
+      url.searchParams.delete("state");
+      history.replaceState(null, "", url);
+    }
+
+    const initialUrl = new URL(window.location.href);
+    switchLedgerTab(initialUrl.searchParams.get("tab") || "overview");
+    const initialState = initialUrl.searchParams.get("state");
+    if (initialState && drawerData[initialState]) openDrawer(initialState);
+
+    document.addEventListener("click", (event) => {
+      const sourceLink = event.target.closest('a[href="#"]');
+      if (sourceLink) {
+        event.preventDefault();
+        const label = sourceLink.textContent.trim();
+        if (label.includes("PO")) return openDocumentCenter("po");
+        if (label.includes("促销") || label.includes("APR")) return openDocumentCenter("promo");
+        if (label.includes("CN")) return openDocumentCenter("cn");
+        if (label.includes("STL")) return openDocumentCenter("invoice");
+        if (label.includes("Claim") || label.includes("CLM-") || label.includes("项证据")) return openDocumentCenter("claim");
+        return openDocumentCenter("evidence");
+      }
+      const navButton = event.target.closest(".nav-item");
+      if (navButton && !navButton.classList.contains("active")) openNavigationDialog(navButton.textContent.trim().replace(/\d+$/, "").trim());
+    });
+
+    const searchInput = document.querySelector('.filterbar input');
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLowerCase();
+      const activePanel = document.querySelector(".tab-panel.active");
+      activePanel.querySelectorAll("tbody tr").forEach((row) => {
+        row.style.display = !query || row.textContent.toLowerCase().includes(query) ? "" : "none";
+      });
+    });
+
+    const initialDialog = initialUrl.searchParams.get("dialog");
+    if (initialDialog === "documents") openDocumentCenter(initialUrl.searchParams.get("doc") || "claim");
+    if (initialDialog === "new-settlement") openNewSettlementDialog();
+    if (initialDialog === "exceptions") openExceptionDialog();
+    if (initialDialog === "difference") openDifferenceDialog();
+    if (initialDialog === "cn") openCNDialog();
+    if (initialDialog === "cn-bulk") openCNBulkImportDialog();
+    if (initialDialog === "cn-allocation") openCNAllocationDialog("unapplied");
+    if (initialDialog === "cn-detail") openCNRecordDialog("applied");
+    if (initialDialog === "matching-rules") openMatchingRulesDialog();
+    if (initialDialog === "claim-receipt") openClaimReceiptDialog();
+    if (initialDialog === "version-compare") openVersionCompareDialog();
+    if (initialDialog === "snapshot") openSnapshotDialog();
+    if (initialDialog === "permissions") openPermissionDialog();
+    if (initialDialog === "export") openExportDialog("ledger");
+  </script>
+</body>
+</html>

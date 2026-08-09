@@ -1,0 +1,38 @@
+import { revalidatePath } from "next/cache";
+import { NextResponse, type NextRequest } from "next/server";
+import { getSessionFromCookieValue } from "@/lib/auth/server";
+import { sessionCookieName } from "@/lib/auth/sessionCookie";
+import { cancelOtherApprovalAsDuplicate } from "@/lib/otherApprovals";
+import { getOtherApprovalApiAccess } from "../access";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(request: NextRequest) {
+  const session = getSessionFromCookieValue(
+    request.cookies.get(sessionCookieName)?.value
+  );
+  if (!session) {
+    return NextResponse.json({ message: "Please sign in again." }, { status: 401 });
+  }
+  const payload = (await request.json()) as {
+    id?: unknown;
+    note?: unknown;
+    duplicateOfRequestId?: unknown;
+  };
+  const { accessibleCountryCodes, role } = await getOtherApprovalApiAccess(session);
+  const result = await cancelOtherApprovalAsDuplicate({
+    accessibleCountryCodes,
+    duplicateOfRequestId:
+      typeof payload.duplicateOfRequestId === "string"
+        ? payload.duplicateOfRequestId
+        : null,
+    id: typeof payload.id === "string" ? payload.id : "",
+    note: typeof payload.note === "string" ? payload.note : null,
+    role,
+    userEmail: session.email
+  });
+  if (!result.ok) return NextResponse.json({ message: result.error }, { status: 400 });
+  revalidatePath("/promotion");
+  revalidatePath("/platform/collaboration/other-approvals");
+  return NextResponse.json({ ...result, message: "Request cancelled as a duplicate." });
+}
