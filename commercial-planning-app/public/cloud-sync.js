@@ -18,6 +18,7 @@
   const REMOTE_NOTICE_KEY = "operationsPlanningRemoteNotices.v1";
   const REMOTE_ACTIVITY_KEY = "operationsPlanningRemoteActivity.v1";
   const REMOTE_SNOOZE_MS = 30 * 60 * 1000;
+  const MAX_TRANSIENT_SAVE_ATTEMPTS = 3;
   const offline = new URLSearchParams(window.location.search).get("offline") === "1";
 
   const styles = `
@@ -44,6 +45,10 @@
   let remoteToastHideTimer = null;
   const remoteToastDocuments = new Set();
   const unresolvedRemoteConflicts = new Map();
+  let commercialSessionBridge = null;
+  let commercialSessionBridgeToken = "";
+  let bridgedAccessToken = "";
+  let bridgedAt = 0;
 
   function readJsonStorage(key, fallback) {
     try {
@@ -528,6 +533,32 @@
     return fallback;
   }
 
+  function classifyDocumentSaveError(error) {
+    const code = String(error?.code || "").toUpperCase();
+    const status = Number(error?.status || error?.statusCode || 0);
+    const detail = String(error?.message || error?.details || error || "").toLowerCase();
+    const conflict = detail.includes("version_conflict");
+    const authFailure = status === 401 || /jwt|refresh token|not authenticated|auth session/.test(detail);
+    const permissionFailure = status === 403 || code === "42501" || /permission denied|not authorized|protected_|requires_owner/.test(detail);
+    const validationFailure = status === 400 || /invalid input|violates|validation|required/.test(detail);
+    const transientCode = ["08000", "08003", "08006", "08001", "40001", "40P01", "53300", "57P01", "57P02", "57P03", "57014"].includes(code);
+    const transientMessage = /failed to fetch|network|timeout|timed out|connection|temporarily unavailable|service unavailable/.test(detail);
+    const retryable = !conflict && !authFailure && !permissionFailure && !validationFailure && (
+      !navigator.onLine || status === 408 || status === 425 || status === 429 || status >= 500 || transientCode || transientMessage
+    );
+    let statusLabel = "同步失败，草稿已保留";
+    if (authFailure) statusLabel = "登录已失效，草稿已保留";
+    else if (permissionFailure) statusLabel = "无保存权限，草稿已保留";
+    else if (validationFailure) statusLabel = "数据未通过校验，草稿已保留";
+    else if (retryable) statusLabel = "网络波动，等待重试";
+    return { conflict, retryable, statusLabel, code: code || String(status || "unknown") };
+  }
+
+  function transientRetryDelay(attempt) {
+    const base = Math.min(30000, 1200 * (2 ** Math.max(0, attempt - 1)));
+    return base + Math.floor(Math.random() * 400);
+  }
+
   function renderAuthGate(supabase, deniedEmail = "", authError = "") {
     return new Promise(() => {
       const root = document.createElement("div");
@@ -580,19 +611,41 @@
     const target = new URL(commercialPlanningUrl, window.location.href);
     if (target.origin !== window.location.origin) return;
 
-    const response = await fetch("/auth/platform-session", {
+    if (
+      commercialSessionBridge &&
+      commercialSessionBridgeToken === session.access_token
+    ) {
+      return commercialSessionBridge;
+    }
+    if (
+      bridgedAccessToken === session.access_token &&
+      Date.now() - bridgedAt < 60000
+    ) {
+      return;
+    }
+    commercialSessionBridgeToken = session.access_token;
+    commercialSessionBridge = fetch("/auth/platform-session", {
       method: "POST",
       credentials: "include",
+      cache: "no-store",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        accessToken: session.access_token,
-        refreshToken: session.refresh_token
-      })
+      body: JSON.stringify({ accessToken: session.access_token })
+    }).then(async (response) => {
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.message || "经营规划统一会话连接失败");
+      }
+      bridgedAccessToken = session.access_token;
+      bridgedAt = Date.now();
+    }).catch((error) => {
+      bridgedAccessToken = "";
+      bridgedAt = 0;
+      throw error;
+    }).finally(() => {
+      commercialSessionBridge = null;
+      commercialSessionBridgeToken = "";
     });
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      throw new Error(result.message || "经营规划统一会话连接失败");
-    }
+    return commercialSessionBridge;
   }
 
   async function start() {
@@ -685,6 +738,24 @@
       await supabase.auth.signOut();
       window.location.reload();
     });
+
+    let latestCommercialSession = session;
+    const authSubscription = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!nextSession?.access_token) return;
+      latestCommercialSession = nextSession;
+      window.setTimeout(() => {
+        void connectCommercialPlanningSession(
+          latestCommercialSession,
+          config.commercialPlanningUrl
+        ).catch((error) => console.warn("Commercial planning session refresh failed", error));
+      }, 0);
+    });
+    const commercialSessionHeartbeat = window.setInterval(() => {
+      void connectCommercialPlanningSession(
+        latestCommercialSession,
+        config.commercialPlanningUrl
+      ).catch((error) => console.warn("Commercial planning session heartbeat failed", error));
+    }, 4 * 60 * 1000);
 
     removeLegacyLocalOnlyOutboxEntries();
     const versions = new Map();
@@ -846,7 +917,8 @@
       activeSaves += 1;
       setStatus(statusNode, "saving", "同步中");
       let blockedByConflict = false;
-      let retryDelay = 100;
+      let shouldRetry = false;
+      let retryDelay = 0;
       try {
         const response = await supabase.rpc("save_workspace_document", {
           p_workspace_id: workspaceId,
@@ -876,17 +948,38 @@
         }
         setStatus(statusNode, "saved", "已同步");
       } catch (error) {
-        const conflict = String(error?.message || error).includes("version_conflict");
-        blockedByConflict = conflict;
+        const failure = classifyDocumentSaveError(error);
+        blockedByConflict = failure.conflict;
         const latest = pendingPayloads.get(key);
+        let failedEntry = latest;
         if (!latest) {
-          const failedEntry = { ...entry, attempts: Number(entry.attempts || 0) + 1, lastAttemptAt: new Date().toISOString() };
+          failedEntry = {
+            ...entry,
+            attempts: Number(entry.attempts || 0) + 1,
+            lastAttemptAt: new Date().toISOString(),
+            retryStopped: false,
+            lastErrorCode: failure.code
+          };
+          shouldRetry = failure.retryable && failedEntry.attempts < MAX_TRANSIENT_SAVE_ATTEMPTS;
+          failedEntry.retryStopped = !shouldRetry && !failure.conflict;
           pendingPayloads.set(key, failedEntry);
           storeOutboxEntry(key, failedEntry);
-          retryDelay = Math.min(30000, 1500 * Math.max(1, failedEntry.attempts));
+          retryDelay = transientRetryDelay(failedEntry.attempts);
+        } else {
+          shouldRetry = !latest.retryStopped;
+          retryDelay = 100;
         }
-        setStatus(statusNode, conflict ? "conflict" : "error", conflict ? "存在版本冲突" : "同步失败");
-        if (conflict) {
+        const retryLabel = shouldRetry
+          ? `${failure.statusLabel} ${failedEntry.attempts}/${MAX_TRANSIENT_SAVE_ATTEMPTS}`
+          : failure.statusLabel;
+        setStatus(statusNode, failure.conflict ? "conflict" : "error", failure.conflict ? "存在版本冲突" : retryLabel);
+        console.warn("Workspace document save paused", {
+          documentKey: key,
+          errorCode: failure.code,
+          retryable: shouldRetry,
+          attempt: Number(failedEntry?.attempts || 0)
+        });
+        if (failure.conflict) {
           const remote = await supabase.from("workspace_documents")
             .select("document_key, payload, version, updated_by")
             .eq("workspace_id", workspaceId)
@@ -898,7 +991,7 @@
         }
       } finally {
         activeSaves -= 1;
-        if (pendingPayloads.has(key) && !blockedByConflict) queueKey(key, retryDelay);
+        if (pendingPayloads.has(key) && !blockedByConflict && shouldRetry) queueKey(key, retryDelay);
         else if (activeSaves === 0 && !statusNode.classList.contains("error") && !statusNode.classList.contains("conflict")) {
           window.setTimeout(() => setStatus(statusNode, "", "已同步"), 1600);
         }
@@ -929,7 +1022,9 @@
           : versions.get(key) || 0,
         mutationId: crypto.randomUUID(),
         queuedAt: new Date().toISOString(),
-        attempts: 0
+        attempts: 0,
+        retryStopped: false,
+        lastErrorCode: ""
       };
       pendingPayloads.set(key, entry);
       storeOutboxEntry(key, entry);
@@ -950,11 +1045,17 @@
         baseVersion: Number(savedEntry.baseVersion || 0),
         mutationId: savedEntry.mutationId || crypto.randomUUID(),
         queuedAt: savedEntry.queuedAt || new Date().toISOString(),
-        attempts: Number(savedEntry.attempts || 0)
+        attempts: Number(savedEntry.attempts || 0),
+        retryStopped: Boolean(savedEntry.retryStopped),
+        lastErrorCode: String(savedEntry.lastErrorCode || "")
       };
       pendingPayloads.set(key, entry);
       storeOutboxEntry(key, entry);
-      queueKey(key, 120);
+      if (!entry.retryStopped && entry.attempts < MAX_TRANSIENT_SAVE_ATTEMPTS) {
+        queueKey(key, 120);
+      } else {
+        setStatus(statusNode, "error", "有未同步草稿");
+      }
     });
 
     Storage.prototype.setItem = function cloudAwareSetItem(key, value) {
@@ -1177,11 +1278,32 @@
         });
         await Promise.all([...saveChains.values()]);
       },
-      destroy() { supabase.removeChannel(channel); }
+      retryPending() {
+        pendingPayloads.forEach((entry, key) => {
+          const retryEntry = {
+            ...entry,
+            attempts: 0,
+            retryStopped: false,
+            lastErrorCode: ""
+          };
+          pendingPayloads.set(key, retryEntry);
+          storeOutboxEntry(key, retryEntry);
+          queueKey(key, 0);
+        });
+      },
+      destroy() {
+        window.clearInterval(commercialSessionHeartbeat);
+        authSubscription.data.subscription.unsubscribe();
+        supabase.removeChannel(channel);
+      }
     };
 
     window.addEventListener("online", () => {
-      pendingPayloads.forEach((entry, key) => queueKey(key, 0));
+      pendingPayloads.forEach((entry, key) => {
+        if (!entry.retryStopped && Number(entry.attempts || 0) < MAX_TRANSIENT_SAVE_ATTEMPTS) {
+          queueKey(key, 0);
+        }
+      });
     });
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") window.cloudStore.flush();

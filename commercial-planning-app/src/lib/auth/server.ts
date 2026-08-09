@@ -57,19 +57,21 @@ async function resolveCurrentSession(): Promise<AppSession | null> {
     return localDevSession;
   }
 
+  const cookieStore = await cookies();
+  const signedSession = verifySessionCookie(
+    cookieStore.get(sessionCookieName)?.value,
+    config.sessionSecret
+  );
+  if (signedSession) {
+    return applyTrustedEmailRolesToSession(signedSession, config.emailRoleMap);
+  }
+
   if (config.provider === "supabase") {
     const client = await createSupabaseServerClient(config);
     return getSupabaseAppSession(client, config.emailRoleMap);
   }
 
-  const cookieStore = await cookies();
-  const session = verifySessionCookie(
-    cookieStore.get(sessionCookieName)?.value,
-    config.sessionSecret
-  );
-  return session
-    ? applyTrustedEmailRolesToSession(session, config.emailRoleMap)
-    : null;
+  return null;
 }
 
 // A platform request can cross the root layout, native platform layout and page.
@@ -83,8 +85,6 @@ export function getSessionFromCookieValue(
   if (!config.enabled) {
     return localDevSession;
   }
-
-  if (config.provider === "supabase") return null;
 
   const session = verifySessionCookie(cookieValue, config.sessionSecret);
   return session
@@ -135,14 +135,21 @@ export const getCurrentProtectedModulePermissions = cache(async (): Promise<
   }
   if (config.provider !== "supabase") return {};
 
+  const session = await getCurrentSession();
+  if (session?.protectedModules) {
+    return session.protectedModules as Partial<
+      Record<ProtectedModuleKey, ProtectedModuleAccess>
+    >;
+  }
+
   const client = await createSupabaseServerClient(config);
-  const membership = await client
-    .from("workspace_members")
-    .select("workspace_id")
-    .limit(1)
+  const workspace = await client
+    .from("workspaces")
+    .select("id")
+    .eq("slug", "operations-planning")
     .maybeSingle();
-  const workspaceId = membership.data?.workspace_id;
-  if (membership.error || !workspaceId) return {};
+  const workspaceId = workspace.data?.id;
+  if (workspace.error || !workspaceId) return {};
 
   const response = await client.rpc("get_my_protected_module_permissions", {
     p_workspace_id: workspaceId

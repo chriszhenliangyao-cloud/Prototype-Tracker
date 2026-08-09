@@ -767,6 +767,62 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
 - Exact FR drill-through was verified for `P61L-P2`: product detail opens 12 monthly rows; Forecast Management opens `FR / Power bank / P61L-P2`; Shipment Summary preserves `FR / P61L-P2` and shows the explicit missing-map state without fallback.
 - Screenshots: `erp-native-local-test/native-bp-achievement-trend.png`, `erp-native-local-test/native-bp-achievement-po-drilldown.png`, and `erp-native-local-test/native-bp-achievement-forecast-drilldown.png`.
 
+## Production Reliability Hardening (2026-08-09)
+
+- Replaced the commercial-planning session bridge's refresh-token handoff and
+  server-side `auth.setSession()` call with access-token validation. The browser
+  now sends only the current access token, coalesces concurrent bridge requests,
+  renews the signed same-origin session every four minutes and follows normal
+  Supabase access-token refresh events without consuming the refresh token.
+- Signed `vc_session` cookies are now accepted consistently by server-rendered
+  pages and write APIs under the Supabase provider. The cookie carries the
+  authenticated workspace id and protected-module grants, eliminating duplicate
+  Supabase session refreshes and extra permission lookups during one platform
+  render.
+- Cloud document autosave now classifies failures. Version conflicts keep their
+  existing merge workflow; permission, authentication and validation failures
+  stop automatic retries while preserving the local outbox; only network,
+  timeout, rate-limit, database-restart and 5xx failures retry with exponential
+  backoff, capped at three attempts. A manual `retryPending()` recovery hook is
+  exposed without discarding drafts.
+- Prisma now uses one client/pool per warm serverless process. Vercel runtime
+  database URLs receive conservative defaults when the URL does not already
+  specify them: connection limit 1, pool timeout 60 seconds and connect timeout
+  15 seconds. Existing URL parameters remain authoritative.
+- Applied Supabase migration `harden_commercial_access_rpc`. The exposed
+  `public.get_commercial_planning_access()` is now a security-invoker wrapper;
+  its security-definer implementation is isolated in the private schema. The
+  related Supabase security advisor warning is cleared.
+- Production deployment `dpl_CkdJ4827aSPQJqFAcHyRgcMnwbSm` is `READY` and
+  aliased to `https://operations-planning-hub.vercel.app`.
+- Exact production data safety verification covered the same 44 application
+  tables and 4,242 rows before and after the migration/deployment. Every row
+  count and order-independent content fingerprint matched; zero business tables
+  changed.
+- Post-release route checks pass for health, platform shell, native snapshot
+  authentication and session-bridge origin/input guards. The anonymous browser
+  renders the Google authorization gate with no console error or horizontal
+  overflow. Vercel reports no runtime error in the release window.
+- Remaining controlled risks: Supabase leaked-password protection is still a
+  dashboard-level warning, but this workspace currently uses exact-email Google
+  OAuth rather than password login. Preview deployments intentionally do not
+  receive the production `DATABASE_URL`; a separate UAT database or Supabase
+  branch must be approved before database-backed preview routes can be enabled.
+  Unused-index advisor notices are retained until production query history is
+  representative; no speculative index deletion was performed.
+
+### Reliability Verification
+
+- `npm test`: 65 files / 380 tests passed.
+- `npx tsc --noEmit`, `npm run build:vercel`,
+  `npm run validate:copy-scope` and `git diff --check` passed.
+- Supabase security advisor now reports only the leaked-password setting; the
+  exposed security-definer RPC warning is resolved.
+- Authenticated account-specific visual UAT cannot be automated from the current
+  browser connection because it has no reusable Google session. Anonymous and
+  HTTP security boundaries, production artifacts, logs and database invariants
+  are verified.
+
 ## Resume Instructions
 
 Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_COPY_SCOPE.md`, `docs/COMMERCIAL_PLANNING_UAT.md`, and `commercial-planning-app/README.md`, then inspect `git status`. Work on `codex/operations-planning-updates`; do not commit directly to `main`. The primary runtime is the unified `operations-planning-hub` modular monolith; the former standalone copied deployment is rollback-only. Next verify authenticated cloud UAT, independent email delivery and durable database backups; do not move formal source data until cloud UAT is accepted and cutover is explicitly approved. Never commit local environment files or expose credentials in chat output.

@@ -29,10 +29,38 @@ export function resolveDatabaseUrl(env: Env = process.env): string | undefined {
 }
 
 export function ensureDatabaseUrlFromAwsRdsEnv(env: Env = process.env) {
-  if (!env.DATABASE_URL) {
-    const databaseUrl = resolveDatabaseUrl(env);
-    if (databaseUrl) {
-      env.DATABASE_URL = databaseUrl;
-    }
+  const databaseUrl = resolveDatabaseUrl(env);
+  if (!databaseUrl) return;
+
+  env.DATABASE_URL = shouldApplyServerlessPoolOptions(env)
+    ? withServerlessPoolOptions(databaseUrl, env)
+    : databaseUrl;
+}
+
+export function withServerlessPoolOptions(databaseUrl: string, env: Env = process.env) {
+  try {
+    const url = new URL(databaseUrl);
+    if (!url.protocol.startsWith("postgres")) return databaseUrl;
+
+    setIfMissing(url, "connection_limit", boundedInteger(env.PRISMA_CONNECTION_LIMIT, 1, 10, 1));
+    setIfMissing(url, "pool_timeout", boundedInteger(env.PRISMA_POOL_TIMEOUT_SECONDS, 5, 120, 60));
+    setIfMissing(url, "connect_timeout", boundedInteger(env.PRISMA_CONNECT_TIMEOUT_SECONDS, 3, 60, 15));
+    return url.toString();
+  } catch {
+    return databaseUrl;
   }
+}
+
+function shouldApplyServerlessPoolOptions(env: Env) {
+  return env.VERCEL === "1" || env.PRISMA_SERVERLESS_POOLING === "1";
+}
+
+function setIfMissing(url: URL, key: string, value: number) {
+  if (!url.searchParams.has(key)) url.searchParams.set(key, String(value));
+}
+
+function boundedInteger(value: string | undefined, min: number, max: number, fallback: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(parsed)));
 }

@@ -6,4 +6,6 @@ export type AppSession = {
   role: UserRole;
   groups: string[];
   expiresAt: number;
+  workspaceId?: string;
+  protectedModules?: Record<string, "none" | "view" | "edit" | "manage">;
 };

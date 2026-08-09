@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ensureDatabaseUrlFromAwsRdsEnv, resolveDatabaseUrl } from "./databaseUrl";
+import {
+  ensureDatabaseUrlFromAwsRdsEnv,
+  resolveDatabaseUrl,
+  withServerlessPoolOptions
+} from "./databaseUrl";
 
 describe("resolveDatabaseUrl", () => {
   it("keeps an explicit DATABASE_URL", () => {
@@ -37,6 +41,27 @@ describe("resolveDatabaseUrl", () => {
 
     expect(env.DATABASE_URL).toBe(
       "postgresql://user:secret@db.internal:5432/value_chain?schema=public"
+    );
+  });
+
+  it("adds bounded Prisma pool settings for Vercel without replacing explicit values", () => {
+    const env: Record<string, string | undefined> = {
+      DATABASE_URL: "postgresql://user:secret@pooler.example.com:6543/app?sslmode=require",
+      VERCEL: "1"
+    };
+
+    ensureDatabaseUrlFromAwsRdsEnv(env);
+
+    const url = new URL(env.DATABASE_URL!);
+    expect(url.searchParams.get("connection_limit")).toBe("1");
+    expect(url.searchParams.get("pool_timeout")).toBe("60");
+    expect(url.searchParams.get("connect_timeout")).toBe("15");
+    expect(url.searchParams.get("sslmode")).toBe("require");
+  });
+
+  it("does not alter non-PostgreSQL development URLs", () => {
+    expect(withServerlessPoolOptions("file:./dev.db", { VERCEL: "1" })).toBe(
+      "file:./dev.db"
     );
   });
 });

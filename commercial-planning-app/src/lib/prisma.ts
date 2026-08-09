@@ -9,6 +9,6 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// Next.js can load the data module through multiple route bundles in one warm
+// serverless process. Keep one pool per process in production as well as dev.
+globalForPrisma.prisma = prisma;

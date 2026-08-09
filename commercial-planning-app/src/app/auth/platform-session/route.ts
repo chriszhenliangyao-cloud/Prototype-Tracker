@@ -7,8 +7,8 @@ import {
   sessionCookieName
 } from "@/lib/auth/sessionCookie";
 import {
-  createSupabaseRouteClient,
-  getSupabaseAppSession
+  createSupabaseAccessTokenClient,
+  getSupabaseAccessTokenAppSession
 } from "@/lib/auth/supabase";
 import { readPlatformSessionToken } from "@/lib/auth/platformSessionTokens";
 
@@ -16,7 +16,6 @@ export const dynamic = "force-dynamic";
 
 type PlatformSessionPayload = {
   accessToken?: unknown;
-  refreshToken?: unknown;
 };
 
 export async function POST(request: NextRequest) {
@@ -30,8 +29,7 @@ export async function POST(request: NextRequest) {
 
   const payload = (await request.json().catch(() => ({}))) as PlatformSessionPayload;
   const accessToken = readPlatformSessionToken(payload.accessToken, 20);
-  const refreshToken = readPlatformSessionToken(payload.refreshToken, 1);
-  if (!accessToken || !refreshToken) {
+  if (!accessToken) {
     return NextResponse.json(
       { message: "登录会话不完整，请重新登录。" },
       { status: 400, headers: { "cache-control": "no-store" } }
@@ -46,29 +44,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const response = NextResponse.json(
-    { ok: true },
-    { headers: { "cache-control": "no-store" } }
+  const client = createSupabaseAccessTokenClient(config, accessToken);
+  const session = await getSupabaseAccessTokenAppSession(
+    client,
+    accessToken,
+    config.emailRoleMap
   );
-  const client = createSupabaseRouteClient(request, response, config);
-  const result = await client.auth.setSession({
-    access_token: accessToken,
-    refresh_token: refreshToken
-  });
-  if (result.error) {
-    return NextResponse.json(
-      { message: "登录会话验证失败，请重新登录。" },
-      { status: 401, headers: { "cache-control": "no-store" } }
-    );
-  }
-
-  const session = await getSupabaseAppSession(client, config.emailRoleMap);
   if (!session) {
     return NextResponse.json(
       { message: "当前账号没有经营规划模块权限。" },
       { status: 403, headers: { "cache-control": "no-store" } }
     );
   }
+
+  const response = NextResponse.json(
+    { ok: true },
+    { headers: { "cache-control": "private, no-store" } }
+  );
 
   response.cookies.set(
     sessionCookieName,
