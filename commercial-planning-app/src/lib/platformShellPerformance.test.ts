@@ -117,6 +117,8 @@ describe("commercial planning platform shell performance", () => {
       "utf8"
     );
     expect(nativeShell).toContain("router.prefetch(item.href)");
+    expect(nativeShell).toContain("if (session) router.prefetch(item.href)");
+    expect(nativeShell).toContain("prefetch={false}");
     expect(nativeShell).toContain('link.rel = "prefetch"');
   });
 

@@ -46,6 +46,7 @@ export function GlobalHeader({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 aria-current={active ? "page" : undefined}
                 className={`shrink-0 whitespace-nowrap rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                   active
@@ -89,6 +90,7 @@ export function GlobalHeader({
           ) : (
             <Link
               href="/auth/login"
+              prefetch={false}
               className="shrink-0 whitespace-nowrap rounded-md bg-slate-950 px-3 py-2 font-semibold text-white"
             >
               Sign in

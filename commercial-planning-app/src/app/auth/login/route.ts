@@ -7,6 +7,8 @@ import {
   createAuthFlowCookie
 } from "@/lib/auth/flowCookie";
 import { createCodeChallenge, createRandomToken } from "@/lib/auth/pkce";
+import { authRetryParam } from "@/lib/auth/oauthRecovery";
+import { isNavigationPrefetch } from "@/lib/auth/requestIntent";
 import { normalizeAuthReturnTo } from "@/lib/auth/returnTo";
 import {
   authCookieOptions,
@@ -23,6 +25,15 @@ export async function GET(request: NextRequest) {
   const returnTo = normalizeAuthReturnTo(
     request.nextUrl.searchParams.get("returnTo")
   );
+
+  // Next.js can follow a protected-route redirect while prefetching a link.
+  // Starting OAuth here would overwrite the verifier for the user's real flow.
+  if (isNavigationPrefetch(request.headers)) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: { "cache-control": "private, no-store" }
+    });
+  }
 
   if (!config.enabled) {
     return NextResponse.redirect(new URL(returnTo, config.appUrl));
@@ -53,6 +64,9 @@ export async function GET(request: NextRequest) {
     const client = createSupabaseRouteClient(request, response, config);
     const callbackUrl = new URL("/auth/callback", config.appUrl);
     callbackUrl.searchParams.set("returnTo", returnTo);
+    if (request.nextUrl.searchParams.get(authRetryParam) === "1") {
+      callbackUrl.searchParams.set(authRetryParam, "1");
+    }
     const result = await client.auth.signInWithOAuth({
       provider: "google",
       options: {

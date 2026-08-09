@@ -144,7 +144,7 @@ export function PlatformShell({
   }
 
   function warmModule(item: PlatformModuleDefinition) {
-    router.prefetch(item.href);
+    if (session) router.prefetch(item.href);
     if (!item.embeddedSrc) return;
     const href = item.embeddedSrc.split("#", 1)[0];
     if (document.head.querySelector(`link[data-platform-module-prefetch="${item.key}"]`)) return;
@@ -172,8 +172,8 @@ export function PlatformShell({
           className="native-platform-brand"
           href="/platform/workbench"
           prefetch={false}
-          onMouseEnter={() => router.prefetch("/platform/workbench")}
-          onFocus={() => router.prefetch("/platform/workbench")}
+          onMouseEnter={() => session && router.prefetch("/platform/workbench")}
+          onFocus={() => session && router.prefetch("/platform/workbench")}
         >
           <span className="native-platform-brand-mark">OP</span>
           <span className="min-w-0">
@@ -187,8 +187,8 @@ export function PlatformShell({
             className={`native-platform-nav-item ${pathname === "/platform/workbench" ? "active" : ""}`}
             href="/platform/workbench"
             prefetch={false}
-            onMouseEnter={() => router.prefetch("/platform/workbench")}
-            onFocus={() => router.prefetch("/platform/workbench")}
+            onMouseEnter={() => session && router.prefetch("/platform/workbench")}
+            onFocus={() => session && router.prefetch("/platform/workbench")}
           >
             {locale === "en-GB" ? "My Workspace" : "我的工作台"}
           </Link>
@@ -206,6 +206,7 @@ export function PlatformShell({
                     className={className}
                     href={item.href}
                     key={item.key}
+                    prefetch={false}
                     onMouseEnter={() => warmModule(item)}
                     onFocus={() => warmModule(item)}
                   >

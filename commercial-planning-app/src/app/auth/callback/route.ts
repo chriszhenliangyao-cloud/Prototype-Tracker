@@ -11,6 +11,11 @@ import {
 } from "@/lib/auth/flowCookie";
 import { getPilotAccessCookieMaxAge } from "@/lib/auth/pilotAccess";
 import {
+  authRetryParam,
+  hasRetriedAuthFlow,
+  isRecoverableSupabaseExchangeError
+} from "@/lib/auth/oauthRecovery";
+import {
   authCookieOptions,
   authReturnToCookieName,
   authStateCookieName,
@@ -24,6 +29,7 @@ import {
 } from "@/lib/auth/sessionCookie";
 import {
   createSupabaseRouteClient,
+  clearSupabaseCodeVerifierCookies,
   getSupabaseAppSession
 } from "@/lib/auth/supabase";
 
@@ -51,6 +57,23 @@ export async function GET(request: NextRequest) {
 
     const client = createSupabaseRouteClient(request, response, config);
     const exchange = await client.auth.exchangeCodeForSession(code);
+    if (exchange.error && isRecoverableSupabaseExchangeError(exchange.error)) {
+      const retried = hasRetriedAuthFlow(request.nextUrl.searchParams);
+      const recoveryUrl = new URL(
+        retried ? "/auth/signed-out" : "/auth/login",
+        config.appUrl
+      );
+      recoveryUrl.searchParams.set("returnTo", returnTo);
+      if (!retried) recoveryUrl.searchParams.set(authRetryParam, "1");
+      const recoveryResponse = NextResponse.redirect(recoveryUrl);
+      clearSupabaseCodeVerifierCookies(request, recoveryResponse, config);
+      recoveryResponse.headers.set("cache-control", "no-store");
+      console.warn("[auth/callback] Recovering an invalid Supabase PKCE flow", {
+        code: exchange.error.code,
+        retried
+      });
+      return recoveryResponse;
+    }
     if (exchange.error) throw exchange.error;
     const session = await getSupabaseAppSession(client, config.emailRoleMap);
     if (!session) {

@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     );
     const client = createSupabaseRouteClient(request, response, config);
     await client.auth.signOut();
+    clearAuthCookies(response);
     response.headers.set("cache-control", "no-store");
     return response;
   }

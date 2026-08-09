@@ -56,6 +56,26 @@ export function createSupabaseRouteClient(
   );
 }
 
+export function clearSupabaseCodeVerifierCookies(
+  request: NextRequest,
+  response: NextResponse,
+  config: AuthConfig
+) {
+  const expired = {
+    httpOnly: true,
+    secure: config.appUrl.startsWith("https://"),
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0)
+  };
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith("sb-") && cookie.name.includes("code-verifier")) {
+      response.cookies.set(cookie.name, "", expired);
+    }
+  }
+}
+
 export function createSupabaseAccessTokenClient(
   config: AuthConfig,
   accessToken: string
