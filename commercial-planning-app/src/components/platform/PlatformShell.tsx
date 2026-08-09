@@ -71,7 +71,7 @@ const navGroups: NavGroup[] = [
       { key: "bp", zh: "BP达成", en: "BP Achievement", href: "/platform/business/bp" },
       { key: "analysis", zh: "经营分析复盘", en: "Business Analysis Review", href: "/platform/index.html#module=business-analysis", legacy: true },
       { key: "value-chain", zh: "价值链测算", en: "Value Chain Simulation", href: "/platform/business/value-chain/on-sale" },
-      { key: "settlements", zh: "结算台账", en: "Settlement Ledger", href: "/platform/index.html#module=settlements", legacy: true }
+      { key: "settlements", zh: "结算台账", en: "Settlement Ledger", href: "/platform/business/settlements" }
     ]
   },
   {
@@ -92,6 +92,7 @@ const routeContext: Array<{
 }> = [
   { prefix: "/platform/system", zh: ["专业与管理 / 系统管理", "权限、模块、主数据与审计"], en: ["Workspaces & Admin / System Management", "Permissions, modules, Master Data and audit"] },
   { prefix: "/platform/business/value-chain", zh: ["经营管理 / 价值链测算", "价格、渠道、成本与贡献利润情景模拟"], en: ["Business Management / Value Chain Simulation", "Price, channel, cost and contribution-profit scenarios"] },
+  { prefix: "/platform/business/settlements", zh: ["经营管理 / 结算台账", "客户对账、Claim、CN、回款核销与审计"], en: ["Business Management / Settlement Ledger", "Customer statements, claims, credit notes, allocation and audit"] },
   { prefix: "/platform/business/bp", zh: ["经营管理 / BP达成", "年度目标、实际达成与审批"], en: ["Business Management / BP Achievement", "Annual targets, actual achievement and approvals"] },
   { prefix: "/platform/collaboration/monthly-approvals", zh: ["协同中心 / 月度促销审批", "促销计划、利润校验与分级审批"], en: ["Collaboration / Monthly Promotion Approval", "Promotion planning, margin validation and staged approval"] },
   { prefix: "/platform/collaboration/other-approvals", zh: ["协同中心 / 其他审批", "非月促事项的申请、审批与交付通知"], en: ["Collaboration / Other Approvals", "Requests, approvals and delivery notices outside monthly promotion"] },

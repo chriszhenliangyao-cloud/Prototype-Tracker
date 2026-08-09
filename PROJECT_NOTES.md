@@ -823,6 +823,32 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
   HTTP security boundaries, production artifacts, logs and database invariants
   are verified.
 
+## Settlement Ledger Cloud Release (2026-08-09)
+
+- Promoted the latest settlement-ledger interaction workspace into the unified
+  platform at `/platform/business/settlements`. The native platform shell owns
+  authentication, account context, language control and navigation; the
+  settlement workspace is rendered as a same-origin protected module surface.
+- Replaced the legacy settlement navigation target with the new native route.
+  The released workspace includes settlement overview, Claim and difference
+  confirmation, Credit Note balance management, receipt allocation, version
+  audit, file upload/download simulations and the approved lifecycle:
+  prior approval -> customer execution -> Claim -> confirmation -> CN -> CN
+  application -> cash reconciliation.
+- The removed six-step process strip remains absent, leaving the main data and
+  tab surfaces visible in the first viewport. Embedded mode suppresses the
+  prototype's duplicate sidebar and header.
+- The Vercel build copies only the settlement HTML runtime to
+  `/platform-native/settlement-ledger.html`; local review screenshots are not
+  part of the production bundle. Direct access to the runtime is protected by
+  the same signed platform session boundary.
+- This release is an interactive production UAT surface backed by example
+  settlement rows. It does not introduce a settlement database schema, mutate
+  production business records or replace existing financial source documents.
+- Local verification passes 65 test files / 380 tests, the optimized Next.js
+  build, route/static-runtime HTTP checks and browser validation of the unified
+  shell, all five ledger tabs and the CN upload dialog.
+
 ## Resume Instructions
 
 Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_COPY_SCOPE.md`, `docs/COMMERCIAL_PLANNING_UAT.md`, and `commercial-planning-app/README.md`, then inspect `git status`. Work on `codex/operations-planning-updates`; do not commit directly to `main`. The primary runtime is the unified `operations-planning-hub` modular monolith; the former standalone copied deployment is rollback-only. Next verify authenticated cloud UAT, independent email delivery and durable database backups; do not move formal source data until cloud UAT is accepted and cutover is explicitly approved. Never commit local environment files or expose credentials in chat output.

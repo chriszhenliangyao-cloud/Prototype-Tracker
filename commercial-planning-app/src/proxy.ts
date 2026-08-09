@@ -16,7 +16,10 @@ export async function proxy(request: NextRequest) {
 
   if (!session) {
     const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("returnTo", "/platform-native/index.html");
+    loginUrl.searchParams.set(
+      "returnTo",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`
+    );
     return NextResponse.redirect(loginUrl);
   }
 
@@ -26,5 +29,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/platform-native/assets/data.js"]
+  matcher: [
+    "/platform-native/assets/data.js",
+    "/platform-native/settlement-ledger.html"
+  ]
 };

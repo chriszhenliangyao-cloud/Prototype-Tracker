@@ -45,6 +45,16 @@ if (await exists(nativeWorkspaceSourceRoot)) {
     resolve(nativeWorkspaceSourceRoot, "index.html"),
     resolve(nativeWorkspaceDestination, "index.html")
   );
+  const settlementSource = resolve(
+    nativeWorkspaceSourceRoot,
+    "settlement-ledger-optimization-concept.html"
+  );
+  if (await exists(settlementSource)) {
+    await copyFile(
+      settlementSource,
+      resolve(nativeWorkspaceDestination, "settlement-ledger.html")
+    );
+  }
   await cp(
     resolve(nativeWorkspaceSourceRoot, "assets"),
     resolve(nativeWorkspaceDestination, "assets"),
