@@ -4,6 +4,32 @@
 
 Maintain and extend the bilingual operations collaboration platform. The latest native workspaces are now released as an authenticated read-only production pilot inside the unified cloud platform. Formal cloud modules and production records remain the source of truth until their corresponding native backend contracts pass authenticated UAT and explicit cutover acceptance.
 
+## 2026-08-10 OAuth Callback Reliability Release
+
+- Production logs traced the login HTTP 500 to concurrent Next.js route
+  prefetches starting multiple Supabase Google OAuth PKCE flows. The shared
+  verifier cookie was overwritten before the first callback returned, producing
+  `bad_code_verifier` on `/auth/callback`.
+- Protected navigation no longer starts OAuth during route prefetch. Canonical
+  module routes remain warmed on hover only when a valid platform session is
+  present, preserving fast signed-in navigation without creating parallel login
+  flows.
+- Supabase callback validation failures now clear stale verifier state and make
+  one controlled clean-login retry. A repeated invalid flow lands on the
+  signed-out recovery surface instead of returning HTTP 500. Supabase logout
+  also clears the platform's signed session cookie.
+- Production deployment `dpl_5mpJ25hPJ5AK8FT7TXEq6UkUcicF` is `READY` and
+  aliased to `https://operations-planning-hub.vercel.app` at commit `dce9fcf`.
+  Health returns 200, ordinary login returns 307, prefetch login returns 204
+  without an OAuth redirect, and an injected invalid callback returns a
+  controlled 307 recovery redirect. The current deployment has no runtime 500.
+- Verification passes 67 test files / 388 tests in an isolated SQLite fixture,
+  the PostgreSQL-targeted Vercel production build, TypeScript, copy-scope
+  validation and `git diff --check`. No schema, seed or import command ran in
+  production. Pre/post read-only fingerprints both contain 44 application
+  tables and 4,246 rows with aggregate fingerprint
+  `39459090f594a7e80aa65d746dc6c08c`.
+
 ## 2026-08-09 Unified Platform Shell Release Candidate
 
 - Replaced the three competing navigation shells with one Next.js platform shell
