@@ -825,6 +825,8 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
 
 ## Settlement Ledger Cloud Release (2026-08-09)
 
+- Production deployment `dpl_5meFD8K2yBSVq1UmP7R2YAKvmnPP` is `READY` and is
+  aliased to `https://operations-planning-hub.vercel.app`.
 - Promoted the latest settlement-ledger interaction workspace into the unified
   platform at `/platform/business/settlements`. The native platform shell owns
   authentication, account context, language control and navigation; the
@@ -848,6 +850,10 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
 - Local verification passes 65 test files / 380 tests, the optimized Next.js
   build, route/static-runtime HTTP checks and browser validation of the unified
   shell, all five ledger tabs and the CN upload dialog.
+- Post-release verification reports `/api/health` as healthy, the native
+  settlement runtime redirects anonymous requests to platform login, and no
+  current runtime error log for the release window. No database migration,
+  seed, import or production data write was executed.
 
 ## Resume Instructions
 
