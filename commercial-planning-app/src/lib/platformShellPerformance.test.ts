@@ -66,12 +66,16 @@ describe("commercial planning platform shell performance", () => {
 
     expect(moduleRegistry).toContain('href: "/platform/planning/projects"');
     expect(moduleRegistry).toContain('href: "/platform/planning/forecast"');
+    expect(moduleRegistry).toContain('?embedded=1#module=shipmentSummary');
     expect(moduleRegistry).toContain('href: "/platform/business/analysis"');
+    expect(moduleRegistry).toContain('?embedded=1#module=bp');
     expect(moduleRegistry).toContain('?embedded=1#module=projects');
     expect(moduleRegistry).toContain('?embedded=1#module=forecast');
     expect(nativeShell).not.toContain('legacy?: boolean');
     expect(nativeShell).not.toContain('/platform/index.html#module=');
     expect(nativeShell).toContain('operations-platform:navigate');
+    expect(nativeShell).toContain('operationsPlanningSidebarCollapsed.v1');
+    expect(nativeShell).toContain('native-platform-sidebar-toggle');
     expect(embeddedPage).toContain('findEmbeddedPlatformModule');
     expect(embeddedPage).toContain('requireUser(pathname)');
   });

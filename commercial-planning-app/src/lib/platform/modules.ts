@@ -78,7 +78,7 @@ const planning: PlatformModuleDefinition[] = [
     descriptionEn: "Shipment, transit, customs, receipt and fulfilment",
     href: "/platform/planning/logistics",
     status: "pilot",
-    embeddedSrc: "/platform-native/index.html?embedded=1#module=logistic"
+    embeddedSrc: "/platform-native/index.html?embedded=1#module=shipmentSummary"
   }
 ];
 
@@ -174,7 +174,8 @@ const business: PlatformModuleDefinition[] = [
     en: "BP Achievement",
     descriptionZh: "年度目标、实际达成与滚动预测",
     descriptionEn: "Annual targets, actual achievement and rolling forecast",
-    href: "/platform/business/bp"
+    href: "/platform/business/bp",
+    embeddedSrc: "/platform-native/index.html?embedded=1#module=bp"
   },
   {
     key: "analysis",
@@ -278,4 +279,3 @@ export function platformModuleLabel(module: PlatformModuleDefinition, locale: Pl
 export function platformModuleDescription(module: PlatformModuleDefinition, locale: PlatformLocale) {
   return locale === "en-GB" ? module.descriptionEn : module.descriptionZh;
 }
-

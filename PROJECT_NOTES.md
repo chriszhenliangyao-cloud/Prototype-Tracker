@@ -888,6 +888,39 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
   current runtime error log for the release window. No database migration,
   seed, import or production data write was executed.
 
+## Unified Sidebar and BP Route Release (2026-08-10)
+
+- Reconciled the current branch with the Codex task `协同平台 Chris 迁移`. The
+  latest native BP workspace was already present in the repository and copied
+  into the production bundle, but the canonical `/platform/business/bp` route
+  still rendered the retired React workspace. The canonical route now opens the
+  current native BP Achievement workspace through the protected same-origin
+  module container.
+- Corrected the canonical Logistics Delivery module target to the current
+  Shipment Summary workspace (`shipmentSummary`) from that same migration task.
+  This changes navigation only; no logistics data or saved state is rewritten.
+- Compacted the desktop platform navigation so all 20 module entries fit inside
+  a 1440 x 900 viewport without vertical sidebar scrolling. The sidebar can be
+  collapsed from its left-edge control; the choice is retained locally and the
+  released width is allocated to the active workspace. Mobile keeps the
+  existing horizontal navigation behavior.
+- Browser verification confirms 20 of 20 navigation entries visible, equal
+  sidebar client/scroll height, a 172 px expanded sidebar and a 0 px collapsed
+  track with the main workspace expanding from 1268 px to 1440 px. The BP route
+  renders the latest four-view workspace, and Logistics Delivery opens Shipment
+  Summary.
+- The release contains navigation, layout and route changes only. It requires no
+  schema migration, seed, import or application-data write.
+
+### Sidebar and Route Verification
+
+- `npx tsc --noEmit`, the six platform shell contract tests,
+  `npm run build:vercel`, `npm run validate:copy-scope` and
+  `git diff --check` passed.
+- The 63 database-independent Vitest files passed. The two database suites were
+  not run to completion because no isolated local PostgreSQL test URL is present;
+  they were not pointed at production.
+
 ## Resume Instructions
 
 Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_COPY_SCOPE.md`, `docs/COMMERCIAL_PLANNING_UAT.md`, and `commercial-planning-app/README.md`, then inspect `git status`. Work on `codex/operations-planning-updates`; do not commit directly to `main`. The primary runtime is the unified `operations-planning-hub` modular monolith; the former standalone copied deployment is rollback-only. Next verify authenticated cloud UAT, independent email delivery and durable database backups; do not move formal source data until cloud UAT is accepted and cutover is explicitly approved. Never commit local environment files or expose credentials in chat output.

@@ -15,6 +15,7 @@ import {
 } from "@/lib/platform/modules";
 
 const localeStorageKey = "operationsPlanningLocale.v1";
+const sidebarStorageKey = "operationsPlanningSidebarCollapsed.v1";
 
 type NavigationSummary = {
   badges?: Record<string, number>;
@@ -55,10 +56,21 @@ export function PlatformShell({
   const router = useRouter();
   const [locale, setLocale] = useState<Locale>("zh-CN");
   const [navigationBadges, setNavigationBadges] = useState<Record<string, number>>({});
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [desktopNavigation, setDesktopNavigation] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(localeStorageKey);
     if (saved === "en-GB" || saved === "zh-CN") setLocale(saved);
+    setSidebarCollapsed(window.localStorage.getItem(sidebarStorageKey) === "1");
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 721px)");
+    const update = () => setDesktopNavigation(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -123,6 +135,14 @@ export function PlatformShell({
     document.documentElement.lang = nextLocale;
   }
 
+  function toggleSidebar() {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem(sidebarStorageKey, next ? "1" : "0");
+      return next;
+    });
+  }
+
   function warmModule(item: PlatformModuleDefinition) {
     router.prefetch(item.href);
     if (!item.embeddedSrc) return;
@@ -135,9 +155,19 @@ export function PlatformShell({
     document.head.appendChild(link);
   }
 
+  const sidebarHidden = sidebarCollapsed && desktopNavigation;
+
   return (
-    <div className="native-platform-shell" data-locale={locale}>
-      <aside className="native-platform-sidebar" aria-label={locale === "en-GB" ? "Platform modules" : "平台模块导航"}>
+    <div
+      className={`native-platform-shell ${sidebarHidden ? "sidebar-collapsed" : ""}`}
+      data-locale={locale}
+    >
+      <aside
+        className="native-platform-sidebar"
+        id="native-platform-sidebar"
+        aria-hidden={sidebarHidden || undefined}
+        aria-label={locale === "en-GB" ? "Platform modules" : "平台模块导航"}
+      >
         <Link
           className="native-platform-brand"
           href="/platform/workbench"
@@ -203,6 +233,24 @@ export function PlatformShell({
           </span>
         </div>
       </aside>
+
+      <button
+        className="native-platform-sidebar-toggle"
+        type="button"
+        aria-controls="native-platform-sidebar"
+        aria-expanded={!sidebarHidden}
+        aria-label={sidebarHidden
+          ? (locale === "en-GB" ? "Show sidebar" : "显示侧边栏")
+          : (locale === "en-GB" ? "Hide sidebar" : "隐藏侧边栏")}
+        title={sidebarHidden
+          ? (locale === "en-GB" ? "Show sidebar" : "显示侧边栏")
+          : (locale === "en-GB" ? "Hide sidebar" : "隐藏侧边栏")}
+        onClick={toggleSidebar}
+      >
+        <span className="native-platform-sidebar-chevron" aria-hidden="true">
+          {sidebarHidden ? "›" : "‹"}
+        </span>
+      </button>
 
       <div className="native-platform-main">
         <header className="native-platform-header">
