@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/flowCookie";
 import { createCodeChallenge, createRandomToken } from "@/lib/auth/pkce";
 import { authRetryParam } from "@/lib/auth/oauthRecovery";
+import { setPlatformSessionCookie } from "@/lib/auth/platformSessionCookie";
 import { isNavigationPrefetch } from "@/lib/auth/requestIntent";
 import { normalizeAuthReturnTo } from "@/lib/auth/returnTo";
 import {
@@ -51,6 +52,9 @@ export async function GET(request: NextRequest) {
 
   if (currentSession && !switchAccount) {
     const response = NextResponse.redirect(new URL(returnTo, config.appUrl));
+    if (config.provider === "supabase") {
+      setPlatformSessionCookie(response, currentSession, config);
+    }
     response.headers.set("cache-control", "no-store");
     return response;
   }

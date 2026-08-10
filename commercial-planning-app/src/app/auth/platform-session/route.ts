@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthConfig } from "@/lib/auth/config";
-import { getPilotAccessCookieMaxAge } from "@/lib/auth/pilotAccess";
-import { authCookieOptions } from "@/lib/auth/server";
-import {
-  createSessionCookie,
-  sessionCookieName
-} from "@/lib/auth/sessionCookie";
+import { setPlatformSessionCookie } from "@/lib/auth/platformSessionCookie";
 import {
   createSupabaseAccessTokenClient,
   getSupabaseAccessTokenAppSession
@@ -62,11 +57,7 @@ export async function POST(request: NextRequest) {
     { headers: { "cache-control": "private, no-store" } }
   );
 
-  response.cookies.set(
-    sessionCookieName,
-    createSessionCookie(session, config.sessionSecret),
-    authCookieOptions(getPilotAccessCookieMaxAge(session.expiresAt))
-  );
+  setPlatformSessionCookie(response, session, config);
 
   return response;
 }
