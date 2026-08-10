@@ -30,6 +30,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/platform/index.html",
+    "/platform-native/index.html",
     "/platform-native/assets/data.js",
     "/platform-native/settlement-ledger.html"
   ]

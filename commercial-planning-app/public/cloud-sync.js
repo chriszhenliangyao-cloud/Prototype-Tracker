@@ -575,6 +575,14 @@
       const submit = root.querySelector(".cloud-google-login");
       submit.addEventListener("click", async () => {
         submit.disabled = true;
+        if (window.OPERATIONS_PLATFORM_EMBEDDED && window.parent !== window) {
+          message.textContent = "正在重新连接平台会话...";
+          window.parent.postMessage(
+            { type: "operations-platform:reauthenticate" },
+            window.location.origin
+          );
+          return;
+        }
         message.textContent = "正在转到 Google...";
         const response = await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -660,9 +668,9 @@
     window.platformRuntimeConfig = Object.freeze({
       commercialPlanningUrl: String(config.commercialPlanningUrl || "").replace(/\/$/, "")
     });
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.57.4");
-    const supabase = createClient(config.supabaseUrl, config.supabasePublishableKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    const { createBrowserClient } = await import("https://esm.sh/@supabase/ssr@0.7.0?deps=@supabase/supabase-js@2.57.4");
+    const supabase = createBrowserClient(config.supabaseUrl, config.supabasePublishableKey, {
+      isSingleton: false
     });
     const session = (await supabase.auth.getSession()).data.session;
     const callbackParams = new URLSearchParams(window.location.hash.slice(1));

@@ -160,6 +160,14 @@
   </script>
   <script>
     window.platformAuthReady = (() => {
+      if (window.OPERATIONS_PLATFORM_EMBEDDED) {
+        window.cloudStore = Object.freeze({
+          enabled: false,
+          embedded: true,
+          authSource: "platform-session"
+        });
+        return Promise.resolve();
+      }
       const hosted = window.location.protocol === "https:";
       if (!hosted) return Promise.resolve();
       return new Promise((resolve, reject) => {

@@ -990,3 +990,36 @@ Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_
 - Verification passed: 68 test files / 391 tests, TypeScript checking, optimized
   Vercel build, source/generated platform-shell parity and browser checks for the
   restored permission entry and permission modal deep link.
+
+## Unified Embedded Authentication Fix (2026-08-10)
+
+- Removed the duplicate Google OAuth boundary from every native iframe workspace
+  (BP, Forecast, Logistics, Business Analysis, Function Workspace and Prototype
+  Management). These modules now rely on the already-protected parent platform
+  route and no longer load the legacy cloud login component in embedded mode.
+- Migrated the legacy collaboration shell from a separate Supabase localStorage
+  session to the same cookie-backed Supabase browser session used by the Next.js
+  platform. Project Tracking, Sales & Inventory, Launch, Campaigns, Marketing
+  Assets, Tasks, Exceptions, Business Overview, Roadmap and the permission
+  workspace therefore no longer depend on a prior standalone-tool login.
+- Added a controlled parent reauthentication message for missing or expired
+  sessions. An embedded frame can no longer launch Google OAuth inside itself;
+  the top-level platform owns account selection and the return path.
+- Added middleware protection for both static embedded entry documents before
+  their scripts execute. Existing protection for native snapshot data and the
+  settlement runtime remains in place.
+- Permission Management now resolves its return target from the live browser URL
+  at click time, preventing persistent-layout navigation from returning to a
+  previously visited module.
+- This release changes authentication and navigation behavior only. It includes
+  no database migration, seed, import or production business-data write.
+
+### Embedded Authentication Verification
+
+- 69 test files / 396 tests passed, including a new five-part authentication
+  boundary contract covering native, legacy, middleware and permission routes.
+- TypeScript checking, optimized Vercel build, copy-scope validation and
+  `git diff --check` passed.
+- Headless Chrome verified six native and six legacy module routes: every iframe
+  rendered content, no inner authentication overlay appeared, no Next.js error
+  overlay appeared on native routes, and no request reached Google OAuth.
