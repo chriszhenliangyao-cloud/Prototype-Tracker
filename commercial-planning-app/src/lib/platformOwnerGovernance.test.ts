@@ -31,6 +31,16 @@ const cloudSyncSource = readFileSync(
   "utf8"
 );
 
+const nativePlatformShellSource = readFileSync(
+  new URL("../components/platform/PlatformShell.tsx", import.meta.url),
+  "utf8"
+);
+
+const supabaseAuthSource = readFileSync(
+  new URL("auth/supabase.ts", import.meta.url),
+  "utf8"
+);
+
 describe("platform owner governance", () => {
   it("places Platform Owner above Super Admin and protects elevated accounts", () => {
     expect(platformSource.indexOf('{ key: "platform_owner"')).toBeLessThan(
@@ -68,6 +78,16 @@ describe("platform owner governance", () => {
     expect(cloudSyncSource).toContain('supabase.rpc("set_workspace_super_admin"');
     expect(cloudSyncSource).toContain("superAdminManagementAvailable: true");
     expect(platformSource).toContain("canEditPermissionUser");
+  });
+
+  it("shows the signed-in governance role and restores access management in the native shell", () => {
+    expect(supabaseAuthSource).toContain('.from("workspace_platform_roles")');
+    expect(supabaseAuthSource).toContain("governanceRole");
+    expect(nativePlatformShellSource).toContain('session.governanceRole === "platform_owner"');
+    expect(nativePlatformShellSource).toContain('session.governanceRole === "super_admin"');
+    expect(nativePlatformShellSource).toContain('href="/platform/planning/projects?permissions=1"');
+    expect(platformSource).toContain('get("permissions") === "1"');
+    expect(platformSource).toContain('data-project-action="permissions"');
   });
 
   it("uses the protected access-document save path for permission changes", () => {

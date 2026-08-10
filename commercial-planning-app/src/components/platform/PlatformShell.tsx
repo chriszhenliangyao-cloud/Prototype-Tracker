@@ -26,8 +26,14 @@ function isModuleActive(pathname: string, item: PlatformModuleDefinition) {
   return pathname === item.href || pathname.startsWith(`${prefix}/`);
 }
 
-function roleLabel(role: AppSession["role"], locale: Locale) {
-  if (locale === "en-GB") return role.replaceAll("_", " ");
+function roleLabel(session: AppSession, locale: Locale) {
+  if (session.governanceRole === "platform_owner") {
+    return locale === "en-GB" ? "Platform Owner" : "平台所有者";
+  }
+  if (session.governanceRole === "super_admin") {
+    return locale === "en-GB" ? "Super Admin" : "超级管理员";
+  }
+  if (locale === "en-GB") return session.role.replaceAll("_", " ");
   const labels: Partial<Record<AppSession["role"], string>> = {
     OWNER: "平台所有者",
     ADMIN: "超级管理员",
@@ -38,7 +44,14 @@ function roleLabel(role: AppSession["role"], locale: Locale) {
     KA_OWNER: "客户负责人",
     VIEWER: "查看者"
   };
-  return labels[role] || role;
+  return labels[session.role] || session.role;
+}
+
+function canOpenPermissionManager(session: AppSession | null) {
+  return session?.governanceRole === "platform_owner"
+    || session?.governanceRole === "super_admin"
+    || session?.role === "OWNER"
+    || session?.role === "ADMIN";
 }
 
 export function PlatformShell({
@@ -261,9 +274,9 @@ export function PlatformShell({
           </div>
           <div className="native-platform-account">
             {session ? (
-              <span className="native-platform-user" title={session.email}>
-                {session.name || session.email.split("@")[0]}
-                <small>{roleLabel(session.role, locale)}</small>
+              <span className="native-platform-user" title={session.name}>
+                <span className="native-platform-user-email">{session.email}</span>
+                <small>{roleLabel(session, locale)}</small>
               </span>
             ) : null}
             <label className="sr-only" htmlFor="native-platform-locale">
@@ -278,6 +291,15 @@ export function PlatformShell({
               <option value="zh-CN">中文</option>
               <option value="en-GB">English</option>
             </select>
+            {canOpenPermissionManager(session) ? (
+              <Link
+                className="native-platform-permissions"
+                href="/platform/planning/projects?permissions=1"
+                title={locale === "en-GB" ? "Open access management" : "打开权限管理"}
+              >
+                {locale === "en-GB" ? "Access" : "权限管理"}
+              </Link>
+            ) : null}
             {session ? (
               <a className="native-platform-signout" href="/auth/logout">
                 {locale === "en-GB" ? "Sign out" : "退出"}

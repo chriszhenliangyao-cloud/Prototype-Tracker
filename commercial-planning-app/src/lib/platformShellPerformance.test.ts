@@ -131,7 +131,9 @@ describe("commercial planning platform shell performance", () => {
     expect(platformShell).toContain("persistPlatformNavigation");
     expect(platformShell).toContain("applyPlatformNavigation();\n    const initialNativeRoute = nativePlatformRouteFor(activeModule);");
     expect(platformShell).toContain("window.location.replace(initialNativeRoute)");
-    expect(platformShell).toContain("persistPlatformNavigation({ replace: true });\n    renderApp();\n    void loadMasterDataOptions()");
+    expect(platformShell).toContain("persistPlatformNavigation({ replace: true });\n    renderApp();");
+    expect(platformShell).toContain('get("permissions") === "1"');
+    expect(platformShell).toContain("void loadMasterDataOptions().then(() => {");
   });
 
   it("leaves deep-link authentication to each native page", () => {

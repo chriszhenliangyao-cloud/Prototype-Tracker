@@ -956,3 +956,19 @@ Obtain user acceptance on the local logistics workflow before adding shared pers
 ## Resume Instructions
 
 Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_COPY_SCOPE.md`, `docs/COMMERCIAL_PLANNING_UAT.md`, and `commercial-planning-app/README.md`, then inspect `git status`. Work on `codex/operations-planning-updates`; do not commit directly to `main`. The primary runtime is the unified `operations-planning-hub` modular monolith; the former standalone copied deployment is rollback-only. Next verify authenticated cloud UAT, independent email delivery and durable database backups; do not move formal source data until cloud UAT is accepted and cutover is explicitly approved. Never commit local environment files or expose credentials in chat output.
+
+## Governance Role and Permission Entry Fix (2026-08-10)
+
+- Restored the unified shell `权限管理` entry for platform owners and super
+  administrators. The entry opens the existing project permission workspace
+  through a same-origin deep link; it does not create a second permission UI.
+- Session creation now reads `workspace_platform_roles` alongside protected
+  module permissions. The account header therefore distinguishes
+  `平台所有者` from `超级管理员` and displays the exact signed-in email.
+- Legacy owner/admin sessions retain access to the permission entry until the
+  next login refreshes their signed session with the governance role.
+- No authorization rows, member roles, business records, migrations, imports or
+  seeds were changed.
+- Verification passed: 68 test files / 391 tests, TypeScript checking, optimized
+  Vercel build, source/generated platform-shell parity and browser checks for the
+  restored permission entry and permission modal deep link.
