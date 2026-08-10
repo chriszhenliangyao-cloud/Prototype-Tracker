@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthConfig } from "@/lib/auth/config";
-import { sessionCookieName, verifySessionCookie } from "@/lib/auth/sessionCookie";
+import { setPlatformSessionCookie } from "@/lib/auth/platformSessionCookie";
+import {
+  sessionCookieName,
+  verifySessionCookie
+} from "@/lib/auth/sessionCookie";
+import {
+  createSupabaseRouteClient,
+  getSupabaseAppSession
+} from "@/lib/auth/supabase";
 
 export async function proxy(request: NextRequest) {
   const config = getAuthConfig();
@@ -9,13 +17,24 @@ export async function proxy(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  const session = verifySessionCookie(
+  let session = verifySessionCookie(
     request.cookies.get(sessionCookieName)?.value,
     config.sessionSecret
   );
 
+  // Existing Supabase SSR sessions can predate the platform's signed session
+  // cookie. Recover once at the static boundary, then mint the fast-path cookie.
+  if (!session && config.provider === "supabase") {
+    const client = createSupabaseRouteClient(request, response, config);
+    session = await getSupabaseAppSession(client, config.emailRoleMap);
+    if (session) {
+      setPlatformSessionCookie(response, session, config);
+    }
+  }
+
   if (!session) {
     const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("platformEmbed", "1");
     loginUrl.searchParams.set(
       "returnTo",
       `${request.nextUrl.pathname}${request.nextUrl.search}`

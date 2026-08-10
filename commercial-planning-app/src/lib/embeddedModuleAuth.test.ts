@@ -15,6 +15,18 @@ const proxySource = readFileSync(
   join(process.cwd(), "src/proxy.ts"),
   "utf8"
 );
+const authLoginSource = readFileSync(
+  join(process.cwd(), "src/app/auth/login/route.ts"),
+  "utf8"
+);
+const authCallbackSource = readFileSync(
+  join(process.cwd(), "src/app/auth/callback/route.ts"),
+  "utf8"
+);
+const platformSessionRouteSource = readFileSync(
+  join(process.cwd(), "src/app/auth/platform-session/route.ts"),
+  "utf8"
+);
 const platformShellSource = readFileSync(
   join(process.cwd(), "src/components/platform/PlatformShell.tsx"),
   "utf8"
@@ -63,6 +75,27 @@ describe("embedded platform authentication boundary", () => {
     expect(proxySource).toContain('"/platform-native/index.html"');
     expect(proxySource).toContain('"/platform-native/assets/data.js"');
     expect(proxySource).toContain('"/platform-native/settlement-ledger.html"');
+  });
+
+  it("recovers an existing Supabase SSR session without a redirect loop", () => {
+    expect(proxySource).toContain("createSupabaseRouteClient");
+    expect(proxySource).toContain("getSupabaseAppSession");
+    expect(proxySource).toContain("setPlatformSessionCookie");
+    expect(proxySource).toContain('loginUrl.searchParams.set("platformEmbed", "1")');
+    expect(proxySource.indexOf("session = await getSupabaseAppSession"))
+      .toBeLessThan(proxySource.indexOf("if (!session) {"));
+  });
+
+  it("mints the same short-lived platform session through every auth bridge", () => {
+    for (const source of [
+      authLoginSource,
+      authCallbackSource,
+      platformSessionRouteSource,
+      proxySource
+    ]) {
+      expect(source).toContain("setPlatformSessionCookie");
+    }
+    expect(authLoginSource).toContain("if (currentSession && !switchAccount)");
   });
 
   it("opens permissions with the current browser route as return target", () => {

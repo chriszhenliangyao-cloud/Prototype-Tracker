@@ -1023,3 +1023,22 @@ Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_
 - Headless Chrome verified six native and six legacy module routes: every iframe
   rendered content, no inner authentication overlay appeared, no Next.js error
   overlay appeared on native routes, and no request reached Google OAuth.
+
+## Embedded Session Bridge Hardening (2026-08-10)
+
+- Production exposed a redirect loop for users whose valid Supabase SSR session
+  predated the short-lived `vc_session` cookie. The outer Next.js page accepted
+  the Supabase session, while the static iframe proxy accepted only
+  `vc_session`, so the iframe alternated between its entry URL and `/auth/login`.
+- The static proxy now recovers the same authorized Supabase application session
+  used by the outer platform and mints the short-lived signed cache before
+  serving legacy, native, permission or settlement documents.
+- Google callback, existing-session recovery, platform-session exchange and the
+  static proxy now use one shared cookie policy. The derived session remains a
+  10-minute performance cache; account switching still clears both Supabase and
+  platform cookies.
+- Unauthenticated iframe redirects are explicitly marked with `platformEmbed=1`
+  so the login route presents controlled top-level recovery instead of silently
+  starting an iframe OAuth flow.
+- The change is application-authentication code only. It includes no database
+  migration, seed, import or production business-data write.
