@@ -645,6 +645,64 @@
 .bp-filter-status small { color: var(--c-text-dim); font-size: 9px; }
 .bp-filter-status strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 .bp-view { display: grid; gap: 12px; min-width: 0; }
+.bp-annual-cockpit {
+  min-width: 0;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  overflow: hidden;
+}
+.bp-annual-head {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--c-border);
+}
+.bp-annual-head h2,
+.bp-annual-head p { margin: 0; }
+.bp-annual-head h2 { font-size: var(--fs-lg); }
+.bp-annual-head p { margin-top: 3px; color: var(--c-text-dim); font-size: 10px; }
+.bp-annual-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--c-border);
+}
+.bp-annual-kpis .bw-kpi { border-right: 1px solid var(--c-border); }
+.bp-annual-kpis .bw-kpi:last-child { border-right: 0; }
+.bp-annual-progress { padding: 12px 14px 11px; background: var(--c-surface-2); }
+.bp-annual-quarter-labels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.bp-annual-quarter-labels span {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 7px;
+  border-right: 1px solid var(--c-border);
+}
+.bp-annual-quarter-labels span:first-child { padding-left: 0; }
+.bp-annual-quarter-labels span:last-child { padding-right: 0; border-right: 0; }
+.bp-annual-quarter-labels b { font-size: 10px; }
+.bp-annual-quarter-labels small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--c-text-dim); font-size: 9px; font-variant-numeric: tabular-nums; }
+.bp-annual-track {
+  position: relative;
+  height: 10px;
+  overflow: visible;
+  border: 1px solid #d7dfed;
+  border-radius: 3px;
+  background: linear-gradient(to right, transparent calc(25% - 1px), #cbd5e5 calc(25% - 1px), #cbd5e5 25%, transparent 25%, transparent calc(50% - 1px), #cbd5e5 calc(50% - 1px), #cbd5e5 50%, transparent 50%, transparent calc(75% - 1px), #cbd5e5 calc(75% - 1px), #cbd5e5 75%, transparent 75%), var(--bp-track);
+}
+.bp-annual-fill { display: block; height: 100%; border-radius: 2px; background: var(--bw-blue); }
+.bp-annual-time-marker { position: absolute; top: -5px; width: 2px; height: 18px; border-radius: 1px; background: var(--bw-amber); transform: translateX(-1px); }
+.bp-annual-time-marker::after { content: ""; position: absolute; left: -3px; top: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--bw-amber); }
+.bp-annual-progress-meta { display: flex; align-items: center; gap: 16px; margin-top: 9px; color: var(--c-text-dim); font-size: 9px; }
+.bp-annual-progress-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.bp-annual-progress-meta i { width: 8px; height: 8px; border-radius: 2px; }
+.bp-annual-progress-meta i.actual { background: var(--bw-blue); }
+.bp-annual-progress-meta i.time { width: 2px; border-radius: 1px; background: var(--bw-amber); }
+.bp-annual-progress-meta strong { margin-left: auto; font-size: 10px; font-variant-numeric: tabular-nums; }
 .bp-quarter-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -680,6 +738,33 @@
 .bp-rate-track span.red { background: var(--bw-red); }
 .bp-rate-track span.gray { background: #97a5ba; }
 .bp-rate strong { text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; }
+.bp-quarter-detail-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(330px, .8fr); gap: 12px; align-items: stretch; }
+.bp-quarter-detail-grid > .bw-panel { height: 100%; }
+.bp-quarter-chart { min-height: 235px; padding: 10px 14px 12px; }
+.bp-quarter-chart-legend { display: flex; justify-content: flex-end; gap: 14px; min-height: 18px; color: var(--c-text-dim); font-size: 9px; }
+.bp-quarter-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.bp-quarter-chart-legend i { width: 8px; height: 8px; border-radius: 2px; background: var(--bw-blue); }
+.bp-quarter-chart-legend i.actual { background: var(--bw-green); }
+.bp-quarter-chart-legend i.forecast { border: 1px dashed var(--bw-amber); background: #fff8ea; }
+.bp-quarter-chart-columns { height: 188px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.bp-quarter-chart-month { min-width: 0; display: grid; grid-template-rows: 142px auto auto; gap: 4px; text-align: center; }
+.bp-quarter-chart-bars { min-width: 0; height: 142px; display: flex; align-items: end; justify-content: center; gap: 7px; padding: 0 8px; border-bottom: 1px solid var(--c-border-strong); background: repeating-linear-gradient(to top, transparent 0, transparent 34px, var(--c-border) 34px, var(--c-border) 35px); }
+.bp-quarter-chart-bars span { width: min(22%, 28px); min-height: 3px; border-radius: 3px 3px 0 0; background: var(--bw-blue); }
+.bp-quarter-chart-bars span.actual { background: var(--bw-green); }
+.bp-quarter-chart-bars span.forecast { border: 1px dashed var(--bw-amber); border-bottom: 0; background: #fff8ea; }
+.bp-quarter-chart-month b { font-size: 10px; }
+.bp-quarter-chart-month small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--c-text-dim); font-size: 9px; font-variant-numeric: tabular-nums; }
+.bp-quarter-impact { min-height: 235px; display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+.bp-quarter-impact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--c-border); border-radius: 6px; overflow: hidden; }
+.bp-quarter-impact-grid > span { min-width: 0; padding: 10px; border-right: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); background: var(--c-surface-2); }
+.bp-quarter-impact-grid > span:nth-child(2n) { border-right: 0; }
+.bp-quarter-impact-grid > span:nth-last-child(-n+2) { border-bottom: 0; }
+.bp-quarter-impact-grid small,
+.bp-quarter-impact-grid strong { display: block; }
+.bp-quarter-impact-grid small { color: var(--c-text-dim); font-size: 9px; }
+.bp-quarter-impact-grid strong { margin-top: 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.bp-quarter-impact-note { margin: 0; padding: 9px 10px; border-left: 3px solid var(--bw-amber); background: var(--c-warn-weak); color: var(--c-text-dim); font-size: 10px; line-height: 1.5; }
+.bp-quarter-impact > .btn { align-self: flex-start; margin-top: auto; }
 .bp-month-table { max-height: 430px; }
 .bp-month-table .bp-rate { margin-left: auto; }
 .bp-text-link {
@@ -950,6 +1035,7 @@
   .bp-market-kpis .bw-kpi:nth-child(-n+3) { border-bottom: 1px solid var(--c-border); }
   .bp-cell-detail { grid-template-columns: 220px minmax(0, 1fr); }
   .bp-cell-actions { grid-column: 1 / -1; width: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--c-border); }
+  .bp-quarter-detail-grid { grid-template-columns: 1fr; }
   .bp-trend-detail-grid { grid-template-columns: 1fr; }
 }
 
@@ -1027,6 +1113,18 @@
   .bp-control-grow { display: none; }
   .bp-control-main .btn { flex: 1 1 auto; }
   .bp-control > .bw-view-tabs { height: 41px; }
+  .bp-annual-head { align-items: flex-start; flex-wrap: wrap; }
+  .bp-annual-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bp-annual-kpis .bw-kpi { border-right: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); }
+  .bp-annual-kpis .bw-kpi:nth-child(2n) { border-right: 0; }
+  .bp-annual-kpis .bw-kpi:last-child { grid-column: 1 / -1; border-right: 0; border-bottom: 0; }
+  .bp-annual-quarter-labels span { display: grid; gap: 2px; }
+  .bp-annual-progress-meta { align-items: flex-start; flex-wrap: wrap; gap: 7px 12px; }
+  .bp-annual-progress-meta strong { width: 100%; margin-left: 0; }
+  .bp-quarter-detail-grid { grid-template-columns: 1fr; }
+  .bp-quarter-chart { padding-inline: 9px; }
+  .bp-quarter-chart-columns { gap: 7px; }
+  .bp-quarter-chart-bars { gap: 4px; padding-inline: 4px; }
   .bp-market-toolbar { align-items: stretch; flex-wrap: wrap; }
   .bp-market-subviews { width: 100%; }
   .bp-market-subviews button { min-width: 0; flex: 1; padding: 0 7px; }

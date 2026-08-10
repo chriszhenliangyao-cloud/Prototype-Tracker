@@ -1,5 +1,28 @@
 # Prototype Tracker Project Notes
 
+## 2026-08-10 BP Annual And Quarterly Integrated Achievement
+
+- Reworked only `BP达成 / 综合达成` into a fixed annual operating cockpit
+  plus quarter-driven detail. The annual target, effective-PO actual, actual
+  attainment, full-year projection and projected gap remain visible while a
+  quarter is selected.
+- The annual progress track compares actual attainment with elapsed-year time
+  and keeps Q1-Q4 target context visible. Quarter cards select the three-month
+  target / effective PO / confirmed forecast structure and show each quarter's
+  contribution to the annual target, actual and gap.
+- Future quarters use a neutral `未开始` state instead of presenting an
+  unavoidable zero as a red operating failure. Closed and current quarters keep
+  their existing achievement semantics, and the selected quarter can drill into
+  the existing market and product gap matrix without changing its data contract.
+- The other BP tabs, persistence, permissions, APIs and confirmed business data
+  are unchanged. The release contains no schema migration, seed, import or
+  production data write.
+- Local verification passes 73 test files / 411 tests, TypeScript, the
+  PostgreSQL-targeted Vercel production build, copy-scope validation, native
+  source/generated parity and desktop/mobile browser checks. At 1440px and
+  390px there is no document-level horizontal overflow and the quarter drilldown
+  renders without browser errors.
+
 ## 2026-08-10 Dedicated Permission Management Page
 
 - Moved the platform header `权限管理` entry from the Project Tracking URL to
