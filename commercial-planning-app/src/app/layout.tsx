@@ -22,7 +22,7 @@ export default async function RootLayout({
   const navigationItems = getNavigationItems(session?.role ?? "VIEWER");
 
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body className={isPlatformEmbed ? "platform-embed" : undefined}>
         <div className="min-h-screen">
           {isPlatformEmbed ? null : (

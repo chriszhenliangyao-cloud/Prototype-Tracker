@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AppSession } from "@/lib/auth/types";
-import { APP_NAME } from "@/lib/branding";
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/branding";
 import {
   formatRoleLabel,
   isNavigationItemActive,
@@ -24,6 +24,26 @@ export function GlobalHeader({
     return null;
   }
 
+  if (pathname.startsWith("/auth/")) {
+    return (
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex min-h-16 w-full max-w-[1800px] items-center gap-3 px-4 sm:px-5">
+          <span className="grid size-9 place-items-center rounded-md bg-slate-900 text-sm font-extrabold text-white">
+            OP
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-slate-950">
+              {APP_NAME}
+            </p>
+            <p className="truncate text-xs text-slate-500">
+              {APP_DESCRIPTION}
+            </p>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="mx-auto grid w-full max-w-[1800px] grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-5 2xl:grid-cols-[minmax(300px,0.8fr)_minmax(0,1.7fr)_auto] 2xl:gap-6">
@@ -32,7 +52,7 @@ export function GlobalHeader({
             {APP_NAME}
           </h1>
           <p className="mt-0.5 truncate text-sm text-slate-500">
-            BP, value-chain, and promotion approval workspace
+            {APP_DESCRIPTION}
           </p>
         </div>
 
@@ -89,7 +109,7 @@ export function GlobalHeader({
             </>
           ) : (
             <Link
-              href="/auth/login"
+              href="/auth/login?switchAccount=1&returnTo=%2Fplatform%2Fworkbench"
               prefetch={false}
               className="shrink-0 whitespace-nowrap rounded-md bg-slate-950 px-3 py-2 font-semibold text-white"
             >

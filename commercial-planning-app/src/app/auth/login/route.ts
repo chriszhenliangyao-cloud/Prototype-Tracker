@@ -12,11 +12,15 @@ import { isNavigationPrefetch } from "@/lib/auth/requestIntent";
 import { normalizeAuthReturnTo } from "@/lib/auth/returnTo";
 import {
   authCookieOptions,
+  clearAuthCookies,
   getCurrentSession,
   getSessionFromCookieValue
 } from "@/lib/auth/server";
 import { sessionCookieName } from "@/lib/auth/sessionCookie";
-import { createSupabaseRouteClient } from "@/lib/auth/supabase";
+import {
+  clearSupabaseAuthCookies,
+  createSupabaseRouteClient
+} from "@/lib/auth/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +66,16 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.redirect(new URL(returnTo, config.appUrl));
     const client = createSupabaseRouteClient(request, response, config);
+    if (switchAccount) {
+      const signOut = await client.auth.signOut({ scope: "local" });
+      if (signOut.error) {
+        console.warn("[auth/login] Could not revoke the previous local session", {
+          code: signOut.error.code
+        });
+      }
+      clearSupabaseAuthCookies(request, response, config);
+      clearAuthCookies(response);
+    }
     const callbackUrl = new URL("/auth/callback", config.appUrl);
     callbackUrl.searchParams.set("returnTo", returnTo);
     if (request.nextUrl.searchParams.get(authRetryParam) === "1") {
