@@ -6172,6 +6172,21 @@
     const PRODUCT_CATEGORIES = ["Power Bank", "Charger", "Wireless Charger", "Charging Cable"];
 
     const STORAGE_KEY = "salesInventoryPlanningTool.v1";
+    const SALES_PREFERENCES_STORAGE_KEY = "salesInventoryPlanningPreferences.v1";
+    const SALES_PERSONAL_FIELDS = Object.freeze([
+      "view",
+      "filters",
+      "editorTab",
+      "editorMode",
+      "collaborationRole",
+      "editorFilters",
+      "editorPage",
+      "editorPageSize",
+      "selectedSkus",
+      "expandedBatchId",
+      "logFilter",
+      "inventoryAdjustmentDrafts"
+    ]);
 
     const seedProducts = [
       {
@@ -6407,6 +6422,7 @@
     const PROJECT_DRAFT_STORAGE_KEY = "projectTrackingDrafts.v1";
     const PROJECT_FORM_DRAFT_STORAGE_KEY = "projectTrackingFormDrafts.v1";
     const MARKETING_ASSET_STORAGE_KEY = "marketingAssets.v1";
+    const MARKETING_ASSET_PREFERENCES_STORAGE_KEY = "marketingAssetsPreferences.v1";
     const MARKETING_ASSET_DRAFT_STORAGE_KEY = "marketingAssetsDraft.v1";
     const MARKETING_ASSET_TODAY = "2026-08-05";
     const STANDARD_MARKETING_ASSET_TYPES = [
@@ -7651,10 +7667,21 @@
       return String(value || "").trim().toLowerCase();
     }
 
-    function projectPersonalStorageKey(baseKey) {
+    function personalIdentityKey() {
       const identity = window.cloudStore?.identity;
-      const identityKey = identity?.id || normalizePermissionEmail(identity?.email) || "local-preview";
-      return `${baseKey}:${identityKey}`;
+      return identity?.id || normalizePermissionEmail(identity?.email) || "local-preview";
+    }
+
+    function personalStorageKey(baseKey) {
+      return `${baseKey}:${personalIdentityKey()}`;
+    }
+
+    function projectPersonalStorageKey(baseKey) {
+      return personalStorageKey(baseKey);
+    }
+
+    function sharedDocumentPayload(documentKey, value) {
+      return window.operationsDocumentPolicy?.toSharedPayload?.(documentKey, value) ?? structuredClone(value);
     }
 
     function localeIdentityKey() {
@@ -8483,16 +8510,28 @@
     function loadState() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-        if (!saved) return normalizeSalesState(structuredClone(defaultState));
+        const preferences = JSON.parse(localStorage.getItem(personalStorageKey(SALES_PREFERENCES_STORAGE_KEY)) || "null");
+        const shared = saved ? sharedSalesState(saved) : {};
         return normalizeSalesState({
           ...structuredClone(defaultState),
-          ...saved,
+          ...shared,
+          ...salesPersonalState(preferences || {}),
           modal: null,
           highlighted: null
         });
       } catch (error) {
         return normalizeSalesState(structuredClone(defaultState));
       }
+    }
+
+    function sharedSalesState(value = state) {
+      return sharedDocumentPayload(STORAGE_KEY, value) || {};
+    }
+
+    function salesPersonalState(value = state) {
+      return Object.fromEntries(SALES_PERSONAL_FIELDS.flatMap((field) => (
+        value?.[field] === undefined ? [] : [[field, structuredClone(value[field])]]
+      )));
     }
 
     function normalizeSalesState(nextState) {
@@ -8568,9 +8607,20 @@
     }
 
     function persistState() {
-      const { inventoryAdjustmentDraft, ...stateForPersistence } = state;
-      const persistable = { ...stateForPersistence, modal: null, highlighted: null };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
+      const preferences = JSON.stringify(salesPersonalState(state));
+      const preferencesKey = personalStorageKey(SALES_PREFERENCES_STORAGE_KEY);
+      if (localStorage.getItem(preferencesKey) !== preferences) {
+        localStorage.setItem(preferencesKey, preferences);
+      }
+
+      const shared = JSON.stringify(sharedSalesState(state));
+      let storedShared = "";
+      try {
+        storedShared = JSON.stringify(sharedSalesState(JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || {}));
+      } catch {
+        storedShared = "";
+      }
+      if (storedShared !== shared) localStorage.setItem(STORAGE_KEY, shared);
     }
 
     function cloneProducts(products = state.products) {
@@ -9054,7 +9104,8 @@
         : "../roadmap/index.html";
       const roadmapPath = window.location.protocol === "file:" ? localRoadmapPath : "/roadmap/index.html";
       const access = roadmapPermissionForUser();
-      return `<div class="workspace-page roadmap-host-page"><section class="roadmap-module-embed" aria-label="${title}"><iframe src="${roadmapPath}?embedded=1&lang=${language}&access=${access}" title="${title}" loading="eager" referrerpolicy="same-origin" data-roadmap-frame></iframe></section></div>`;
+      const profile = encodeURIComponent(personalIdentityKey());
+      return `<div class="workspace-page roadmap-host-page"><section class="roadmap-module-embed" aria-label="${title}"><iframe src="${roadmapPath}?embedded=1&lang=${language}&access=${access}&profile=${profile}" title="${title}" loading="eager" referrerpolicy="same-origin" data-roadmap-frame></iframe></section></div>`;
     }
 
     function renderForecastWorkspace() {
@@ -9262,8 +9313,9 @@
       const defaults = structuredClone(seedMarketingAssets);
       try {
         const saved = JSON.parse(localStorage.getItem(MARKETING_ASSET_STORAGE_KEY) || "null");
-        if (!saved) return defaults;
-        const savedProjects = Array.isArray(saved.projects) ? saved.projects : [];
+        const shared = saved ? sharedMarketingAssetsState(saved) : {};
+        const preferences = JSON.parse(localStorage.getItem(personalStorageKey(MARKETING_ASSET_PREFERENCES_STORAGE_KEY)) || "null") || {};
+        const savedProjects = Array.isArray(shared.projects) ? shared.projects : [];
         const projects = defaults.projects.map((project) => {
           const stored = savedProjects.find((item) => item.model === project.model);
           return stored ? {
@@ -9278,10 +9330,10 @@
         });
         return {
           ...defaults,
-          ...saved,
-          filters: { ...defaults.filters, ...(saved.filters || {}) },
-          sort: { ...defaults.sort, ...(saved.sort || {}) },
-          specialMaterials: Array.isArray(saved.specialMaterials) ? saved.specialMaterials : defaults.specialMaterials,
+          ...shared,
+          filters: { ...defaults.filters, ...(preferences.filters || {}) },
+          sort: { ...defaults.sort, ...(preferences.sort || {}) },
+          specialMaterials: Array.isArray(shared.specialMaterials) ? shared.specialMaterials : defaults.specialMaterials,
           projects,
           modal: null,
           draft: null
@@ -9291,13 +9343,32 @@
       }
     }
 
+    function sharedMarketingAssetsState(value = marketingAssetsState) {
+      return sharedDocumentPayload(MARKETING_ASSET_STORAGE_KEY, value) || {};
+    }
+
+    function personalMarketingAssetsState(value = marketingAssetsState) {
+      return {
+        filters: structuredClone(value?.filters || seedMarketingAssets.filters),
+        sort: structuredClone(value?.sort || seedMarketingAssets.sort)
+      };
+    }
+
     function persistMarketingAssets() {
-      localStorage.setItem(MARKETING_ASSET_STORAGE_KEY, JSON.stringify({
-        filters: marketingAssetsState.filters,
-        sort: marketingAssetsState.sort,
-        specialMaterials: marketingAssetsState.specialMaterials,
-        projects: marketingAssetsState.projects
-      }));
+      const preferences = JSON.stringify(personalMarketingAssetsState(marketingAssetsState));
+      const preferencesKey = personalStorageKey(MARKETING_ASSET_PREFERENCES_STORAGE_KEY);
+      if (localStorage.getItem(preferencesKey) !== preferences) {
+        localStorage.setItem(preferencesKey, preferences);
+      }
+
+      const shared = JSON.stringify(sharedMarketingAssetsState(marketingAssetsState));
+      let storedShared = "";
+      try {
+        storedShared = JSON.stringify(sharedMarketingAssetsState(JSON.parse(localStorage.getItem(MARKETING_ASSET_STORAGE_KEY) || "null") || {}));
+      } catch {
+        storedShared = "";
+      }
+      if (storedShared !== shared) localStorage.setItem(MARKETING_ASSET_STORAGE_KEY, shared);
     }
 
     function marketingAssetDefaultChecklist(key, special = false) {
@@ -9670,18 +9741,18 @@
 
     function scheduleMarketingAssetDraftAutosave() {
       scheduleAutosave("marketing-assets", () => {
-        localStorage.setItem(MARKETING_ASSET_DRAFT_STORAGE_KEY, JSON.stringify({ type: marketingAssetsState.modal, draft: marketingAssetsState.draft }));
+        localStorage.setItem(personalStorageKey(MARKETING_ASSET_DRAFT_STORAGE_KEY), JSON.stringify({ type: marketingAssetsState.modal, draft: marketingAssetsState.draft }));
       });
     }
 
     function clearMarketingAssetDraft() {
       cancelAutosave("marketing-assets");
-      localStorage.removeItem(MARKETING_ASSET_DRAFT_STORAGE_KEY);
+      localStorage.removeItem(personalStorageKey(MARKETING_ASSET_DRAFT_STORAGE_KEY));
     }
 
     function savedMarketingAssetDraft(type) {
       try {
-        const saved = JSON.parse(localStorage.getItem(MARKETING_ASSET_DRAFT_STORAGE_KEY) || "null");
+        const saved = JSON.parse(localStorage.getItem(personalStorageKey(MARKETING_ASSET_DRAFT_STORAGE_KEY)) || "null");
         return saved?.type === type ? saved.draft : null;
       } catch (error) {
         return null;
@@ -15593,13 +15664,52 @@
         PROJECT_ACCESS_STORAGE_KEY,
         PROJECT_DELETION_AUDIT_STORAGE_KEY
       ]);
-      if (documentKey === STORAGE_KEY) state = loadState();
+      if (documentKey === STORAGE_KEY) {
+        const personalState = salesPersonalState(state);
+        const runtimeState = {
+          modal: state.modal,
+          highlighted: state.highlighted,
+          editorDrawer: state.editorDrawer,
+          inventoryAdjustmentDraft: state.inventoryAdjustmentDraft,
+          showPaste: state.showPaste
+        };
+        state = { ...loadState(), ...personalState, ...runtimeState };
+      }
       if (projectDocumentKeys.has(documentKey)) {
-        projectState = loadProjectState();
+        const personalProjectState = {
+          view: projectState.view,
+          portfolioScope: projectState.portfolioScope,
+          filters: projectState.filters,
+          prototypeFilters: projectState.prototypeFilters,
+          selectedProjectId: projectState.selectedProjectId,
+          selectedWorkstream: projectState.selectedWorkstream,
+          exceptionDrawerOpen: projectState.exceptionDrawerOpen,
+          exceptionFilter: projectState.exceptionFilter,
+          drawerTab: projectState.drawerTab,
+          syncedAt: projectState.syncedAt,
+          activeUserId: projectState.activeUserId,
+          syncing: projectState.syncing,
+          toast: projectState.toast,
+          adminModal: projectState.adminModal,
+          editorProjectId: projectState.editorProjectId,
+          editorWorkstream: projectState.editorWorkstream,
+          editorDraft: projectState.editorDraft,
+          permissionDraft: projectState.permissionDraft,
+          newProjectDraft: projectState.newProjectDraft,
+          delayDraft: projectState.delayDraft,
+          transitionDraft: projectState.transitionDraft,
+          deleteDraft: projectState.deleteDraft
+        };
+        projectState = { ...loadProjectState(), ...personalProjectState };
         applyCloudUserIdentity();
       }
       if (documentKey === MARKETING_ASSET_STORAGE_KEY) {
-        marketingAssetsState = loadMarketingAssetsState();
+        const personalState = personalMarketingAssetsState(marketingAssetsState);
+        const runtimeState = {
+          modal: marketingAssetsState.modal,
+          draft: marketingAssetsState.draft
+        };
+        marketingAssetsState = { ...loadMarketingAssetsState(), ...personalState, ...runtimeState };
       }
 
       const affectedModules = documentKey === STORAGE_KEY

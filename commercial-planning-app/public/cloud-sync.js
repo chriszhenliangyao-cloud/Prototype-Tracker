@@ -10,8 +10,39 @@
   const LOCAL_ONLY_KEYS = new Set([
     "projectTrackingTool.v1",
     "projectTrackingDrafts.v1",
-    "projectTrackingFormDrafts.v1"
+    "projectTrackingFormDrafts.v1",
+    "salesInventoryPlanningPreferences.v1",
+    "marketingAssetsPreferences.v1",
+    "marketingAssetsDraft.v1",
+    "productRoadmapPreferences.v1"
   ]);
+  const SHARED_DOCUMENT_FIELDS = Object.freeze({
+    "salesInventoryPlanningTool.v1": Object.freeze([
+      "planningSchemaVersion",
+      "products",
+      "baselineProducts",
+      "periodLabel",
+      "historySynced",
+      "workflow",
+      "workflowEvents",
+      "changeBatches",
+      "inventoryAdjustments",
+      "snapshots",
+      "revisions"
+    ]),
+    "marketingAssets.v1": Object.freeze([
+      "schemaVersion",
+      "specialMaterials",
+      "projects"
+    ]),
+    "productRoadmap.v1": Object.freeze([
+      "schemaVersion",
+      "masterCatalogVersion",
+      "slides",
+      "weeklyDrafts",
+      "versions"
+    ])
+  });
   const ACCESS_DOCUMENT_KEY = "projectTrackingAccess.v1";
   const OUTBOX_KEY = "operationsPlanningCloudOutbox.v1";
   const RECOVERY_KEY = "operationsPlanningLocalRecovery.v1";
@@ -115,10 +146,11 @@
   }
 
   function setLocalValue(key, payload) {
+    const localPayload = toSharedDocumentPayload(key, payload);
     suppressSync = true;
     try {
-      if (payload === null || payload === undefined) originalRemoveItem.call(localStorage, key);
-      else originalSetItem.call(localStorage, key, JSON.stringify(payload));
+      if (localPayload === null || localPayload === undefined) originalRemoveItem.call(localStorage, key);
+      else originalSetItem.call(localStorage, key, JSON.stringify(localPayload));
     } finally {
       suppressSync = false;
     }
@@ -259,6 +291,23 @@
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
   }
+
+  function toSharedDocumentPayload(documentKey, payload) {
+    const fields = SHARED_DOCUMENT_FIELDS[documentKey];
+    if (!fields || !isPlainObject(payload)) return cloneJson(payload);
+    return Object.fromEntries(fields.flatMap((field) => (
+      Object.prototype.hasOwnProperty.call(payload, field)
+        ? [[field, cloneJson(payload[field])]]
+        : []
+    )));
+  }
+
+  window.operationsDocumentPolicy = Object.freeze({
+    toSharedPayload: toSharedDocumentPayload,
+    sharedFields(documentKey) {
+      return [...(SHARED_DOCUMENT_FIELDS[documentKey] || [])];
+    }
+  });
 
   function mergeJsonValue(baseValue, localValue, remoteValue, path, conflicts) {
     if (jsonEqual(localValue, remoteValue)) return cloneJson(localValue);
@@ -771,11 +820,12 @@
     const initialOutbox = readOutbox();
     if (cloudRows.error) throw cloudRows.error;
     cloudRows.data.forEach((row) => {
+      const sharedPayload = toSharedDocumentPayload(row.document_key, row.payload);
       versions.set(row.document_key, Number(row.version || 0));
-      syncedPayloads.set(row.document_key, cloneJson(row.payload));
+      syncedPayloads.set(row.document_key, cloneJson(sharedPayload));
       if (!SYNC_KEYS.has(row.document_key)) return;
       const pending = initialOutbox[row.document_key];
-      setLocalValue(row.document_key, pending ? pending.payload : row.payload);
+      setLocalValue(row.document_key, pending ? pending.payload : sharedPayload);
     });
 
     const timers = new Map();
@@ -796,6 +846,7 @@
     async function handleRemoteUpdate(row) {
       const documentKey = row?.document_key;
       if (!documentKey || !SYNC_KEYS.has(documentKey)) return;
+      row = { ...row, payload: toSharedDocumentPayload(documentKey, row.payload) };
       const version = Number(row.version || 0);
       const pending = pendingPayloads.get(documentKey) || readOutbox()[documentKey] || null;
       versions.set(documentKey, version);
@@ -1018,8 +1069,10 @@
       if (!SYNC_KEYS.has(key)) return;
       let payload = null;
       try { payload = value === null ? null : JSON.parse(value); } catch { return; }
+      payload = toSharedDocumentPayload(key, payload);
       const unresolvedConflict = unresolvedRemoteConflicts.get(key);
       const existing = pendingPayloads.get(key) || readOutbox()[key] || null;
+      if (jsonEqual(payload, existing?.payload ?? syncedPayloads.get(key))) return;
       const entry = {
         payload,
         basePayload: existing?.basePayload !== undefined
@@ -1048,8 +1101,8 @@
     Object.entries(initialOutbox).forEach(([key, savedEntry]) => {
       if (!SYNC_KEYS.has(key) || !savedEntry || typeof savedEntry !== "object") return;
       const entry = {
-        payload: savedEntry.payload,
-        basePayload: savedEntry.basePayload,
+        payload: toSharedDocumentPayload(key, savedEntry.payload),
+        basePayload: toSharedDocumentPayload(key, savedEntry.basePayload),
         baseVersion: Number(savedEntry.baseVersion || 0),
         mutationId: savedEntry.mutationId || crypto.randomUUID(),
         queuedAt: savedEntry.queuedAt || new Date().toISOString(),
@@ -1057,6 +1110,10 @@
         retryStopped: Boolean(savedEntry.retryStopped),
         lastErrorCode: String(savedEntry.lastErrorCode || "")
       };
+      if (jsonEqual(entry.payload, syncedPayloads.get(key))) {
+        removeOutboxEntry(key);
+        return;
+      }
       pendingPayloads.set(key, entry);
       storeOutboxEntry(key, entry);
       if (!entry.retryStopped && entry.attempts < MAX_TRANSIENT_SAVE_ATTEMPTS) {

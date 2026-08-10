@@ -37,8 +37,32 @@ describe("smart cloud update notifications", () => {
     expect(syncKeyBlock).not.toContain("projectTrackingTool.v1");
     expect(syncKeyBlock).not.toContain("projectTrackingDrafts.v1");
     expect(syncKeyBlock).not.toContain("projectTrackingFormDrafts.v1");
+    expect(syncKeyBlock).not.toContain("salesInventoryPlanningPreferences.v1");
+    expect(syncKeyBlock).not.toContain("marketingAssetsPreferences.v1");
+    expect(syncKeyBlock).not.toContain("marketingAssetsDraft.v1");
+    expect(syncKeyBlock).not.toContain("productRoadmapPreferences.v1");
     expect(cloudSyncSource).toContain("LOCAL_ONLY_KEYS");
     expect(cloudSyncSource).toContain("removeLegacyLocalOnlyOutboxEntries");
+  });
+
+  it("enforces shared-document allowlists before upload, download and conflict handling", () => {
+    const policyBlock = cloudSyncSource.match(/const SHARED_DOCUMENT_FIELDS = Object\.freeze\(\{([\s\S]*?)\n  \}\);/)?.[1] ?? "";
+    const salesBlock = policyBlock.match(/"salesInventoryPlanningTool\.v1":[\s\S]*?\]\)/)?.[0] ?? "";
+    const marketingBlock = policyBlock.match(/"marketingAssets\.v1":[\s\S]*?\]\)/)?.[0] ?? "";
+    const roadmapBlock = policyBlock.match(/"productRoadmap\.v1":[\s\S]*?\]\)/)?.[0] ?? "";
+
+    expect(salesBlock).toContain('"products"');
+    expect(salesBlock).not.toContain('"filters"');
+    expect(salesBlock).not.toContain('"selectedSkus"');
+    expect(marketingBlock).toContain('"projects"');
+    expect(marketingBlock).not.toContain('"filters"');
+    expect(marketingBlock).not.toContain('"sort"');
+    expect(roadmapBlock).toContain('"slides"');
+    expect(roadmapBlock).not.toContain('"search"');
+    expect(cloudSyncSource).toContain("const localPayload = toSharedDocumentPayload(key, payload)");
+    expect(cloudSyncSource).toContain("payload = toSharedDocumentPayload(key, payload)");
+    expect(cloudSyncSource).toContain("row = { ...row, payload: toSharedDocumentPayload(documentKey, row.payload) }");
+    expect(cloudSyncSource).toContain("jsonEqual(payload, existing?.payload ?? syncedPayloads.get(key))");
   });
 
   it("uses a common base to auto-merge non-overlapping edits and explain true conflicts", () => {

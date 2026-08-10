@@ -1042,3 +1042,41 @@ Read this file, `docs/MODULAR_MONOLITH_MIGRATION.md`, `docs/COMMERCIAL_PLANNING_
   starting an iframe OAuth flow.
 - The change is application-authentication code only. It includes no database
   migration, seed, import or production business-data write.
+
+## Account-scoped Personal UI State (2026-08-10)
+
+- Root cause: `salesInventoryPlanningTool.v1` and `marketingAssets.v1` stored
+  business records together with filters, sorting, selections, views and local
+  drafts. `cloud-sync.js` then synchronized the whole JSON document through
+  `workspace_documents`, so one member's interface actions appeared for every
+  other member.
+- Added central shared-document allowlists for Sales & Inventory, Marketing
+  Assets and Product Roadmap. Uploads, remote downloads, old outbox entries and
+  conflict merges are normalized through the same policy before use. Unknown
+  fields are local by default until explicitly registered as shared business
+  data.
+- Sales preferences, Marketing Asset preferences/drafts, Project Tracking
+  preferences/drafts, navigation and Roadmap preferences are now stored with
+  the authenticated Supabase user ID. Marketing filters/sorting and Sales
+  views/filters/selections no longer write shared documents when business data
+  has not changed.
+- Legacy cloud payloads are handled without a migration: personal fields are
+  ignored in memory and existing cloud rows are not rewritten. A legacy outbox
+  item that becomes identical to the current business payload after filtering
+  is discarded instead of creating another cloud version.
+- Remote business-data updates replace only the shared slice of each module.
+  The active user's filters, sorting, selections, open drawers and local edit
+  drafts stay in place while the refreshed business records are rendered.
+- No database migration, seed, import, RPC write or production business-data
+  rewrite is part of this change.
+
+### Personal State Verification
+
+- `npm run build:vercel` passed.
+- All 72 Vitest files and 407 tests passed after restoring the SQLite Prisma
+  client used by the local test environment. The new isolation contracts cover
+  shared allowlists, account-scoped keys, legacy outbox no-op handling and
+  preservation of the active workspace during remote updates.
+- Local browser verification passed with no error overlay or console errors.
+  Marketing Asset filtering persisted after refresh in one personal scope, and
+  two Roadmap profile scopes retained independent search state.

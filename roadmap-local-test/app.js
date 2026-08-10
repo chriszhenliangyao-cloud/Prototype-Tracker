@@ -12,6 +12,7 @@
   const MASTER_DATA_URL = "data/master-products.json";
   const STORAGE_KEY = "productRoadmap.v1";
   const PREFERENCES_KEY = "productRoadmapPreferences.v1";
+  const PERSONAL_SCOPE = String(QUERY.get("profile") || "local-preview").replace(/[^a-zA-Z0-9@._-]+/g, "-");
   const LEGACY_STORAGE_KEY = "operationsPlanningRoadmapLocalTest.v1";
   const ROADMAP_SCHEMA_VERSION = 3;
   const PREFERENCE_FIELDS = [
@@ -386,13 +387,15 @@
     const initial = makeInitialState(slides);
     const shared = readStoredJson(STORAGE_KEY);
     const legacy = readStoredJson(LEGACY_STORAGE_KEY);
-    const preferences = readStoredJson(PREFERENCES_KEY);
+    const preferences = readStoredJson(personalPreferencesKey());
     const sharedSource = validSharedRoadmapState(shared)
       ? shared
       : validSharedRoadmapState(legacy) ? legacy : null;
     const preferenceSource = preferences && typeof preferences === "object"
       ? preferences
-      : legacy && typeof legacy === "object" ? personalRoadmapState(legacy) : {};
+      : PERSONAL_SCOPE === "local-preview" && legacy && typeof legacy === "object"
+        ? personalRoadmapState(legacy)
+        : {};
     const loaded = {
       ...initial,
       ...(sharedSource ? sharedRoadmapState(sharedSource) : {}),
@@ -406,6 +409,10 @@
   function readStoredJson(key) {
     try { return JSON.parse(localStorage.getItem(key) || "null"); }
     catch { return null; }
+  }
+
+  function personalPreferencesKey() {
+    return `${PREFERENCES_KEY}:${PERSONAL_SCOPE}`;
   }
 
   function validSharedRoadmapState(value) {
@@ -535,7 +542,8 @@
   function persistState(options = {}) {
     try {
       const preferences = JSON.stringify(personalRoadmapState(state));
-      if (localStorage.getItem(PREFERENCES_KEY) !== preferences) localStorage.setItem(PREFERENCES_KEY, preferences);
+      const preferencesKey = personalPreferencesKey();
+      if (localStorage.getItem(preferencesKey) !== preferences) localStorage.setItem(preferencesKey, preferences);
       if (!canEditRoadmap()) return;
       const shared = JSON.stringify(sharedRoadmapState(state));
       if (options.forceShared || shared !== lastSharedSnapshot) {
