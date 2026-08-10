@@ -6576,6 +6576,10 @@
     };
 
     let marketingAssetsState = loadMarketingAssetsState();
+    const marketingAssetCommitState = {
+      status: "idle",
+      text: ""
+    };
 
     const autosaveRuntime = {};
 
@@ -6584,7 +6588,8 @@
         status: "saved",
         text: "自动保存已开启",
         timer: null,
-        saver: null
+        saver: null,
+        savedText: "刚刚自动保存"
       };
       return autosaveRuntime[scope];
     }
@@ -6614,16 +6619,17 @@
       updateAutosaveStatus(scope, "saving", "正在保存...");
       try {
         await saver();
-        if (!entry.timer && entry.saver === saver) updateAutosaveStatus(scope, "saved", "刚刚自动保存");
+        if (!entry.timer && entry.saver === saver) updateAutosaveStatus(scope, "saved", entry.savedText || "刚刚自动保存");
       } catch (error) {
         updateAutosaveStatus(scope, "error", "自动保存失败");
       }
     }
 
-    function scheduleAutosave(scope, saver, delay = 450) {
+    function scheduleAutosave(scope, saver, delay = 450, savedText = "刚刚自动保存") {
       const entry = autosaveEntry(scope);
       if (entry.timer) clearTimeout(entry.timer);
       entry.saver = saver;
+      entry.savedText = savedText;
       updateAutosaveStatus(scope, "saving", "等待自动保存...");
       entry.timer = setTimeout(() => performAutosave(scope), delay);
     }
@@ -9739,10 +9745,83 @@
       return STANDARD_MARKETING_ASSET_TYPES.find((entry) => entry.key === key)?.name || key;
     }
 
+    function resetMarketingAssetCommitState() {
+      marketingAssetCommitState.status = "idle";
+      marketingAssetCommitState.text = "";
+    }
+
+    function setMarketingAssetCommitState(status, text) {
+      marketingAssetCommitState.status = status;
+      marketingAssetCommitState.text = text;
+    }
+
+    function marketingAssetSaveStatusMarkup() {
+      if (marketingAssetCommitState.status !== "idle") {
+        const liveRole = marketingAssetCommitState.status === "error" ? "alert" : "status";
+        return `<span class="autosave-status ${marketingAssetCommitState.status}" data-market-asset-commit-status role="${liveRole}" aria-live="polite"><span class="autosave-status-dot"></span><span>${escapeProjectHtml(marketingAssetCommitState.text)}</span></span>`;
+      }
+      return `${autosaveStatusMarkup("marketing-assets")} <span class="helper-note">${marketAssetsText("仅保存当前账号草稿；点击保存更新后同步团队", "Only your draft is autosaved; Save Update syncs it to the team")}</span>`;
+    }
+
+    function failMarketingAssetSave(message) {
+      setMarketingAssetCommitState("error", message);
+      renderMarketingAssetModal();
+      showProjectToast(message);
+    }
+
+    async function flushMarketingAssetTeamChanges() {
+      const cloudStore = window.cloudStore;
+      if (!cloudStore?.enabled || typeof cloudStore.flushDocument !== "function") {
+        return { ok: true, localOnly: true, linkedProject: true };
+      }
+      const materialResult = await cloudStore.flushDocument(MARKETING_ASSET_STORAGE_KEY);
+      if (!materialResult?.ok) return { ...materialResult, linkedProject: false };
+      const projectResult = await cloudStore.flushDocument(PROJECT_DATA_STORAGE_KEY);
+      if (!projectResult?.ok) {
+        return {
+          ...projectResult,
+          ok: false,
+          materialSaved: true,
+          linkedProject: false
+        };
+      }
+      return {
+        ...materialResult,
+        ok: true,
+        linkedProject: true,
+        projectResult
+      };
+    }
+
+    function marketingAssetSaveFailureMessage(result) {
+      if (result?.conflict) {
+        return marketAssetsText(
+          "团队数据已有更新，请先处理同步冲突后重试。个人草稿已保留。",
+          "Team data changed. Resolve the sync conflict and retry. Your draft is preserved."
+        );
+      }
+      if (result?.materialSaved && !result?.linkedProject) {
+        return marketAssetsText(
+          "物料矩阵已保存，但项目跟进联动尚未完成，请重试。个人草稿已保留。",
+          "The asset matrix was saved, but Project Tracking has not synced yet. Retry; your draft is preserved."
+        );
+      }
+      const reason = String(result?.statusLabel || "").trim();
+      return reason
+        ? marketAssetsText(
+            `团队同步未完成：${reason}。个人草稿已保留，请重试。`,
+            `Team sync did not complete: ${reason}. Your draft is preserved; please retry.`
+          )
+        : marketAssetsText(
+            "团队同步未完成，个人草稿已保留，请检查网络后重试。",
+            "Team sync did not complete. Your draft is preserved; check your connection and retry."
+          );
+    }
+
     function scheduleMarketingAssetDraftAutosave() {
       scheduleAutosave("marketing-assets", () => {
         localStorage.setItem(personalStorageKey(MARKETING_ASSET_DRAFT_STORAGE_KEY), JSON.stringify({ type: marketingAssetsState.modal, draft: marketingAssetsState.draft }));
-      });
+      }, 450, marketAssetsText("个人草稿已保存", "Personal draft saved"));
     }
 
     function clearMarketingAssetDraft() {
@@ -9772,6 +9851,7 @@
     function openMarketingAssetItemModal(model, key, special = false) {
       const project = marketingAssetsState.projects.find((item) => item.model === model);
       if (!project) return;
+      resetMarketingAssetCommitState();
       const source = special ? project.special?.[key] : project.assets?.[key];
       const draftType = `item:${model}:${special ? "special" : "standard"}:${key}`;
       const saved = savedMarketingAssetDraft(draftType);
@@ -9801,6 +9881,7 @@
         showProjectToast(marketAssetsText("当前账号没有营销物料编辑权限。", "Your account cannot edit marketing assets."));
         return;
       }
+      resetMarketingAssetCommitState();
       const type = marketingAssetsState.specialMaterials.find((item) => item.id === specialId);
       const activeProjects = activeMarketingAssetProjects();
       const configuredProjects = type
@@ -9824,6 +9905,7 @@
     function openMarketingAssetProjectSummary(model) {
       const project = activeMarketingAssetProjects().find((item) => item.model === model);
       if (!project) return;
+      resetMarketingAssetCommitState();
       marketingAssetsState.modal = `summary:${model}`;
       marketingAssetsState.draft = { model };
       renderMarketingAssetModal();
@@ -9831,6 +9913,7 @@
 
     function openMarketingAssetSpecialManager() {
       if (!canEditMarketingAssets()) return;
+      resetMarketingAssetCommitState();
       marketingAssetsState.modal = "special-manager";
       marketingAssetsState.draft = {};
       renderMarketingAssetModal();
@@ -9886,6 +9969,7 @@
       const isProjectSummary = mode.startsWith("summary:");
       const isSpecialManager = mode === "special-manager";
       const tracksDraft = isSpecialDefinition || mode.startsWith("item:");
+      const saving = marketingAssetCommitState.status === "saving";
       let body = "";
       let title = "";
       let subtitle = "";
@@ -9944,13 +10028,18 @@
       }
 
       const footerStatus = tracksDraft
-        ? (editable ? autosaveStatusMarkup("marketing-assets") : marketAssetsText("当前账号没有编辑权限", "Your account does not have edit access"))
+        ? (editable ? marketingAssetSaveStatusMarkup() : marketAssetsText("当前账号没有编辑权限", "Your account does not have edit access"))
         : marketAssetsText("点击具体物料可继续查看或处理", "Select a material to view or update it");
       const closeLabel = tracksDraft && editable ? marketAssetsText("暂存并关闭", "Save and close") : marketAssetsText("关闭", "Close");
-      const primary = saveAction && editable ? `<button class="btn primary" data-market-asset-action="${saveAction}">${isSpecialDefinition ? marketAssetsText("保存特殊物料", "Save Special Material") : marketAssetsText("保存更新", "Save Update")}</button>` : "";
+      let saveLabel = isSpecialDefinition
+        ? marketAssetsText("保存特殊物料", "Save Special Material")
+        : marketAssetsText("保存更新", "Save Update");
+      if (marketingAssetCommitState.status === "error") saveLabel = marketAssetsText("重试保存", "Retry Save");
+      if (saving) saveLabel = marketAssetsText("正在同步...", "Syncing...");
+      const primary = saveAction && editable ? `<button type="button" class="btn primary" data-market-asset-action="${saveAction}" ${saving ? "disabled aria-busy=\"true\"" : ""}>${saveLabel}</button>` : "";
       root.className = "modal-backdrop project-editor-backdrop active";
       root.setAttribute("aria-hidden", "false");
-      root.innerHTML = `<section class="modal project-editor-modal market-asset-modal ${isSpecialDefinition ? "" : "compact-item-modal"}" role="dialog" aria-modal="true" aria-labelledby="marketingAssetModalTitle"><div class="modal-head"><div><h2 class="modal-title" id="marketingAssetModalTitle">${title}</h2><p class="modal-subtitle">${subtitle}</p></div><button class="icon-btn" data-market-asset-action="close-modal" aria-label="${marketAssetsText("关闭", "Close")}">×</button></div><div class="modal-body">${body}</div><div class="modal-foot"><span>${footerStatus}</span><div style="display:flex;gap:7px"><button class="btn" data-market-asset-action="close-modal">${closeLabel}</button>${primary}</div></div></section>`;
+      root.innerHTML = `<section class="modal project-editor-modal market-asset-modal ${isSpecialDefinition ? "" : "compact-item-modal"}" role="dialog" aria-modal="true" aria-labelledby="marketingAssetModalTitle"><div class="modal-head"><div><h2 class="modal-title" id="marketingAssetModalTitle">${title}</h2><p class="modal-subtitle">${subtitle}</p></div><button type="button" class="icon-btn" data-market-asset-action="close-modal" aria-label="${marketAssetsText("关闭", "Close")}" ${saving ? "disabled" : ""}>×</button></div><div class="modal-body">${body}</div><div class="modal-foot"><span>${footerStatus}</span><div style="display:flex;gap:7px"><button type="button" class="btn" data-market-asset-action="close-modal" ${saving ? "disabled" : ""}>${closeLabel}</button>${primary}</div></div></section>`;
       window.operationsI18n?.apply(root);
     }
 
@@ -9990,67 +10079,88 @@
       persistProjectData();
     }
 
-    function saveMarketingAssetItem() {
-      if (!canEditMarketingAssets()) return;
+    async function saveMarketingAssetItem() {
+      if (marketingAssetCommitState.status === "saving") return;
+      if (!canEditMarketingAssets()) {
+        failMarketingAssetSave(marketAssetsText("当前账号没有营销物料编辑权限。", "Your account cannot edit marketing assets."));
+        return;
+      }
       const draft = marketingAssetsState.draft;
       const project = marketingAssetsState.projects.find((item) => item.model === draft?.model);
-      if (!draft || !project) return;
+      if (!draft || !project) {
+        failMarketingAssetSave(marketAssetsText("当前物料已变化，请关闭后重新打开。", "This material changed. Close and reopen it."));
+        return;
+      }
       const notRequired = draft.status === "not_required";
       if (!notRequired && (!draft.owner.trim() || !draft.ddl)) {
-        showProjectToast(marketAssetsText("请填写负责人和DDL。", "Enter an owner and DDL."));
+        failMarketingAssetSave(marketAssetsText("请填写负责人和DDL。", "Enter an owner and DDL."));
         return;
       }
       if (notRequired && !draft.note.trim()) {
-        showProjectToast(marketAssetsText("请填写无需求原因。", "Enter a reason for marking this item as not required."));
+        failMarketingAssetSave(marketAssetsText("请填写无需求原因。", "Enter a reason for marking this item as not required."));
         return;
       }
       if (!notRequired && (!Array.isArray(draft.checklist) || !draft.checklist.length)) {
-        showProjectToast(marketAssetsText("请至少保留一个交付项，或恢复默认清单。", "Keep at least one deliverable or restore the default checklist."));
+        failMarketingAssetSave(marketAssetsText("请至少保留一个交付项，或恢复默认清单。", "Keep at least one deliverable or restore the default checklist."));
         return;
       }
-      syncMarketingAssetChecklistProgress(draft);
-      const previous = draft.special ? project.special?.[draft.key] : project.assets?.[draft.key];
-      const statusHistory = Array.isArray(previous?.statusHistory) ? [...previous.statusHistory] : [];
-      if ((previous?.status || "not_started") !== draft.status) {
-        statusHistory.push({
-          from: previous?.status || "not_started",
-          to: draft.status,
-          reason: draft.note.trim(),
-          changedBy: currentProjectUser()?.name || "--",
-          changedAt: new Date().toISOString()
-        });
-      }
-      const item = {
-        status: draft.status,
-        progress: Math.max(0, Math.min(100, Number(draft.progress || 0))),
-        ddl: draft.ddl,
-        owner: draft.owner.trim(),
-        note: draft.note.trim(),
-        statusHistory,
-        checklist: draft.checklist.map((entry) => ({
-          id: entry.id,
-          titleZh: entry.titleZh || "",
-          titleEn: entry.titleEn || "",
-          title: entry.title || "",
-          custom: Boolean(entry.custom),
-          done: Boolean(entry.done)
-        }))
-      };
-      if (draft.special) {
-        project.special = project.special || {};
-        project.special[draft.key] = item;
-      } else {
-        project.assets[draft.key] = item;
-      }
-      persistMarketingAssets();
-      syncMarketingAssetProject(project.model);
-      clearMarketingAssetDraft();
-      marketingAssetsState.modal = null;
-      marketingAssetsState.draft = null;
+      setMarketingAssetCommitState("saving", marketAssetsText("正在同步团队数据...", "Syncing team data..."));
       renderMarketingAssetModal();
-      renderWorkspaceModule("market-assets");
-      window.operationsI18n?.apply(document.getElementById("workspaceModule"));
-      showProjectToast(`${project.model} · ${marketingAssetMaterialName(draft.key, draft.special)} ${marketAssetsText("已更新。", "updated.")}`);
+      try {
+        await flushAutosave("marketing-assets");
+        syncMarketingAssetChecklistProgress(draft);
+        const previous = draft.special ? project.special?.[draft.key] : project.assets?.[draft.key];
+        const statusHistory = Array.isArray(previous?.statusHistory) ? [...previous.statusHistory] : [];
+        if ((previous?.status || "not_started") !== draft.status) {
+          statusHistory.push({
+            from: previous?.status || "not_started",
+            to: draft.status,
+            reason: draft.note.trim(),
+            changedBy: currentProjectUser()?.name || "--",
+            changedAt: new Date().toISOString()
+          });
+        }
+        const item = {
+          status: draft.status,
+          progress: Math.max(0, Math.min(100, Number(draft.progress || 0))),
+          ddl: draft.ddl,
+          owner: draft.owner.trim(),
+          note: draft.note.trim(),
+          statusHistory,
+          checklist: draft.checklist.map((entry) => ({
+            id: entry.id,
+            titleZh: entry.titleZh || "",
+            titleEn: entry.titleEn || "",
+            title: entry.title || "",
+            custom: Boolean(entry.custom),
+            done: Boolean(entry.done)
+          }))
+        };
+        if (draft.special) {
+          project.special = project.special || {};
+          project.special[draft.key] = item;
+        } else {
+          project.assets[draft.key] = item;
+        }
+        persistMarketingAssets();
+        syncMarketingAssetProject(project.model);
+        const syncResult = await flushMarketingAssetTeamChanges();
+        if (!syncResult?.ok) {
+          failMarketingAssetSave(marketingAssetSaveFailureMessage(syncResult));
+          return;
+        }
+        clearMarketingAssetDraft();
+        resetMarketingAssetCommitState();
+        marketingAssetsState.modal = null;
+        marketingAssetsState.draft = null;
+        renderMarketingAssetModal();
+        renderWorkspaceModule("market-assets");
+        window.operationsI18n?.apply(document.getElementById("workspaceModule"));
+        showProjectToast(`${project.model} · ${marketingAssetMaterialName(draft.key, draft.special)} ${marketAssetsText("已保存并同步到团队。", "saved and synced to the team.")}`);
+      } catch (error) {
+        console.error("Marketing asset save failed", error);
+        failMarketingAssetSave(marketingAssetSaveFailureMessage());
+      }
     }
 
     function marketingAssetIdFromName(name) {
@@ -10058,50 +10168,69 @@
       return slug || `special-material-${Date.now()}`;
     }
 
-    function saveSpecialMarketingAsset() {
-      if (!canEditMarketingAssets()) return;
+    async function saveSpecialMarketingAsset() {
+      if (marketingAssetCommitState.status === "saving") return;
+      if (!canEditMarketingAssets()) {
+        failMarketingAssetSave(marketAssetsText("当前账号没有营销物料编辑权限。", "Your account cannot edit marketing assets."));
+        return;
+      }
       const draft = marketingAssetsState.draft;
       if (!draft?.nameZh.trim() || !draft.nameEn.trim() || !draft.owner.trim() || !draft.ddl) {
-        showProjectToast(marketAssetsText("请完整填写中英文名称、负责人和DDL。", "Complete both names, owner and DDL."));
+        failMarketingAssetSave(marketAssetsText("请完整填写中英文名称、负责人和DDL。", "Complete both names, owner and DDL."));
         return;
       }
       if (/[A-Z]/.test(draft.nameEn) && draft.nameEn === draft.nameEn.toUpperCase()) {
-        showProjectToast(marketAssetsText("英文物料名称请使用标题式写法，不要全部大写。", "Use title case for the English material name; do not use all caps."));
+        failMarketingAssetSave(marketAssetsText("英文物料名称请使用标题式写法，不要全部大写。", "Use title case for the English material name; do not use all caps."));
         return;
       }
       if (!draft.projectIds.length) {
-        showProjectToast(marketAssetsText("请至少选择一个适用项目。", "Select at least one applicable project."));
+        failMarketingAssetSave(marketAssetsText("请至少选择一个适用项目。", "Select at least one applicable project."));
         return;
       }
       const id = draft.specialId || marketingAssetIdFromName(draft.nameEn);
       const duplicate = marketingAssetsState.specialMaterials.find((item) => item.id !== draft.specialId && (item.id === id || item.nameEn.toLowerCase() === draft.nameEn.trim().toLowerCase()));
       if (duplicate) {
-        showProjectToast(marketAssetsText("该特殊物料已存在。", "This special material already exists."));
+        failMarketingAssetSave(marketAssetsText("该特殊物料已存在。", "This special material already exists."));
         return;
       }
-      const definition = { id, nameZh: draft.nameZh.trim(), nameEn: draft.nameEn.trim(), createdAt: new Date().toISOString(), createdBy: currentProjectUser()?.name || "--" };
-      const existingIndex = marketingAssetsState.specialMaterials.findIndex((item) => item.id === draft.specialId);
-      if (existingIndex >= 0) marketingAssetsState.specialMaterials[existingIndex] = { ...marketingAssetsState.specialMaterials[existingIndex], ...definition };
-      else marketingAssetsState.specialMaterials.push(definition);
-      activeMarketingAssetProjects().forEach((project) => {
-        project.special = project.special || {};
-        if (draft.projectIds.includes(project.model)) {
-          project.special[id] = project.special[id] || { status: "not_started", progress: 0, ddl: draft.ddl, owner: draft.owner.trim(), note: "", checklist: marketingAssetDefaultChecklist(id, true) };
-          if (draft.specialId && draft.specialId !== id) delete project.special[draft.specialId];
-        } else {
-          project.special[id] = null;
-          if (draft.specialId && draft.specialId !== id) delete project.special[draft.specialId];
-        }
-      });
-      persistMarketingAssets();
-      activeMarketingAssetProjects().forEach((project) => syncMarketingAssetProject(project.model));
-      clearMarketingAssetDraft();
-      marketingAssetsState.modal = null;
-      marketingAssetsState.draft = null;
+      setMarketingAssetCommitState("saving", marketAssetsText("正在同步团队数据...", "Syncing team data..."));
       renderMarketingAssetModal();
-      renderWorkspaceModule("market-assets");
-      window.operationsI18n?.apply(document.getElementById("workspaceModule"));
-      showProjectToast(`${definition.nameZh} ${marketAssetsText("已保存。", "saved.")}`);
+      try {
+        await flushAutosave("marketing-assets");
+        const definition = { id, nameZh: draft.nameZh.trim(), nameEn: draft.nameEn.trim(), createdAt: new Date().toISOString(), createdBy: currentProjectUser()?.name || "--" };
+        const existingIndex = marketingAssetsState.specialMaterials.findIndex((item) => item.id === draft.specialId);
+        if (existingIndex >= 0) marketingAssetsState.specialMaterials[existingIndex] = { ...marketingAssetsState.specialMaterials[existingIndex], ...definition };
+        else marketingAssetsState.specialMaterials.push(definition);
+        activeMarketingAssetProjects().forEach((project) => {
+          project.special = project.special || {};
+          if (draft.projectIds.includes(project.model)) {
+            project.special[id] = project.special[id] || { status: "not_started", progress: 0, ddl: draft.ddl, owner: draft.owner.trim(), note: "", checklist: marketingAssetDefaultChecklist(id, true) };
+            if (draft.specialId && draft.specialId !== id) delete project.special[draft.specialId];
+          } else {
+            project.special[id] = null;
+            if (draft.specialId && draft.specialId !== id) delete project.special[draft.specialId];
+          }
+        });
+        draft.specialId = id;
+        persistMarketingAssets();
+        activeMarketingAssetProjects().forEach((project) => syncMarketingAssetProject(project.model));
+        const syncResult = await flushMarketingAssetTeamChanges();
+        if (!syncResult?.ok) {
+          failMarketingAssetSave(marketingAssetSaveFailureMessage(syncResult));
+          return;
+        }
+        clearMarketingAssetDraft();
+        resetMarketingAssetCommitState();
+        marketingAssetsState.modal = null;
+        marketingAssetsState.draft = null;
+        renderMarketingAssetModal();
+        renderWorkspaceModule("market-assets");
+        window.operationsI18n?.apply(document.getElementById("workspaceModule"));
+        showProjectToast(`${definition.nameZh} ${marketAssetsText("已保存并同步到团队。", "saved and synced to the team.")}`);
+      } catch (error) {
+        console.error("Special marketing asset save failed", error);
+        failMarketingAssetSave(marketingAssetSaveFailureMessage());
+      }
     }
 
     function exportMarketingAssets() {
@@ -10205,13 +10334,15 @@
         window.operationsI18n?.apply(document.getElementById("workspaceModule"));
       }
       if (action === "close-modal") {
+        if (marketingAssetCommitState.status === "saving") return true;
         flushAutosave("marketing-assets");
+        resetMarketingAssetCommitState();
         marketingAssetsState.modal = null;
         marketingAssetsState.draft = null;
         renderMarketingAssetModal();
       }
-      if (action === "save-item") saveMarketingAssetItem();
-      if (action === "save-special") saveSpecialMarketingAsset();
+      if (action === "save-item") void saveMarketingAssetItem();
+      if (action === "save-special") void saveSpecialMarketingAsset();
       return true;
     }
 
@@ -14713,7 +14844,9 @@
         return;
       }
       if (event.target.id === "marketingAssetModalRoot") {
+        if (marketingAssetCommitState.status === "saving") return;
         flushAutosave("marketing-assets");
+        resetMarketingAssetCommitState();
         marketingAssetsState.modal = null;
         marketingAssetsState.draft = null;
         renderMarketingAssetModal();
@@ -15599,7 +15732,9 @@
         }
       }
       if (event.key === "Escape" && marketingAssetsState.modal) {
+        if (marketingAssetCommitState.status === "saving") return;
         flushAutosave("marketing-assets");
+        resetMarketingAssetCommitState();
         marketingAssetsState.modal = null;
         marketingAssetsState.draft = null;
         renderMarketingAssetModal();

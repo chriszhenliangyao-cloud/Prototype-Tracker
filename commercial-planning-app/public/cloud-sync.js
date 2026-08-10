@@ -831,6 +831,7 @@
     const timers = new Map();
     const pendingPayloads = new Map();
     const saveChains = new Map();
+    const lastSaveResults = new Map();
     let activeSaves = 0;
 
     function dispatchRemoteDocumentUpdate(row) {
@@ -970,7 +971,14 @@
     }
 
     async function saveKey(key) {
-      if (!pendingPayloads.has(key)) return;
+      if (!pendingPayloads.has(key)) {
+        const previous = lastSaveResults.get(key);
+        return previous?.ok ? previous : {
+          ok: true,
+          skipped: true,
+          version: Number(versions.get(key) || 0)
+        };
+      }
       const entry = pendingPayloads.get(key);
       pendingPayloads.delete(key);
       activeSaves += 1;
@@ -987,8 +995,8 @@
           p_client_mutation_id: entry.mutationId
         });
         if (response.error) throw response.error;
-        const result = Array.isArray(response.data) ? response.data[0] : response.data;
-        const savedVersion = Number(result?.version || (versions.get(key) || 0) + 1);
+        const rpcResult = Array.isArray(response.data) ? response.data[0] : response.data;
+        const savedVersion = Number(rpcResult?.version || (versions.get(key) || 0) + 1);
         versions.set(key, savedVersion);
         syncedPayloads.set(key, cloneJson(entry.payload));
         removeOutboxEntry(key, entry.mutationId);
@@ -1006,6 +1014,9 @@
           storeOutboxEntry(key, nextEntry);
         }
         setStatus(statusNode, "saved", "已同步");
+        const saveResult = { ok: true, version: savedVersion };
+        lastSaveResults.set(key, saveResult);
+        return saveResult;
       } catch (error) {
         const failure = classifyDocumentSaveError(error);
         blockedByConflict = failure.conflict;
@@ -1048,6 +1059,16 @@
             await handleRemoteUpdate(remote.data);
           }
         }
+        const saveResult = {
+          ok: false,
+          pending: true,
+          conflict: failure.conflict,
+          retrying: shouldRetry,
+          statusLabel: failure.statusLabel,
+          errorCode: failure.code
+        };
+        lastSaveResults.set(key, saveResult);
+        return saveResult;
       } finally {
         activeSaves -= 1;
         if (pendingPayloads.has(key) && !blockedByConflict && shouldRetry) queueKey(key, retryDelay);
@@ -1057,11 +1078,17 @@
       }
     }
 
+    function startKeySave(key) {
+      const chain = (saveChains.get(key) || Promise.resolve()).then(() => saveKey(key));
+      saveChains.set(key, chain.catch(() => {}));
+      return chain;
+    }
+
     function queueKey(key, delay = 750) {
       window.clearTimeout(timers.get(key));
       timers.set(key, window.setTimeout(() => {
-        const chain = (saveChains.get(key) || Promise.resolve()).then(() => saveKey(key));
-        saveChains.set(key, chain.catch(() => {}));
+        timers.delete(key);
+        startKeySave(key);
       }, delay));
     }
 
@@ -1338,10 +1365,38 @@
         timers.forEach((timer, key) => {
           window.clearTimeout(timer);
           timers.delete(key);
-          const chain = (saveChains.get(key) || Promise.resolve()).then(() => saveKey(key));
-          saveChains.set(key, chain.catch(() => {}));
+          startKeySave(key);
         });
         await Promise.all([...saveChains.values()]);
+      },
+      async flushDocument(key) {
+        if (!SYNC_KEYS.has(key)) {
+          return { ok: false, pending: false, errorCode: "unsupported_document" };
+        }
+        let chain = saveChains.get(key) || null;
+        if (timers.has(key)) {
+          window.clearTimeout(timers.get(key));
+          timers.delete(key);
+          chain = startKeySave(key);
+        } else if (pendingPayloads.has(key)) {
+          chain = startKeySave(key);
+        }
+        if (chain) await chain;
+        if (pendingPayloads.has(key)) {
+          const pending = pendingPayloads.get(key);
+          return {
+            ...(lastSaveResults.get(key) || {}),
+            ok: false,
+            pending: true,
+            errorCode: pending?.lastErrorCode || "save_pending"
+          };
+        }
+        const result = lastSaveResults.get(key);
+        return result?.ok ? result : {
+          ok: true,
+          skipped: true,
+          version: Number(versions.get(key) || 0)
+        };
       },
       retryPending() {
         pendingPayloads.forEach((entry, key) => {
