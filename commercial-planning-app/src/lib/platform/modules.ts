@@ -229,6 +229,7 @@ const administration: PlatformModuleDefinition[] = [
     descriptionZh: "权限、模块、主数据与审计",
     descriptionEn: "Permissions, modules, Master Data and audit",
     href: "/platform/system/master-data",
+    activePrefix: "/platform/system",
     protectedModule: "master_data",
     requiresMasterData: true
   }

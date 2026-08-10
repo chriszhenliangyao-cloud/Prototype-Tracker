@@ -41,6 +41,11 @@ const supabaseAuthSource = readFileSync(
   "utf8"
 );
 
+const permissionPageSource = readFileSync(
+  new URL("../app/platform/system/permissions/page.tsx", import.meta.url),
+  "utf8"
+);
+
 describe("platform owner governance", () => {
   it("places Platform Owner above Super Admin and protects elevated accounts", () => {
     expect(platformSource.indexOf('{ key: "platform_owner"')).toBeLessThan(
@@ -80,13 +85,18 @@ describe("platform owner governance", () => {
     expect(platformSource).toContain("canEditPermissionUser");
   });
 
-  it("shows the signed-in governance role and restores access management in the native shell", () => {
+  it("shows the governance role and opens access management as a dedicated system page", () => {
     expect(supabaseAuthSource).toContain('.from("workspace_platform_roles")');
     expect(supabaseAuthSource).toContain("governanceRole");
     expect(nativePlatformShellSource).toContain('session.governanceRole === "platform_owner"');
     expect(nativePlatformShellSource).toContain('session.governanceRole === "super_admin"');
-    expect(nativePlatformShellSource).toContain('href="/platform/planning/projects?permissions=1"');
+    expect(nativePlatformShellSource).toContain("/platform/system/permissions?returnTo=");
+    expect(permissionPageSource).toContain('permissionsOnly: "1"');
+    expect(permissionPageSource).toContain('redirect("/auth/forbidden")');
     expect(platformSource).toContain('get("permissions") === "1"');
+    expect(platformSource).toContain("leaveStandalonePermissionManager");
+    expect(platformSource).toContain('window.parent.location.assign(returnTo)');
+    expect(platformSource).toContain("platform-permissions-only");
     expect(platformSource).toContain('data-project-action="permissions"');
   });
 
