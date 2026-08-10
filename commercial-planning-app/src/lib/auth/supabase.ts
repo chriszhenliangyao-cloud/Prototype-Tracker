@@ -61,19 +61,48 @@ export function clearSupabaseCodeVerifierCookies(
   response: NextResponse,
   config: AuthConfig
 ) {
-  const expired = {
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith("sb-") && cookie.name.includes("code-verifier")) {
+      expireSupabaseCookie(response, config, cookie.name);
+    }
+  }
+}
+
+export function clearSupabaseAuthCookies(
+  request: NextRequest,
+  response: NextResponse,
+  config: AuthConfig
+) {
+  for (const cookieName of getSupabaseAuthCookieNames(
+    request.cookies.getAll()
+  )) {
+    expireSupabaseCookie(response, config, cookieName);
+  }
+}
+
+export function getSupabaseAuthCookieNames(
+  cookiesToInspect: Array<{ name: string }>
+) {
+  return Array.from(new Set(
+    cookiesToInspect
+      .map((cookie) => cookie.name)
+      .filter((name) => name.startsWith("sb-"))
+  ));
+}
+
+function expireSupabaseCookie(
+  response: NextResponse,
+  config: AuthConfig,
+  cookieName: string
+) {
+  response.cookies.set(cookieName, "", {
     httpOnly: true,
     secure: config.appUrl.startsWith("https://"),
-    sameSite: "lax" as const,
+    sameSite: "lax",
     path: "/",
     maxAge: 0,
     expires: new Date(0)
-  };
-  for (const cookie of request.cookies.getAll()) {
-    if (cookie.name.startsWith("sb-") && cookie.name.includes("code-verifier")) {
-      response.cookies.set(cookie.name, "", expired);
-    }
-  }
+  });
 }
 
 export function createSupabaseAccessTokenClient(

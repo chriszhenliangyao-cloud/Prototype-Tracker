@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { buildLogoutUrl } from "@/lib/auth/cognito";
 import { getAuthConfig } from "@/lib/auth/config";
 import { clearAuthCookies } from "@/lib/auth/server";
-import { createSupabaseRouteClient } from "@/lib/auth/supabase";
+import {
+  clearSupabaseAuthCookies,
+  createSupabaseRouteClient
+} from "@/lib/auth/supabase";
 import type { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +17,13 @@ export async function GET(request: NextRequest) {
       new URL("/auth/signed-out", config.appUrl)
     );
     const client = createSupabaseRouteClient(request, response, config);
-    await client.auth.signOut();
+    const signOut = await client.auth.signOut({ scope: "local" });
+    if (signOut.error) {
+      console.warn("[auth/logout] Could not revoke the local Supabase session", {
+        code: signOut.error.code
+      });
+    }
+    clearSupabaseAuthCookies(request, response, config);
     clearAuthCookies(response);
     response.headers.set("cache-control", "no-store");
     return response;
