@@ -6,7 +6,8 @@ const session = {
   name: "Finance User",
   role: "FINANCE" as const,
   groups: ["FINANCE"],
-  expiresAt: 1800000000
+  expiresAt: 1800000000,
+  governanceRole: "platform_owner" as const
 };
 
 describe("session cookies", () => {

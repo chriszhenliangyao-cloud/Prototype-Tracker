@@ -5,7 +5,7 @@ import type { NextRequest, NextResponse } from "next/server";
 import { applyTrustedEmailRolesToSession } from "./cognito";
 import type { AuthConfig, EmailRoleMap } from "./config";
 import { isUserRole } from "./roles";
-import type { AppSession } from "./types";
+import type { AppSession, PlatformGovernanceRole } from "./types";
 
 type CookieToSet = {
   name: string;
@@ -188,11 +188,21 @@ async function buildSupabaseAppSession({
     return null;
   }
 
-  const permissionsResult = await client.rpc(
-    "get_my_protected_module_permissions",
-    { p_workspace_id: workspaceId }
-  );
+  const [permissionsResult, governanceResult] = await Promise.all([
+    client.rpc("get_my_protected_module_permissions", {
+      p_workspace_id: workspaceId
+    }),
+    client
+      .from("workspace_platform_roles")
+      .select("role")
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", user.id)
+      .maybeSingle()
+  ]);
   if (permissionsResult.error) return null;
+  const governanceRole = normalizeGovernanceRole(
+    governanceResult.error ? null : governanceResult.data?.role
+  );
 
   const rawRole = String(access.app_role || "VIEWER");
   const role = isUserRole(rawRole) ? rawRole : "VIEWER";
@@ -203,9 +213,14 @@ async function buildSupabaseAppSession({
       String(user.user_metadata?.full_name || user.user_metadata?.name || "").trim() ||
       email.split("@")[0],
     role,
-    groups: [role, String(access.platform_role || "viewer").toUpperCase()],
+    groups: [
+      role,
+      String(access.platform_role || "viewer").toUpperCase(),
+      ...(governanceRole ? [governanceRole.toUpperCase()] : [])
+    ],
     expiresAt,
     workspaceId,
+    governanceRole,
     protectedModules: Object.fromEntries(
       (permissionsResult.data || []).map(
         (item: { module_key?: string; access_level?: string }) => [
@@ -217,6 +232,14 @@ async function buildSupabaseAppSession({
   };
 
   return applyTrustedEmailRolesToSession(identity, emailRoleMap);
+}
+
+function normalizeGovernanceRole(
+  value: unknown
+): PlatformGovernanceRole | undefined {
+  return value === "platform_owner" || value === "super_admin"
+    ? value
+    : undefined;
 }
 
 function normalizeProtectedModuleAccess(value: string | undefined) {

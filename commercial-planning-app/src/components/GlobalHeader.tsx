@@ -19,6 +19,13 @@ export function GlobalHeader({
 }) {
   const pathname = usePathname() || "/";
   const switchAccountHref = `/auth/login?switchAccount=1&returnTo=${encodeURIComponent(pathname)}`;
+  const displayedRole = session?.governanceRole === "platform_owner"
+    ? "Platform Owner"
+    : session?.governanceRole === "super_admin"
+      ? "Super Admin"
+      : session
+        ? formatRoleLabel(session.role)
+        : "";
 
   if (pathname === "/platform" || pathname.startsWith("/platform/")) {
     return null;
@@ -88,10 +95,10 @@ export function GlobalHeader({
                   className="max-w-40 truncate whitespace-nowrap font-medium text-slate-800"
                   title={session.name}
                 >
-                  {session.name}
+                  {session.email}
                 </span>
                 <span className="shrink-0 whitespace-nowrap rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
-                  {formatRoleLabel(session.role)}
+                  {displayedRole}
                 </span>
               </div>
               <a

@@ -344,6 +344,12 @@ body:has(.native-platform-shell) > div > main {
   font-weight: 650;
 }
 
+.native-platform-user-email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .native-platform-user small {
   flex: 0 0 auto;
   padding: 2px 5px;
@@ -354,6 +360,7 @@ body:has(.native-platform-shell) > div > main {
 }
 
 .native-platform-account select,
+.native-platform-permissions,
 .native-platform-signout {
   min-height: 28px;
   border: 1px solid #c7d2e2;
@@ -373,6 +380,20 @@ body:has(.native-platform-shell) > div > main {
   padding: 0 8px;
   font-weight: 650;
   text-decoration: none;
+}
+
+.native-platform-permissions {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.native-platform-permissions:hover,
+.native-platform-signout:hover {
+  border-color: #9fb2cf;
+  background: #f7f9fc;
 }
 
 .native-platform-content {

@@ -15590,6 +15590,10 @@
     }
     persistPlatformNavigation({ replace: true });
     renderApp();
+    if (new URLSearchParams(window.location.search).get("permissions") === "1") {
+      const permissionButton = document.querySelector('[data-project-action="permissions"]');
+      if (permissionButton instanceof HTMLButtonElement) permissionButton.click();
+    }
     void loadMasterDataOptions().then(() => {
       if (["sales", "projects", "market-assets", "prototype-management", "forecast", "logistics"].includes(activeModule)) {
         renderApp();
