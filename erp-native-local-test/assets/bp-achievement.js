@@ -193,26 +193,29 @@
         h("div", [h("h2", `${state.year} 年度经营进度`), h("p", `${scopeLabel} · ${metricLabel()}口径 · 实际为有效PO`)]),
         state.period !== "year" ? h("button.btn.sm", { type: "button", onclick: () => { state.period = "year"; paint(); } }, "查看全年明细") : pill("全年明细", "blue")
       ]),
-      h("div.bp-annual-kpis", [
-        h("div.bw-kpi", [h("span", `年度BP目标 · ${metricLabel()}`), h("strong", format(targetValue)), h("small", "已确认BP版本")]),
-        h("div.bw-kpi", [h("span", "年度实际 · 有效PO"), h("strong", format(actualValue)), h("small", `当前差额 ${format(actualGap)}`)]),
-        h("div.bw-kpi", [h("span", "年度实际达成率"), h("strong", { class: kind(rate) === "green" ? "bw-positive" : kind(rate) === "amber" ? "bw-warning" : "bw-negative" }, pct(rate)), h("small", status(rate))]),
-        h("div.bw-kpi", [h("span", "全年预计达成"), h("strong", { class: kind(projection.projectedRate) === "green" ? "bw-positive" : kind(projection.projectedRate) === "amber" ? "bw-warning" : "bw-negative" }, pct(projection.projectedRate)), h("small", `${format(projection.projected)} · 实际 + 确认预测`)]),
-        h("div.bw-kpi", [h("span", "预计年度差额"), h("strong", { class: projection.projectedGap >= 0 ? "bw-positive" : "bw-negative" }, format(projection.projectedGap)), h("small", projection.projectedGap >= 0 ? "预计超过年度目标" : "按当前预测仍需补足")])
-      ]),
-      h("div.bp-annual-progress", [
-        h("div.bp-annual-quarter-labels", [1, 2, 3, 4].map((quarter) => {
-          const quarterData = result(state.scope, M.monthsForQuarter(state.year, quarter));
-          return h("span", [h("b", `Q${quarter}`), h("small", format(target(quarterData)))]);
-        })),
-        h("div.bp-annual-track", { title: `年度实际达成 ${pct(rate)}；时间进度 ${pct(timeProgress)}` }, [
-          h("span.bp-annual-fill", { style: { width: `${Math.max(0, Math.min(100, rate || 0))}%` } }),
-          h("i.bp-annual-time-marker", { style: { left: `${timeProgress}%` } })
+      h("div.bp-annual-body", [
+        h("div.bp-annual-kpis", [
+          h("div.bw-kpi", [h("span", `年度BP目标 · ${metricLabel()}`), h("strong", format(targetValue)), h("small", "已确认BP版本")]),
+          h("div.bw-kpi", [h("span", "年度实际 · 有效PO"), h("strong", format(actualValue)), h("small", `当前差额 ${format(actualGap)}`)]),
+          h("div.bw-kpi", [h("span", "年度实际达成率"), h("strong", { class: kind(rate) === "green" ? "bw-positive" : kind(rate) === "amber" ? "bw-warning" : "bw-negative" }, pct(rate)), h("small", status(rate))]),
+          h("div.bw-kpi", [h("span", "全年预计达成"), h("strong", { class: kind(projection.projectedRate) === "green" ? "bw-positive" : kind(projection.projectedRate) === "amber" ? "bw-warning" : "bw-negative" }, pct(projection.projectedRate)), h("small", `${format(projection.projected)} · 实际 + 确认预测`)]),
+          h("div.bw-kpi", [h("span", "预计年度差额"), h("strong", { class: projection.projectedGap >= 0 ? "bw-positive" : "bw-negative" }, format(projection.projectedGap)), h("small", projection.projectedGap >= 0 ? "预计超过年度目标" : "按当前预测仍需补足")])
         ]),
-        h("div.bp-annual-progress-meta", [
-          h("span", [h("i.actual"), `实际进度 ${pct(rate)}`]),
-          h("span", [h("i.time"), `时间进度 ${pct(timeProgress)}`]),
-          h("strong", { class: projection.projectedGap >= 0 ? "bw-positive" : "bw-negative" }, `全年预测 ${pct(projection.projectedRate)}`)
+        h("div.bp-annual-progress", [
+          h("div.bp-annual-progress-title", [h("strong", "年度进度"), h("span", "实际、时间与全年预测对照")]),
+          h("div.bp-annual-quarter-labels", [1, 2, 3, 4].map((quarter) => {
+            const quarterData = result(state.scope, M.monthsForQuarter(state.year, quarter));
+            return h("span", [h("b", `Q${quarter}`), h("small", format(target(quarterData)))]);
+          })),
+          h("div.bp-annual-track", { title: `年度实际达成 ${pct(rate)}；时间进度 ${pct(timeProgress)}` }, [
+            h("span.bp-annual-fill", { style: { width: `${Math.max(0, Math.min(100, rate || 0))}%` } }),
+            h("i.bp-annual-time-marker", { style: { left: `${timeProgress}%` } })
+          ]),
+          h("div.bp-annual-progress-meta", [
+            h("span", [h("i.actual"), `实际进度 ${pct(rate)}`]),
+            h("span", [h("i.time"), `时间进度 ${pct(timeProgress)}`]),
+            h("strong", { class: projection.projectedGap >= 0 ? "bw-positive" : "bw-negative" }, `全年预测 ${pct(projection.projectedRate)}`)
+          ])
         ])
       ])
     ]);
@@ -229,7 +232,7 @@
     const selectedQuarter = state.period === "year" ? null : Number(state.period.slice(1));
     return h("div.bp-view", [
       annualCockpit(),
-      panel("季度达成", state.period === "year" ? `点击季度查看月度结构与年度影响 · 当前口径：${metricLabel()}` : `已选择 ${state.year} ${state.period} · 点击其他季度切换`, h("div.bp-quarter-grid", [1, 2, 3, 4].map((quarter) => quarterCard(quarter)))),
+      panel("季度达成", state.period === "year" ? `点击季度查看月度结构与年度影响 · 当前口径：${metricLabel()}` : `已选择 ${state.year} ${state.period} · 点击其他季度切换`, h("div.bp-quarter-grid", [1, 2, 3, 4].map((quarter) => quarterCard(quarter))), "bp-quarter-panel"),
       selectedQuarter ? quarterDetail(selectedQuarter) : null,
       h("div.bw-grid", [
         panel(selectedQuarter ? `${state.period} 月度明细` : "年度月度目标与实际", `${state.year}年 · ${state.scope === "ALL" ? "全部可见市场" : state.scope}`, monthlyTable()),

@@ -1,5 +1,28 @@
 # Prototype Tracker Project Notes
 
+## 2026-08-10 Business Management Dashboard Release Candidate
+
+- Promoted `经营总览` to a first-class native module and replaced the legacy
+  hardcoded overview with one read-only command centre. It combines confirmed
+  BP, effective PO, forecast, logistics, profit and CN contracts with the
+  current account's synchronized Project Tracking and Marketing Assets team
+  documents.
+- Added annual and quarter controls, six operating KPIs, monthly BP / effective
+  PO / rolling projection, cross-module health, a market matrix, source/version
+  traceability and direct navigation back to every responsible module.
+- Added the `关键异常与行动` workspace with severity/source/search filters,
+  impact, owner, DDL and status. `查看来源` opens the source module; `更新行动`
+  and `新建经营行动` enter Business Analysis Review. The overview itself does
+  not write source documents.
+- Compressed the existing BP comprehensive view without changing its data or
+  business logic. Annual KPIs and the annual progress track now share one band,
+  and the four quarter cards form one compact comparison row so the detailed
+  monthly and market data appears higher in the viewport.
+- Verification passes 75 test files / 419 tests, TypeScript, copy-scope
+  validation, the PostgreSQL-targeted Vercel production build, `git diff
+  --check`, and desktop/mobile Chrome checks. This release runs no schema
+  migration, seed, import or production data write.
+
 ## 2026-08-10 Marketing Asset Save Reliability
 
 - Traced Ivy's apparently unresponsive `保存更新` action to a frontend commit
