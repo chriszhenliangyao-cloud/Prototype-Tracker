@@ -92,11 +92,12 @@
     return "偏差较大";
   }
   function pill(text, tone) { return h(`span.bw-pill.${tone || ""}`, text); }
-  function rateBar(value) {
+  function rateBar(value, tone) {
     const rate = value == null ? 0 : Math.max(0, Math.min(100, value));
+    const barTone = tone || kind(value);
     return h("div.bp-rate", [
-      h("div.bp-rate-track", h("span", { class: kind(value), style: { width: `${rate}%` } })),
-      h("strong", { class: value != null && value < 70 ? "bw-negative" : value != null && value < 90 ? "bw-warning" : "bw-positive" }, pct(value))
+      h("div.bp-rate-track", h("span", { class: barTone, style: { width: `${rate}%` } })),
+      h("strong", { class: tone === "gray" || value == null ? "" : value < 70 ? "bw-negative" : value < 90 ? "bw-warning" : "bw-positive" }, pct(value))
     ]);
   }
 
@@ -144,16 +145,76 @@
     }, tab.label)));
   }
 
-  function kpis(data) {
+  function annualMonths() { return M.monthsForYear(state.year); }
+
+  function annualTimeProgress() {
+    const now = new Date();
+    if (state.year < now.getFullYear()) return 100;
+    if (state.year > now.getFullYear()) return 0;
+    const start = new Date(state.year, 0, 1);
+    const end = new Date(state.year + 1, 0, 1);
+    return Math.max(0, Math.min(100, (now - start) / (end - start) * 100));
+  }
+
+  function projectionForMonths(selectedScope, selectedMonths) {
+    const current = currentMonthKey();
+    const closed = selectedMonths.filter((month) => month <= current);
+    const future = selectedMonths.filter((month) => month > current);
+    const targetValue = target(result(selectedScope, selectedMonths));
+    let projected = closed.length ? actual(result(selectedScope, closed)) : 0;
+    let forecastTotal = 0;
+    future.forEach((month) => {
+      const booked = actual(result(selectedScope, [month]));
+      const forecast = forecastMetricForMonth(selectedScope, month);
+      forecastTotal += forecast;
+      projected += Math.max(booked, forecast);
+    });
+    return {
+      closed,
+      future,
+      forecastTotal,
+      projected,
+      projectedRate: targetValue > 0 ? projected / targetValue * 100 : null,
+      projectedGap: projected - targetValue
+    };
+  }
+
+  function annualCockpit() {
+    const data = result(state.scope, annualMonths());
     const targetValue = target(data);
     const actualValue = actual(data);
-    const gapValue = gap(data);
+    const actualGap = gap(data);
     const rate = achievement(data);
-    return h("div.bw-kpis.bp-kpis", [
-      h("div.bw-kpi", [h("span", `BP目标 · ${metricLabel()}`), h("strong", format(targetValue)), h("small", periodLabel())]),
-      h("div.bw-kpi", [h("span", "实际达成 · 有效PO"), h("strong", format(actualValue)), h("small", "已取消PO不计入")]),
-      h("div.bw-kpi", [h("span", "目标差额"), h("strong", { class: gapValue >= 0 ? "bw-positive" : "bw-negative" }, format(gapValue)), h("small", gapValue >= 0 ? "已超过当前目标" : "尚需补足")]),
-      h("div.bw-kpi", [h("span", "BP达成率"), h("strong", { class: kind(rate) === "green" ? "bw-positive" : kind(rate) === "amber" ? "bw-warning" : "bw-negative" }, pct(rate)), h("small", status(rate))])
+    const projection = projectionForMonths(state.scope, annualMonths());
+    const timeProgress = annualTimeProgress();
+    const scopeLabel = state.scope === "ALL" ? "全部可见市场" : state.scope;
+    return h("section.bp-annual-cockpit", [
+      h("header.bp-annual-head", [
+        h("div", [h("h2", `${state.year} 年度经营进度`), h("p", `${scopeLabel} · ${metricLabel()}口径 · 实际为有效PO`)]),
+        state.period !== "year" ? h("button.btn.sm", { type: "button", onclick: () => { state.period = "year"; paint(); } }, "查看全年明细") : pill("全年明细", "blue")
+      ]),
+      h("div.bp-annual-kpis", [
+        h("div.bw-kpi", [h("span", `年度BP目标 · ${metricLabel()}`), h("strong", format(targetValue)), h("small", "已确认BP版本")]),
+        h("div.bw-kpi", [h("span", "年度实际 · 有效PO"), h("strong", format(actualValue)), h("small", `当前差额 ${format(actualGap)}`)]),
+        h("div.bw-kpi", [h("span", "年度实际达成率"), h("strong", { class: kind(rate) === "green" ? "bw-positive" : kind(rate) === "amber" ? "bw-warning" : "bw-negative" }, pct(rate)), h("small", status(rate))]),
+        h("div.bw-kpi", [h("span", "全年预计达成"), h("strong", { class: kind(projection.projectedRate) === "green" ? "bw-positive" : kind(projection.projectedRate) === "amber" ? "bw-warning" : "bw-negative" }, pct(projection.projectedRate)), h("small", `${format(projection.projected)} · 实际 + 确认预测`)]),
+        h("div.bw-kpi", [h("span", "预计年度差额"), h("strong", { class: projection.projectedGap >= 0 ? "bw-positive" : "bw-negative" }, format(projection.projectedGap)), h("small", projection.projectedGap >= 0 ? "预计超过年度目标" : "按当前预测仍需补足")])
+      ]),
+      h("div.bp-annual-progress", [
+        h("div.bp-annual-quarter-labels", [1, 2, 3, 4].map((quarter) => {
+          const quarterData = result(state.scope, M.monthsForQuarter(state.year, quarter));
+          return h("span", [h("b", `Q${quarter}`), h("small", format(target(quarterData)))]);
+        })),
+        h("div.bp-annual-track", { title: `年度实际达成 ${pct(rate)}；时间进度 ${pct(timeProgress)}` }, [
+          h("span.bp-annual-fill", { style: { width: `${Math.max(0, Math.min(100, rate || 0))}%` } }),
+          h("i.bp-annual-time-marker", { style: { left: `${timeProgress}%` } })
+        ]),
+        h("div.bp-annual-progress-meta", [
+          h("span", [h("i.actual"), `实际进度 ${pct(rate)}`]),
+          h("span", [h("i.time"), `时间进度 ${pct(timeProgress)}`]),
+          h("strong", { class: projection.projectedGap >= 0 ? "bw-positive" : "bw-negative" }, `全年预测 ${pct(projection.projectedRate)}`)
+        ])
+      ])
     ]);
   }
 
@@ -165,32 +226,110 @@
   }
 
   function overview() {
-    const data = result();
+    const selectedQuarter = state.period === "year" ? null : Number(state.period.slice(1));
     return h("div.bp-view", [
-      kpis(data),
-      panel("季度达成", `点击季度切换明细 · 当前口径：${metricLabel()}`, h("div.bp-quarter-grid", [1, 2, 3, 4].map((quarter) => quarterCard(quarter)))),
+      annualCockpit(),
+      panel("季度达成", state.period === "year" ? `点击季度查看月度结构与年度影响 · 当前口径：${metricLabel()}` : `已选择 ${state.year} ${state.period} · 点击其他季度切换`, h("div.bp-quarter-grid", [1, 2, 3, 4].map((quarter) => quarterCard(quarter)))),
+      selectedQuarter ? quarterDetail(selectedQuarter) : null,
       h("div.bw-grid", [
-        panel("月度目标与实际", `${state.year}年 · ${state.scope === "ALL" ? "全部可见市场" : state.scope}`, monthlyTable()),
-        panel("市场达成提醒", "按达成率从低到高", marketAlertTable())
+        panel(selectedQuarter ? `${state.period} 月度明细` : "年度月度目标与实际", `${state.year}年 · ${state.scope === "ALL" ? "全部可见市场" : state.scope}`, monthlyTable()),
+        panel(selectedQuarter ? `${state.period} 市场达成提醒` : "年度市场达成提醒", "按达成率从低到高", marketAlertTable())
       ])
     ]);
+  }
+
+  function quarterTiming(quarter) {
+    const now = new Date();
+    if (state.year < now.getFullYear()) return "closed";
+    if (state.year > now.getFullYear()) return "future";
+    const currentMonth = now.getMonth() + 1;
+    const startMonth = (quarter - 1) * 3 + 1;
+    const endMonth = quarter * 3;
+    if (currentMonth < startMonth) return "future";
+    if (currentMonth > endMonth) return "closed";
+    return "current";
+  }
+
+  function quarterState(quarter, rate) {
+    const timing = quarterTiming(quarter);
+    if (timing === "future") return { label: "未开始", tone: "gray", barTone: "gray" };
+    if (timing === "current") return { label: "进行中", tone: "blue", barTone: kind(rate) };
+    return { label: status(rate), tone: kind(rate), barTone: kind(rate) };
   }
 
   function quarterCard(quarter) {
     const row = result(state.scope, M.monthsForQuarter(state.year, quarter));
     const rate = achievement(row);
+    const quarterStatus = quarterState(quarter, rate);
     return h("button.bp-quarter", {
       type: "button",
       class: state.period === `Q${quarter}` ? "active" : "",
+      "aria-pressed": String(state.period === `Q${quarter}`),
       onclick: () => { state.period = `Q${quarter}`; paint(); }
     }, [
-      h("header", [h("b", `${state.year} Q${quarter}`), pill(status(rate), kind(rate))]),
+      h("header", [h("b", `${state.year} Q${quarter}`), pill(quarterStatus.label, quarterStatus.tone)]),
       h("div.bp-quarter-values", [
         h("span", [h("small", "BP"), h("strong", format(target(row)))]),
         h("span", [h("small", "实际"), h("strong", format(actual(row)))])
       ]),
-      rateBar(rate)
+      rateBar(rate, quarterStatus.barTone)
     ]);
+  }
+
+  function quarterDetail(quarter) {
+    return h("div.bp-quarter-detail-grid", [
+      quarterMonthlyChart(quarter),
+      quarterImpact(quarter)
+    ]);
+  }
+
+  function quarterMonthlyChart(quarter) {
+    const selectedMonths = M.monthsForQuarter(state.year, quarter);
+    const rows = selectedMonths.map((month) => {
+      const row = result(state.scope, [month]);
+      return { month, goal: target(row), done: actual(row), forecast: forecastMetricForMonth(state.scope, month) };
+    });
+    const maximum = Math.max(1, ...rows.flatMap((row) => [row.goal, row.done, row.forecast]));
+    const barHeight = (value) => `${Math.max(2, Math.round(Math.max(0, value) / maximum * 100))}%`;
+    return panel(`${state.year} Q${quarter} 月度结构`, "BP / 有效PO / 确认预测", h("div.bp-quarter-chart", [
+      h("div.bp-quarter-chart-legend", [
+        h("span", [h("i.target"), "BP目标"]), h("span", [h("i.actual"), "有效PO"]), h("span", [h("i.forecast"), "确认预测"])
+      ]),
+      h("div.bp-quarter-chart-columns", rows.map((row) => h("div.bp-quarter-chart-month", [
+        h("div.bp-quarter-chart-bars", [
+          h("span.target", { style: { height: barHeight(row.goal) }, title: `BP ${format(row.goal)}` }),
+          h("span.actual", { style: { height: barHeight(row.done) }, title: `有效PO ${format(row.done)}` }),
+          h("span.forecast", { style: { height: barHeight(row.forecast) }, title: `确认预测 ${format(row.forecast)}` })
+        ]),
+        h("b", `${Number(row.month.slice(5, 7))}月`),
+        h("small", `${format(row.done)} / ${format(row.goal)}`)
+      ])))
+    ]), "bp-quarter-chart-panel");
+  }
+
+  function quarterImpact(quarter) {
+    const selectedMonths = M.monthsForQuarter(state.year, quarter);
+    const quarterData = result(state.scope, selectedMonths);
+    const annualData = result(state.scope, annualMonths());
+    const projection = projectionForMonths(state.scope, selectedMonths);
+    const quarterGap = gap(quarterData);
+    const annualGap = gap(annualData);
+    const targetShare = target(annualData) > 0 ? target(quarterData) / target(annualData) * 100 : null;
+    const actualShare = actual(annualData) > 0 ? actual(quarterData) / actual(annualData) * 100 : null;
+    const gapShare = annualGap < 0 && quarterGap < 0 ? Math.abs(quarterGap) / Math.abs(annualGap) * 100 : 0;
+    const message = projection.projectedGap >= 0
+      ? `按有效PO与确认预测，Q${quarter}预计超过目标 ${format(projection.projectedGap)}。`
+      : `按有效PO与确认预测，Q${quarter}仍需补足 ${format(Math.abs(projection.projectedGap))}。`;
+    return panel("季度对年度影响", `${state.year} Q${quarter}`, h("div.bp-quarter-impact", [
+      h("div.bp-quarter-impact-grid", [
+        h("span", [h("small", "年度目标占比"), h("strong", pct(targetShare))]),
+        h("span", [h("small", "年度实际贡献"), h("strong", pct(actualShare))]),
+        h("span", [h("small", "年度缺口占比"), h("strong", { class: gapShare > 0 ? "bw-negative" : "bw-positive" }, pct(gapShare))]),
+        h("span", [h("small", "季度预计达成"), h("strong", { class: kind(projection.projectedRate) === "green" ? "bw-positive" : kind(projection.projectedRate) === "amber" ? "bw-warning" : "bw-negative" }, pct(projection.projectedRate))])
+      ]),
+      h("p.bp-quarter-impact-note", message),
+      h("button.btn.primary.sm", { type: "button", onclick: () => { state.tab = "market"; state.marketView = "matrix"; state.selectedCell = null; paint(); } }, "查看该季度市场与产品缺口")
+    ]), "bp-quarter-impact-panel");
   }
 
   function monthlyRows() {
