@@ -1,5 +1,28 @@
 # Prototype Tracker Project Notes
 
+## 2026-08-10 Marketing Asset Save Reliability
+
+- Traced Ivy's apparently unresponsive `保存更新` action to a frontend commit
+  contract rather than a role denial. Ivy has the `marketing_growth` functional
+  role, recent `save_workspace_document` calls returned HTTP 200, and the shared
+  marketing document contains her latest successful updates.
+- Marketing Asset draft autosave is now explicitly personal and account-scoped.
+  Its status says `个人草稿已保存`; it does not claim that shared team data has
+  been committed and it remains outside the cloud document allowlist.
+- Explicit saves now enter a disabled `正在同步` state and await both
+  `marketingAssets.v1` and its `projectTrackingData.v1` linkage. The modal closes
+  only after confirmed team synchronization. Errors keep the modal and personal
+  draft open, explain the failure inline, and expose a `重试保存` action.
+- Cloud sync now exposes an awaitable per-document flush result while retaining
+  the existing outbox, bounded retry and conflict-resolution behavior. No
+  database schema, permission row, role assignment or existing business record
+  is rewritten by this implementation.
+- Local verification passes 74 test files / 415 tests, TypeScript, the
+  PostgreSQL-targeted Vercel build, copy-scope validation, source/generated shell
+  parity and `git diff --check`. Headless Chrome verifies an ordinary Ivy member
+  with `marketing_growth`: busy feedback, confirmed success, failure retention,
+  refresh-restored personal draft and successful retry all pass.
+
 ## 2026-08-10 BP Annual And Quarterly Integrated Achievement
 
 - Reworked only `BP达成 / 综合达成` into a fixed annual operating cockpit
