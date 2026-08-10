@@ -105,6 +105,13 @@ export function PlatformShell({
     function handleModuleMessage(event: MessageEvent) {
       if (event.origin !== window.location.origin) return;
       const payload = event.data as { type?: string; href?: string } | null;
+      if (payload?.type === "operations-platform:reauthenticate") {
+        const returnTo = `${window.location.pathname}${window.location.search}`;
+        window.location.assign(
+          `/auth/login?switchAccount=1&returnTo=${encodeURIComponent(returnTo)}`
+        );
+        return;
+      }
       if (payload?.type !== "operations-platform:navigate") return;
       if (!payload.href?.startsWith("/platform/")) return;
       router.push(payload.href);
@@ -297,8 +304,15 @@ export function PlatformShell({
                 className="native-platform-permissions"
                 href={permissionManagerHref}
                 prefetch={false}
-                onMouseEnter={() => session && router.prefetch(permissionManagerHref)}
-                onFocus={() => session && router.prefetch(permissionManagerHref)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  const returnTo = `${window.location.pathname}${window.location.search}`;
+                  router.push(
+                    `/platform/system/permissions?returnTo=${encodeURIComponent(returnTo)}`
+                  );
+                }}
+                onMouseEnter={() => session && router.prefetch("/platform/system/permissions")}
+                onFocus={() => session && router.prefetch("/platform/system/permissions")}
                 title={locale === "en-GB" ? "Open access management" : "打开权限管理"}
               >
                 {locale === "en-GB" ? "Access" : "权限管理"}
