@@ -165,7 +165,7 @@ const business: PlatformModuleDefinition[] = [
     descriptionZh: "经营目标、收入、利润与关键风险",
     descriptionEn: "Targets, revenue, profit and key risks",
     href: "/platform/business/overview",
-    embeddedSrc: "/platform/index.html?embedded=1#module=business-overview"
+    embeddedSrc: "/platform-native/index.html?embedded=1#module=overview"
   },
   {
     key: "bp",

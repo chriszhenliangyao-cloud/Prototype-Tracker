@@ -4,6 +4,14 @@
   await Promise.resolve(window.platformAuthReady);
 
   const modules = {
+    overview: {
+      groupZh: "经营管理",
+      groupEn: "Business Management",
+      titleZh: "经营总览",
+      titleEn: "Business Overview",
+      descriptionZh: "目标、执行、利润、现金与风险统一视图",
+      descriptionEn: "Unified view of targets, execution, profit, cash and risk"
+    },
     forecast: {
       groupZh: "计划与交付",
       groupEn: "Planning & Delivery",
@@ -116,7 +124,6 @@
     other: "/platform/collaboration/other-approvals",
     tasks: "/platform/collaboration/tasks",
     exceptions: "/platform/collaboration/exceptions",
-    overview: "/platform/business/overview",
     "value-chain": "/platform/business/value-chain/on-sale",
     settlement: "/platform/business/settlements",
     system: "/platform/system/master-data"

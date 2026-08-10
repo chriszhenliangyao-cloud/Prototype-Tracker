@@ -38,6 +38,10 @@ describe("BP annual and quarterly integrated overview", () => {
 
   it("defines responsive styles and keeps the native asset sync pipeline", () => {
     expect(sourceStyles).toContain(".bp-annual-cockpit");
+    expect(source).toContain('h("div.bp-annual-body"');
+    expect(sourceStyles).toContain(".bp-annual-body");
+    expect(sourceStyles).toContain("grid-template-columns: minmax(620px, 1.55fr) minmax(500px, 2.45fr)");
+    expect(source).toContain('"bp-quarter-panel"');
     expect(sourceStyles).toContain(".bp-quarter-detail-grid");
     expect(syncScript).toContain('resolve(nativeWorkspaceSourceRoot, "assets")');
     expect(syncScript).toContain('resolve(nativeWorkspaceDestination, "assets")');

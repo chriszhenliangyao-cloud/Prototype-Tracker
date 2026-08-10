@@ -19,6 +19,7 @@
       const moduleKey = hashParams.get("module") || "forecast";
       const logisticsView = hashParams.get("view") || "shipmentSummary";
       const routes = {
+        overview: "/platform/business/overview",
         forecast: "/platform/planning/forecast",
         shipmentSummary: "/platform/planning/logistics?view=shipmentSummary",
         shipment: "/platform/planning/logistics?view=shipment",
@@ -38,7 +39,7 @@
   <link rel="stylesheet" href="assets/shipment-summary.css?v=20260809-bp-context-5">
   <link rel="stylesheet" href="assets/functional-workspace.css?v=20260808-native-1">
   <link rel="stylesheet" href="assets/prototype-management.css?v=20260808-native-1">
-  <link rel="stylesheet" href="assets/business-workspaces.css?v=20260809-bp-chart-4">
+  <link rel="stylesheet" href="assets/business-workspaces.css?v=20260810-business-dashboard-1">
 </head>
 <body>
   <div class="app native-test-shell">
@@ -74,7 +75,7 @@
         <button class="nav-item platform-existing" type="button" data-existing-module="exceptions"><span class="lbl" data-i18n="exceptions">异常中心</span><span class="nav-badge red">12</span></button>
 
         <div class="nav-section" data-i18n="businessManagement">经营管理</div>
-        <button class="nav-item platform-existing" type="button" data-existing-module="overview"><span class="lbl" data-i18n="overview">经营总览</span></button>
+        <button class="nav-item" type="button" data-module="overview"><span class="lbl" data-i18n="overview">经营总览</span></button>
         <button class="nav-item" type="button" data-module="bp"><span class="lbl" data-i18n="bp">BP达成</span><span class="nav-tag" data-i18n="native">原生</span></button>
         <button class="nav-item" type="button" data-module="performance"><span class="lbl" data-i18n="performance">经营分析复盘</span><span class="nav-tag" data-i18n="native">原生</span></button>
         <button class="nav-item platform-existing" type="button" data-existing-module="value-chain"><span class="lbl" data-i18n="valueChain">价值链测算</span></button>
@@ -100,6 +101,7 @@
         <label class="mobile-module-picker">
           <span class="sr-only">选择模块</span>
           <select id="mobileModuleSelect" aria-label="选择测试模块">
+            <option value="overview">经营总览</option>
             <option value="forecast">预测管理</option>
             <option value="shipmentSummary">物流交付</option>
             <option value="bp">BP达成</option>
@@ -148,6 +150,7 @@
 
   <script>
     window.ROUTES = {
+      overview: { overline: "经营管理 · BUSINESS OVERVIEW" },
       forecast: { overline: "计划与交付 · FORECAST MANAGEMENT" },
       shipmentSummary: { overline: "计划与交付 · SHIPMENT OVERVIEW" },
       logistic: { overline: "计划与交付 · LOGISTICS DELIVERY" },
@@ -187,8 +190,9 @@
       "assets/logistic.js?v=20260808-sticky-header-2",
       "assets/shipment.js",
       "assets/shipment-summary.js?v=20260809-bp-context-5",
-      "assets/bp-achievement.js?v=20260809-bp-chart-4",
-      "assets/business-review.js?v=20260809-review-bp-2",
+      "assets/business-overview.js?v=20260810-business-dashboard-1",
+      "assets/bp-achievement.js?v=20260810-business-dashboard-1",
+      "assets/business-review.js?v=20260810-business-dashboard-1",
       "assets/functional-workspace.js?v=20260808-native-1",
       "assets/prototype-management.js?v=20260808-native-1",
       "assets/platform-shell.js"

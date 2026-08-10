@@ -586,10 +586,10 @@
     );
   }
 
-  function openActionDetail(index) {
+  function openActionDetail(index, draft) {
     const isNew = index < 0;
-    const item = isNew ? { title: "", source: "经营分析复盘", owner: "待分配", due: "待确认", status: "待处理", evidence: "待补充", detail: "" } : state.actions[index];
-    const overlay = S.overlay("drawer", { title: isNew ? "新增行动" : "编辑行动明细" });
+    const item = isNew ? { title: "", source: "经营分析复盘", owner: "待分配", due: "待确认", status: "待处理", evidence: "待补充", detail: "", ...(draft || {}) } : state.actions[index];
+    const overlay = S.overlay("drawer", { title: isNew ? draft ? "承接异常行动" : "新增行动" : "编辑行动明细" });
     overlay.panel.classList.add("bw-review-detail-drawer");
     const form = h("form.bw-review-detail-form", { onsubmit: (event) => event.preventDefault() }, [
       h("div.bw-review-detail-context", [
@@ -597,7 +597,7 @@
         h("div", [h("span", "同步规则"), h("b", "保存后同步行动摘要")])
       ]),
       reviewFormField("行动标题", h("input", { name: "title", value: item.title, required: true }), true),
-      reviewFormField("来源模块", h("select", { name: "source" }, ["经营分析复盘", "BP达成", "预测管理", "物流交付", "结算台账", "项目跟进"].map((value) => h("option", { value, selected: value === item.source }, value)))),
+      reviewFormField("来源模块", h("select", { name: "source" }, ["经营分析复盘", "BP达成", "预测管理", "物流交付", "结算台账", "项目跟进", "营销物料"].map((value) => h("option", { value, selected: value === item.source }, value)))),
       reviewFormField("负责人", h("input", { name: "owner", value: item.owner })),
       reviewFormField("DDL", h("input", { name: "due", value: item.due })),
       reviewFormField("状态", h("select", { name: "status" }, ["待处理", "待确认", "进行中", "已完成"].map((value) => h("option", { value, selected: value === item.status }, value)))),
@@ -694,7 +694,16 @@
     workspace.append((views[state.tab] || overview)()); root.append(workspace);
   }
 
-  function render(target) { root = target; if (!state) init(); paint(); }
+  function render(target) {
+    root = target;
+    if (!state) init();
+    const context = S.consumeNavigationContext("performance");
+    if (context && context.view === "actions") state.tab = "action";
+    paint();
+    if (context && (context.create || context.draft)) {
+      window.requestAnimationFrame(() => openActionDetail(-1, context.draft || null));
+    }
+  }
 
   window.Modules = window.Modules || {};
   window.Modules.performance = { render };
