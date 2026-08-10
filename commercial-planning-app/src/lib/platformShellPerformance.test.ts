@@ -68,6 +68,7 @@ describe("commercial planning platform shell performance", () => {
     expect(moduleRegistry).toContain('href: "/platform/planning/forecast"');
     expect(moduleRegistry).toContain('?embedded=1#module=shipmentSummary');
     expect(moduleRegistry).toContain('href: "/platform/business/analysis"');
+    expect(moduleRegistry).toContain('activePrefix: "/platform/system"');
     expect(moduleRegistry).toContain('?embedded=1#module=bp');
     expect(moduleRegistry).toContain('?embedded=1#module=projects');
     expect(moduleRegistry).toContain('?embedded=1#module=forecast');
@@ -133,6 +134,7 @@ describe("commercial planning platform shell performance", () => {
     expect(platformShell).toContain("window.location.replace(initialNativeRoute)");
     expect(platformShell).toContain("persistPlatformNavigation({ replace: true });\n    renderApp();");
     expect(platformShell).toContain('get("permissions") === "1"');
+    expect(platformShell).toContain('get("permissionsOnly") === "1"');
     expect(platformShell).toContain("void loadMasterDataOptions().then(() => {");
   });
 

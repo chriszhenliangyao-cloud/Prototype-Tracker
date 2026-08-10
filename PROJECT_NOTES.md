@@ -1,5 +1,23 @@
 # Prototype Tracker Project Notes
 
+## 2026-08-10 Dedicated Permission Management Page
+
+- Moved the platform header `权限管理` entry from the Project Tracking URL to
+  the dedicated `/platform/system/permissions` route. The route is limited to
+  the platform owner, super admins and legacy owner/admin sessions.
+- The existing permission editor and cloud save APIs are reused in an isolated
+  same-origin mode. Project Tracking is no longer rendered behind the editor;
+  System Management stays highlighted and close, Escape or a successful save
+  returns to the module that opened permission management.
+- No database schema, role record, permission record or business record was
+  changed by this implementation. Only navigation and presentation ownership
+  changed.
+- Verification passes 68 test files / 391 tests, TypeScript, the Vercel
+  production build, copy-scope validation, source/generated shell parity and
+  `git diff --check`. Browser checks pass at 1440x1000 and 390x844 with no
+  document-level overflow; the standalone permission editor fills the module
+  area and its return navigation works.
+
 ## Current Goal
 
 Maintain and extend the bilingual operations collaboration platform. The latest native workspaces are now released as an authenticated read-only production pilot inside the unified cloud platform. Formal cloud modules and production records remain the source of truth until their corresponding native backend contracts pass authenticated UAT and explicit cutover acceptance.

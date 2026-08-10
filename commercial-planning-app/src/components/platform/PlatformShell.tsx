@@ -169,6 +169,7 @@ export function PlatformShell({
   }
 
   const sidebarHidden = sidebarCollapsed && desktopNavigation;
+  const permissionManagerHref = `/platform/system/permissions?returnTo=${encodeURIComponent(pathname)}`;
 
   return (
     <div
@@ -294,7 +295,10 @@ export function PlatformShell({
             {canOpenPermissionManager(session) ? (
               <Link
                 className="native-platform-permissions"
-                href="/platform/planning/projects?permissions=1"
+                href={permissionManagerHref}
+                prefetch={false}
+                onMouseEnter={() => session && router.prefetch(permissionManagerHref)}
+                onFocus={() => session && router.prefetch(permissionManagerHref)}
                 title={locale === "en-GB" ? "Open access management" : "打开权限管理"}
               >
                 {locale === "en-GB" ? "Access" : "权限管理"}
